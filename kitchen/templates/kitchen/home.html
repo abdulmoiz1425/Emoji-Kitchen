@@ -1,0 +1,575 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Emoji Kitchen — Mix Two Emojis into One</title>
+  <meta name="description" content="Emoji Kitchen helps you mix two emojis into one custom sticker. Choose two icons, view the result, then copy or download your favourite mashup — free, fast, no sign-up." />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍳</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'kitchen/css/style.css' %}" />
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ NAV ══ -->
+<header class="site-header" id="site-header">
+  <nav class="nav container">
+    <a class="nav__logo" href="#">
+      <span class="nav__logo-icon">🍳</span>
+      <span class="nav__logo-wordmark">Emoji <strong>Kitchen</strong></span>
+    </a>
+    <ul class="nav__links">
+      <li><a href="#kitchen">Try it</a></li>
+      <li><a href="#about">About</a></li>
+      <li><a href="#popular">Combos</a></li>
+      <li><a href="#how-to">How to use</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+    <button class="nav__cta btn btn--primary btn--sm" onclick="document.getElementById('kitchen').scrollIntoView({behavior:'smooth'})">
+      Open Kitchen 🍳
+    </button>
+    <button class="nav__hamburger" id="nav-hamburger" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  <div class="nav__drawer" id="nav-drawer" aria-hidden="true">
+    <a href="#kitchen"  class="nav__drawer-link" data-close-drawer>🍳 Try it</a>
+    <a href="#about"    class="nav__drawer-link" data-close-drawer>ℹ️ About</a>
+    <a href="#popular"  class="nav__drawer-link" data-close-drawer>🎨 Combos</a>
+    <a href="#how-to"   class="nav__drawer-link" data-close-drawer>📖 How to use</a>
+    <a href="#faq"      class="nav__drawer-link" data-close-drawer>❓ FAQ</a>
+  </div>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════ HERO ══ -->
+<section class="hero">
+  <div class="hero__particles" aria-hidden="true">
+    <span style="--x:7%;  --y:20%; --d:0s;   --s:2rem;">😀</span>
+    <span style="--x:88%; --y:14%; --d:.6s;  --s:2.2rem;">🐱</span>
+    <span style="--x:3%;  --y:68%; --d:1.3s; --s:1.7rem;">🔥</span>
+    <span style="--x:92%; --y:70%; --d:.3s;  --s:1.9rem;">❤️</span>
+    <span style="--x:16%; --y:87%; --d:.9s;  --s:1.5rem;">🌟</span>
+    <span style="--x:78%; --y:84%; --d:1.6s; --s:2.1rem;">🎉</span>
+    <span style="--x:48%; --y:7%;  --d:.4s;  --s:1.4rem;">🦊</span>
+    <span style="--x:30%; --y:77%; --d:1.1s; --s:1.8rem;">🍕</span>
+    <span style="--x:68%; --y:28%; --d:.7s;  --s:1.6rem;">🌈</span>
+    <span style="--x:55%; --y:92%; --d:1.9s; --s:1.3rem;">🐼</span>
+  </div>
+
+  <div class="container hero__inner">
+    <div class="hero__badge animate-up">
+      <span class="hero__badge-dot"></span>
+      Free · No sign-up · Instant results
+    </div>
+
+    <h1 class="hero__title animate-up" style="--delay:.08s">
+      Mix Two Emojis into<br>One <em class="text-gradient">Custom Sticker</em>
+    </h1>
+
+    <p class="hero__subtitle animate-up" style="--delay:.16s">
+      Do you ever need more than one emoji to show the right feeling? Emoji Kitchen helps you
+      mix two emojis into one custom sticker, giving your messages more personality without adding long text.
+    </p>
+
+    <div class="hero__demo animate-up" style="--delay:.24s">
+      <div class="hero__demo-slots">
+        <div class="demo-chip">🐱</div>
+        <span class="demo-math">+</span>
+        <div class="demo-chip">🔥</div>
+        <span class="demo-math">=</span>
+        <div class="demo-chip demo-chip--result">
+          <img src="https://www.gstatic.com/android/keyboard/emojikitchen/20201001/u1f431/u1f431_u1f525.png"
+               alt="Cat + Fire mashup"
+               onerror="this.parentElement.innerHTML='<span style=font-size:2.4rem>😼</span>'" />
+        </div>
+      </div>
+      <p class="hero__demo-hint">Choose two icons · View the result · Copy or download your favourite mashup</p>
+    </div>
+
+    <a href="#kitchen" class="btn btn--primary btn--hero animate-up" style="--delay:.32s">
+      Start Mixing 🍳
+    </a>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ STATS BAR ══ -->
+<div class="stats-bar">
+  <div class="container stats-bar__inner">
+    <div class="stat">
+      <span class="stat__value">10 K+</span>
+      <span class="stat__label">Emoji combos</span>
+    </div>
+    <div class="stat__sep"></div>
+    <div class="stat">
+      <span class="stat__value">Free</span>
+      <span class="stat__label">Always &amp; forever</span>
+    </div>
+    <div class="stat__sep"></div>
+    <div class="stat">
+      <span class="stat__value">Zero</span>
+      <span class="stat__label">Sign-up needed</span>
+    </div>
+    <div class="stat__sep"></div>
+    <div class="stat">
+      <span class="stat__value">PNG</span>
+      <span class="stat__label">Transparent files</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════ KITCHEN TOOL ══ -->
+<section class="section kitchen-section" id="kitchen">
+  <div class="container">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">🍳 Let's cook</span>
+      <h2>Create Your Emoji Combination</h2>
+      <p>Making a custom emoji mix takes only a few simple choices. Start with the feeling, object, animal, or symbol you want to show.</p>
+    </div>
+
+    <div class="mixer-card animate-up" style="--delay:.1s">
+      <div class="mixer">
+        <div class="mixer__slot-col">
+          <button class="mixer__slot" id="slot1" aria-label="Pick first emoji">
+            <span class="mixer__slot-emoji" id="slot1-emoji"></span>
+            <div class="mixer__slot-hint">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+              <span>Choose emoji</span>
+            </div>
+          </button>
+          <p class="mixer__slot-label">First emoji</p>
+        </div>
+        <span class="mixer__op">+</span>
+        <div class="mixer__slot-col">
+          <button class="mixer__slot" id="slot2" aria-label="Pick second emoji">
+            <span class="mixer__slot-emoji" id="slot2-emoji"></span>
+            <div class="mixer__slot-hint">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
+              <span>Choose emoji</span>
+            </div>
+          </button>
+          <p class="mixer__slot-label">Second emoji</p>
+        </div>
+        <span class="mixer__op">=</span>
+        <div class="mixer__slot-col">
+          <div class="mixer__result" id="mixer-result">
+            <div id="result-placeholder" class="result-state">
+              <span class="result-state__icon">🍳</span>
+              <span class="result-state__label">Your mashup<br>appears here</span>
+            </div>
+            <div id="result-loading" class="result-state" hidden>
+              <div class="dots-loader"><span></span><span></span><span></span></div>
+              <span class="result-state__label" style="margin-top:12px">Cooking…</span>
+            </div>
+            <img id="result-img" class="mixer__result-img" hidden alt="Emoji mashup" />
+            <div id="result-error" class="result-state" hidden>
+              <span class="result-state__icon">😕</span>
+              <span class="result-state__label">No combo found —<br>try another pair!</span>
+            </div>
+          </div>
+          <p class="mixer__slot-label">Your mashup</p>
+        </div>
+      </div>
+
+      <div class="mixer__divider"></div>
+
+      <div class="mixer__actions">
+        <div class="mixer__actions-group mixer__actions-group--left">
+          <button class="btn btn--ghost" id="btn-surprise">🎲 Surprise me</button>
+          <button class="btn btn--ghost" id="btn-reset">↺ Reset</button>
+        </div>
+        <div class="mixer__actions-group mixer__actions-group--right">
+          <button class="btn btn--outline" id="btn-copy" disabled>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            Copy Emojis
+          </button>
+          <button class="btn btn--primary" id="btn-download" disabled>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Download PNG
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- My Combos -->
+    <div class="my-combos" id="my-combos" hidden>
+      <div class="my-combos__header">
+        <div class="my-combos__title-row">
+          <span class="my-combos__icon">⭐</span>
+          <h3 class="my-combos__title">My Combos</h3>
+          <span class="my-combos__count" id="combos-count">0</span>
+        </div>
+        <div class="my-combos__header-actions">
+          <p class="my-combos__hint">Click any combo to reload it in the mixer</p>
+          <button class="btn btn--ghost btn--sm" id="btn-clear-combos">Clear all</button>
+        </div>
+      </div>
+      <div class="combos-grid" id="combos-grid"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ CREATE STEPS ══ -->
+<section class="section create-section">
+  <div class="container">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">🪄 Simple process</span>
+      <h2>Three steps to your perfect sticker</h2>
+      <p>No editing skills needed. Pick, mix, and share in seconds.</p>
+    </div>
+
+    <div class="create-steps">
+      {% for step in create_steps %}
+      <div class="create-step animate-up" style="--delay:{{ forloop.counter0 }}00ms">
+        <div class="create-step__top">
+          <div class="create-step__num">{{ step.num }}</div>
+          <div class="create-step__icon">{{ step.icon }}</div>
+        </div>
+        <h3 class="create-step__title">{{ step.title }}</h3>
+        <p class="create-step__desc">{{ step.description }}</p>
+      </div>
+      {% if not forloop.last %}
+      <div class="create-step__arrow" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+      </div>
+      {% endif %}
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ ABOUT ══ -->
+<section class="section about-section" id="about">
+  <div class="container">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">🧑‍🍳 What it is</span>
+      <h2>What Is an Emoji Kitchen?</h2>
+      <p>A Google feature that mixes compatible emojis into custom stickers — available right in your browser.</p>
+    </div>
+
+    <div class="about-section__inner">
+      <div class="about-section__text animate-up">
+        <p>
+          Emoji Kitchen is a Google feature that mixes compatible emojis into custom stickers.
+          Instead of sending two separate symbols, users can share one picture that blends both
+          ideas into a single visual reaction.
+        </p>
+        <p>
+          Google first introduced the feature through Gboard on Android. It is also available
+          through Google Search, giving more users a way to make combinations from a phone,
+          tablet, or computer browser.
+        </p>
+        <p>
+          The results are sticker-style pictures, not new standard emojis. They may send as
+          images inside messages, which helps the design stay clear across many apps and devices.
+        </p>
+        <a href="#kitchen" class="btn btn--primary" style="margin-top:8px">Try it now →</a>
+      </div>
+
+      <div class="about-section__right animate-up" style="--delay:.12s">
+        <!-- Comparison table -->
+        <div class="compare-table">
+          <div class="compare-table__head">
+            <div class="compare-col compare-col--std">
+              <span class="compare-col__icon">📱</span>
+              <span>Standard Emoji</span>
+            </div>
+            <div class="compare-col compare-col--kit">
+              <span class="compare-col__icon">🍳</span>
+              <span>Custom Sticker Mix</span>
+            </div>
+          </div>
+          {% for row in comparison_rows %}
+          <div class="compare-table__row">
+            <div class="compare-cell compare-cell--std">{{ row.0 }}</div>
+            <div class="compare-cell compare-cell--kit">{{ row.1 }}</div>
+          </div>
+          {% endfor %}
+        </div>
+
+        <!-- Visual demo -->
+        <div class="about-visual">
+          <div class="about-visual__combo">
+            <div class="about-visual__chip">🐱</div>
+            <span>+</span>
+            <div class="about-visual__chip">🔥</div>
+          </div>
+          <div class="about-visual__arrow">↓</div>
+          <div class="about-visual__result">
+            <img src="https://www.gstatic.com/android/keyboard/emojikitchen/20201001/u1f431/u1f431_u1f525.png"
+                 alt="Cat fire mashup"
+                 onerror="this.outerHTML='<span style=font-size:3.5rem>😼</span>'" />
+          </div>
+          <p class="about-visual__caption">A genuinely new character — not just two emojis side by side</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ POPULAR COMBOS ══ -->
+<section class="section popular-section" id="popular">
+  <div class="container">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">🔥 Trending</span>
+      <h2>Popular Emoji Kitchen Combinations</h2>
+      <p>Popular mixes often join clear feelings with familiar animals, foods, hearts, stars, or objects — easy to understand and great for quick replies.</p>
+    </div>
+
+    <div class="popular-grid">
+      {% for combo in popular_combos %}
+      <article class="popular-card animate-up" style="--delay:{{ forloop.counter0 }}00ms">
+        <div class="popular-card__top" style="background:{{ combo.bg }};border-color:{{ combo.border }}">
+          <div class="popular-card__icon-wrap">
+            <span class="popular-card__icon">{{ combo.icon }}</span>
+          </div>
+          <div class="popular-card__examples">
+            {% for ex in combo.examples %}
+            <span class="popular-card__ex">{{ ex }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        <div class="popular-card__body">
+          <h3 class="popular-card__title">{{ combo.title }}</h3>
+          <p class="popular-card__desc">{{ combo.description }}</p>
+          <a href="#kitchen" class="popular-card__cta">Try this style →</a>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════ FEATURES ══ -->
+<section class="section features-section">
+  <div class="container">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">✨ Why choose us</span>
+      <h2>Why Use Our Emoji Kitchen Tool?</h2>
+      <p>Our tool gives users a simple way to mix emojis without moving through several menus. Test combinations, view sticker results, and save your favourites from one browser page.</p>
+    </div>
+
+    <div class="features-grid">
+      {% for feature in features %}
+      <article class="feature-card animate-up" style="--delay:{{ forloop.counter0 }}00ms">
+        <div class="feature-card__icon-wrap">
+          <span>{{ feature.icon }}</span>
+        </div>
+        <h3>{{ feature.title }}</h3>
+        <p>{{ feature.description }}</p>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════ HOW TO USE ══ -->
+<section class="section how-to-section" id="how-to">
+  <div class="container">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">📖 Getting started</span>
+      <h2>How to Use Emoji Kitchen</h2>
+      <p>You only need two emoji choices and a few seconds. Select a pair, check the result, then copy or share the sticker wherever you want to use it.</p>
+    </div>
+
+    <div class="how-to-grid">
+      <div class="how-to-card animate-up">
+        <div class="how-to-card__head">
+          <div class="how-to-card__icon">🌐</div>
+          <h3>On the web</h3>
+        </div>
+        <ol class="how-to-steps">
+          {% for step in how_to_web %}
+          <li>
+            <span class="step-num">{{ forloop.counter }}</span>
+            <span>{{ step }}</span>
+          </li>
+          {% endfor %}
+        </ol>
+      </div>
+
+      <div class="how-to-card animate-up" style="--delay:.12s">
+        <div class="how-to-card__head">
+          <div class="how-to-card__icon">📱</div>
+          <h3>On Android &amp; Gboard</h3>
+        </div>
+        <ol class="how-to-steps">
+          {% for step in how_to_phone %}
+          <li>
+            <span class="step-num">{{ forloop.counter }}</span>
+            <span>{{ step }}</span>
+          </li>
+          {% endfor %}
+        </ol>
+        <p class="how-to-card__note">
+          💡 Not every pair will produce a result. Try changing one emoji, using a common face, or selecting a simple symbol when a sticker does not appear.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════ SHARE WITH FRIENDS ══ -->
+<section class="share-section">
+  <div class="container share-section__inner">
+    <div class="share-section__text animate-up">
+      <span class="section-badge section-badge--light">📤 Spread the fun</span>
+      <h2>Share Emoji Kitchen Stickers with Friends</h2>
+      <p>
+        Custom stickers can add more meaning to messages when plain text feels too flat. A mashup
+        can show a joke, a shared memory, a kind reply, or a reaction that one emoji cannot express alone.
+      </p>
+      <p>
+        You can share stickers in private chats, group messages, social posts, or image-based apps.
+        Check the preview before sending so the combination fits the tone of the conversation.
+      </p>
+      <div class="share-section__actions">
+        <a href="#kitchen" class="btn btn--light">Start Mixing 🍳</a>
+        <div class="share-section__platforms">
+          <span title="WhatsApp">💬</span>
+          <span title="Telegram">✈️</span>
+          <span title="Instagram">📸</span>
+          <span title="iMessage">🍎</span>
+          <span title="Discord">🎮</span>
+        </div>
+      </div>
+    </div>
+    <div class="share-section__visual animate-up" style="--delay:.12s" aria-hidden="true">
+      <div class="share-bubbles">
+        <div class="share-bubble share-bubble--left">
+          <img src="https://www.gstatic.com/android/keyboard/emojikitchen/20201001/u1f431/u1f431_u1f525.png"
+               alt="" onerror="this.outerHTML='<span>😼</span>'" />
+        </div>
+        <div class="share-bubble share-bubble--right">
+          <img src="https://www.gstatic.com/android/keyboard/emojikitchen/20201001/u1f436/u1f436_u2764.png"
+               alt="" onerror="this.outerHTML='<span>🐶❤️</span>'" />
+        </div>
+        <div class="share-bubble share-bubble--left share-bubble--sm">
+          <img src="https://www.gstatic.com/android/keyboard/emojikitchen/20201001/u1f600/u1f600_u1f31f.png"
+               alt="" onerror="this.outerHTML='<span>🌟</span>'" />
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════════ BLOG ══ -->
+<section class="section blog-section">
+  <div class="container">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">📝 Fresh reads</span>
+      <h2>From the blog</h2>
+      <p>Tips, tricks, and fun discoveries from the Emoji Kitchen team.</p>
+    </div>
+
+    <div class="blog-grid">
+      {% for post in blog_posts %}
+      <article class="blog-card animate-up" style="--delay:{{ forloop.counter0 }}00ms">
+        <div class="blog-card__cover" style="background:{{ post.bg_color }}">
+          <span class="blog-card__cover-emoji">{{ post.emoji_header }}</span>
+        </div>
+        <div class="blog-card__body">
+          <span class="blog-card__tag blog-card__tag--{{ post.category|lower }}">{{ post.category }}</span>
+          <h3 class="blog-card__title">{{ post.title }}</h3>
+          <p class="blog-card__desc">{{ post.description }}</p>
+          <div class="blog-card__footer">
+            <span class="blog-card__readtime">{{ post.read_time }}</span>
+            {% if post.coming_soon %}
+            <span class="blog-card__soon">Coming soon</span>
+            {% endif %}
+          </div>
+        </div>
+      </article>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ FAQ ══ -->
+<section class="section faq-section" id="faq">
+  <div class="container">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">❓ Help &amp; support</span>
+      <h2>Emoji Kitchen FAQs</h2>
+      <p>Everything you need to know about using Emoji Kitchen.</p>
+    </div>
+
+    <div class="faq-list">
+      {% for item in faqs %}
+      <details class="faq-item animate-up" style="--delay:{{ forloop.counter0 }}0ms">
+        <summary class="faq-item__q">
+          <span>{{ item.question }}</span>
+          <span class="faq-item__chevron">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </summary>
+        <div class="faq-item__a">
+          <p>{{ item.answer }}</p>
+        </div>
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════ FOOTER ══ -->
+<footer class="site-footer">
+  <div class="footer__top container">
+    <div class="footer__brand">
+      <div class="footer__logo">
+        <span>🍳</span>
+        <span>Emoji <strong>Kitchen</strong></span>
+      </div>
+      <p class="footer__tagline">Mix two emojis.<br>Cook one delicious mashup.</p>
+    </div>
+    <nav class="footer__nav" aria-label="Footer navigation">
+      <h4>Quick links</h4>
+      <ul>
+        <li><a href="#kitchen">Try the Kitchen</a></li>
+        <li><a href="#about">About</a></li>
+        <li><a href="#popular">Popular Combos</a></li>
+        <li><a href="#how-to">How to use</a></li>
+        <li><a href="#faq">FAQ</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="footer__bottom container">
+    <p>Made with ♥ in the kitchen · Mashup art by <a href="https://blog.google/products/android/emoji-kitchen-new-mashups-mixing-experience/" target="_blank" rel="noopener noreferrer">Google Emoji Kitchen</a></p>
+    <p class="footer__sub">A rebuilt, faster, friendlier emoji mixer.</p>
+  </div>
+</footer>
+
+<!-- ═══════════════════════════════════════ EMOJI PICKER MODAL ══ -->
+<div class="modal-overlay" id="picker-overlay" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+    <div class="modal__header">
+      <div class="modal__header-left">
+        <span class="modal__header-icon">🍳</span>
+        <h3 id="modal-title">Pick an emoji</h3>
+      </div>
+      <button class="modal__close" id="picker-close" aria-label="Close picker">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+    <div class="modal__search">
+      <div class="picker__search-row">
+        <svg class="picker__search-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="search" id="emoji-search" class="picker__search" placeholder="Search emojis…" autocomplete="off" />
+      </div>
+    </div>
+    <div class="picker__tabs" id="picker-tabs" role="tablist"></div>
+    <div class="picker__grid"  id="picker-grid"  role="listbox" aria-label="Emoji list"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════ TOAST ══ -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span id="toast-icon">✅</span>
+  <span id="toast-msg">Done!</span>
+</div>
+
+<script src="{% static 'kitchen/js/main.js' %}"></script>
+</body>
+</html>
