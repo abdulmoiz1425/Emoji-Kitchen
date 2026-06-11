@@ -1,48 +1,10 @@
+{% extends 'kitchen/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Emoji Kitchen — Mix Two Emojis into One</title>
-  <meta name="description" content="Emoji Kitchen helps you mix two emojis into one custom sticker. Choose two icons, view the result, then copy or download your favourite mashup — free, fast, no sign-up." />
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍳</text></svg>" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{% static 'kitchen/css/style.css' %}" />
-</head>
-<body>
 
-<!-- ═══════════════════════════════════════════════════════════ NAV ══ -->
-<header class="site-header" id="site-header">
-  <nav class="nav container">
-    <a class="nav__logo" href="#">
-      <span class="nav__logo-icon">🍳</span>
-      <span class="nav__logo-wordmark">Emoji <strong>Kitchen</strong></span>
-    </a>
-    <ul class="nav__links">
-      <li><a href="#kitchen">Try it</a></li>
-      <li><a href="#about">About</a></li>
-      <li><a href="#popular">Combos</a></li>
-      <li><a href="#how-to">How to use</a></li>
-      <li><a href="#faq">FAQ</a></li>
-    </ul>
-    <button class="nav__cta btn btn--primary btn--sm" onclick="document.getElementById('kitchen').scrollIntoView({behavior:'smooth'})">
-      Open Kitchen 🍳
-    </button>
-    <button class="nav__hamburger" id="nav-hamburger" aria-label="Toggle menu" aria-expanded="false">
-      <span></span><span></span><span></span>
-    </button>
-  </nav>
-  <div class="nav__drawer" id="nav-drawer" aria-hidden="true">
-    <a href="#kitchen"  class="nav__drawer-link" data-close-drawer>🍳 Try it</a>
-    <a href="#about"    class="nav__drawer-link" data-close-drawer>ℹ️ About</a>
-    <a href="#popular"  class="nav__drawer-link" data-close-drawer>🎨 Combos</a>
-    <a href="#how-to"   class="nav__drawer-link" data-close-drawer>📖 How to use</a>
-    <a href="#faq"      class="nav__drawer-link" data-close-drawer>❓ FAQ</a>
-  </div>
-</header>
+{% block title %}Emoji Kitchen — Mix Two Emojis into One{% endblock %}
+{% block meta_description %}Emoji Kitchen helps you mix two emojis into one custom sticker. Choose two icons, view the result, then copy or download your favourite mashup — free, fast, no sign-up.{% endblock %}
+
+{% block content %}
 
 <!-- ══════════════════════════════════════════════════════════ HERO ══ -->
 <section class="hero">
@@ -211,7 +173,7 @@
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════════ CREATE STEPS ══ -->
+<!-- ══════════════════════════════════════════════════════ CREATE STEPS ══ -->
 <section class="section create-section">
   <div class="container">
     <div class="section-head section-head--center animate-up">
@@ -240,7 +202,7 @@
   </div>
 </section>
 
-<!-- ════════════════════════════════════════════════════════ ABOUT ══ -->
+<!-- ════════════════════════════════════════════════════════════ ABOUT ══ -->
 <section class="section about-section" id="about">
   <div class="container">
     <div class="section-head section-head--center animate-up">
@@ -309,7 +271,7 @@
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════════ POPULAR COMBOS ══ -->
+<!-- ══════════════════════════════════════════════════════ POPULAR COMBOS ══ -->
 <section class="section popular-section" id="popular">
   <div class="container">
     <div class="section-head section-head--center animate-up">
@@ -342,7 +304,7 @@
   </div>
 </section>
 
-<!-- ════════════════════════════════════════════════════ FEATURES ══ -->
+<!-- ══════════════════════════════════════════════════════ FEATURES ══ -->
 <section class="section features-section">
   <div class="container">
     <div class="section-head section-head--center animate-up">
@@ -365,7 +327,7 @@
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════════════ HOW TO USE ══ -->
+<!-- ══════════════════════════════════════════════════════════ HOW TO USE ══ -->
 <section class="section how-to-section" id="how-to">
   <div class="container">
     <div class="section-head section-head--center animate-up">
@@ -411,7 +373,7 @@
   </div>
 </section>
 
-<!-- ══════════════════════════════════════════ SHARE WITH FRIENDS ══ -->
+<!-- ══════════════════════════════════════════════ SHARE WITH FRIENDS ══ -->
 <section class="share-section">
   <div class="container share-section__inner">
     <div class="share-section__text animate-up">
@@ -436,8 +398,8 @@
         </div>
       </div>
     </div>
-    <div class="share-section__visual animate-up" style="--delay:.12s" aria-hidden="true">
-      <div class="share-bubbles">
+    <div class="share-section__visual animate-up" style="--delay:.12s">
+      <div class="share-bubbles" aria-hidden="true">
         <div class="share-bubble share-bubble--left">
           <img src="https://www.gstatic.com/android/keyboard/emojikitchen/20201001/u1f431/u1f431_u1f525.png"
                alt="" onerror="this.outerHTML='<span>😼</span>'" />
@@ -451,43 +413,17 @@
                alt="" onerror="this.outerHTML='<span>🌟</span>'" />
         </div>
       </div>
+      <div class="share-showcase">
+        <img src="{% static 'kitchen/img/mashups/cherry-blossom-smiling-hearts-emoji-mashup.png' %}"
+             alt="Cherry blossom and smiling face with hearts emoji mashup sticker"
+             width="180" height="180" loading="lazy" />
+        <p class="share-showcase__caption">Your custom mashup, ready to send 💌</p>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ════════════════════════════════════════════════════════ BLOG ══ -->
-<section class="section blog-section">
-  <div class="container">
-    <div class="section-head section-head--center animate-up">
-      <span class="section-badge">📝 Fresh reads</span>
-      <h2>From the blog</h2>
-      <p>Tips, tricks, and fun discoveries from the Emoji Kitchen team.</p>
-    </div>
-
-    <div class="blog-grid">
-      {% for post in blog_posts %}
-      <article class="blog-card animate-up" style="--delay:{{ forloop.counter0 }}00ms">
-        <div class="blog-card__cover" style="background:{{ post.bg_color }}">
-          <span class="blog-card__cover-emoji">{{ post.emoji_header }}</span>
-        </div>
-        <div class="blog-card__body">
-          <span class="blog-card__tag blog-card__tag--{{ post.category|lower }}">{{ post.category }}</span>
-          <h3 class="blog-card__title">{{ post.title }}</h3>
-          <p class="blog-card__desc">{{ post.description }}</p>
-          <div class="blog-card__footer">
-            <span class="blog-card__readtime">{{ post.read_time }}</span>
-            {% if post.coming_soon %}
-            <span class="blog-card__soon">Coming soon</span>
-            {% endif %}
-          </div>
-        </div>
-      </article>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════════════════════════════════════════════ FAQ ══ -->
+<!-- ══════════════════════════════════════════════════════════════ FAQ ══ -->
 <section class="section faq-section" id="faq">
   <div class="container">
     <div class="section-head section-head--center animate-up">
@@ -514,33 +450,9 @@
   </div>
 </section>
 
-<!-- ════════════════════════════════════════════════════ FOOTER ══ -->
-<footer class="site-footer">
-  <div class="footer__top container">
-    <div class="footer__brand">
-      <div class="footer__logo">
-        <span>🍳</span>
-        <span>Emoji <strong>Kitchen</strong></span>
-      </div>
-      <p class="footer__tagline">Mix two emojis.<br>Cook one delicious mashup.</p>
-    </div>
-    <nav class="footer__nav" aria-label="Footer navigation">
-      <h4>Quick links</h4>
-      <ul>
-        <li><a href="#kitchen">Try the Kitchen</a></li>
-        <li><a href="#about">About</a></li>
-        <li><a href="#popular">Popular Combos</a></li>
-        <li><a href="#how-to">How to use</a></li>
-        <li><a href="#faq">FAQ</a></li>
-      </ul>
-    </nav>
-  </div>
-  <div class="footer__bottom container">
-    <p>Made with ♥ in the kitchen · Mashup art by <a href="https://blog.google/products/android/emoji-kitchen-new-mashups-mixing-experience/" target="_blank" rel="noopener noreferrer">Google Emoji Kitchen</a></p>
-    <p class="footer__sub">A rebuilt, faster, friendlier emoji mixer.</p>
-  </div>
-</footer>
+{% endblock %}
 
+{% block modals %}
 <!-- ═══════════════════════════════════════ EMOJI PICKER MODAL ══ -->
 <div class="modal-overlay" id="picker-overlay" hidden>
   <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
@@ -563,13 +475,8 @@
     <div class="picker__grid"  id="picker-grid"  role="listbox" aria-label="Emoji list"></div>
   </div>
 </div>
+{% endblock %}
 
-<!-- ══════════════════════════════════════════════════ TOAST ══ -->
-<div class="toast" id="toast" role="status" aria-live="polite">
-  <span id="toast-icon">✅</span>
-  <span id="toast-msg">Done!</span>
-</div>
-
+{% block extra_scripts %}
 <script src="{% static 'kitchen/js/main.js' %}"></script>
-</body>
-</html>
+{% endblock %}

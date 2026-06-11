@@ -1,6 +1,8 @@
 import requests
-from django.shortcuts import render
-from django.http import JsonResponse, HttpResponse
+from django.shortcuts import render, get_object_or_404
+from django.http import JsonResponse, HttpResponse, Http404
+
+from .models import BlogPost
 
 
 # ── Static content ────────────────────────────────────────────────────────────
@@ -41,36 +43,6 @@ FAQS = [
     {
         'question': 'Can I share the stickers in messages?',
         'answer': 'Yes. You can copy, download, or send the sticker through apps that support pictures or Gboard sticker sharing.',
-    },
-]
-
-BLOG_POSTS = [
-    {
-        'category': 'GUIDE',
-        'title': "10 emoji combos people can't stop sending",
-        'description': "A round-up of the most-loved mashups and the moods they're perfect for.",
-        'read_time': '5 min read',
-        'emoji_header': '🔥❤️',
-        'coming_soon': True,
-        'bg_color': '#F5E6D3',
-    },
-    {
-        'category': 'HOW-TO',
-        'title': 'Using Emoji Kitchen on WhatsApp & iMessage',
-        'description': 'Step-by-step setup so your custom stickers work in every chat app.',
-        'read_time': '4 min read',
-        'emoji_header': '📱✨',
-        'coming_soon': True,
-        'bg_color': '#D3E8E8',
-    },
-    {
-        'category': 'FUN',
-        'title': 'The weirdest mashups we found this week',
-        'description': 'Some combos are adorable, some are chaos. Here are our favourites.',
-        'read_time': '3 min read',
-        'emoji_header': '🐱🍰',
-        'coming_soon': True,
-        'bg_color': '#E0D3F0',
     },
 ]
 
@@ -191,7 +163,6 @@ COMPARISON_ROWS = [
 def home(request):
     context = {
         'faqs': FAQS,
-        'blog_posts': BLOG_POSTS,
         'features': FEATURES,
         'create_steps': CREATE_STEPS,
         'popular_combos': POPULAR_COMBOS,
@@ -200,6 +171,38 @@ def home(request):
         'comparison_rows': COMPARISON_ROWS,
     }
     return render(request, 'kitchen/home.html', context)
+
+
+def blog(request):
+    posts = BlogPost.objects.visible().select_related('category').prefetch_related('tags')
+    featured_post = posts.filter(is_featured=True).first()
+    other_posts = posts.exclude(pk=featured_post.pk) if featured_post else posts
+    context = {
+        'featured_post': featured_post,
+        'blog_posts': other_posts,
+    }
+    return render(request, 'kitchen/blog.html', context)
+
+
+def blog_detail(request, slug):
+    post = get_object_or_404(
+        BlogPost.objects.select_related('category').prefetch_related('tags'),
+        slug=slug,
+    )
+    if not post.is_visible:
+        raise Http404('Post not found')
+
+    related_posts = BlogPost.objects.none()
+    if post.category:
+        related_posts = (
+            BlogPost.objects.visible()
+            .filter(category=post.category)
+            .exclude(pk=post.pk)
+            .select_related('category')[:3]
+        )
+
+    context = {'post': post, 'related_posts': related_posts}
+    return render(request, 'kitchen/blog_detail.html', context)
 
 
 def get_combo(request):

@@ -169,7 +169,7 @@ function loadSavedCombo(combo) {
   btnDownload.disabled = false;
   // Scroll mixer into view and confirm
   document.getElementById('kitchen').scrollIntoView({ behavior: 'smooth', block: 'center' });
-  showToast('Combo loaded into the mixer!', '🍳');
+  window.showToast('Combo loaded into the mixer!', '🍳');
 }
 
 function renderCombos() {
@@ -246,21 +246,6 @@ const btnSurprise  = document.getElementById('btn-surprise');
 const btnReset     = document.getElementById('btn-reset');
 const btnCopy      = document.getElementById('btn-copy');
 const btnDownload  = document.getElementById('btn-download');
-
-// ── Toast ─────────────────────────────────────────────────────────────────
-const toastEl  = document.getElementById('toast');
-const toastMsg = document.getElementById('toast-msg');
-const toastIco = document.getElementById('toast-icon');
-let toastTimer;
-
-function showToast(msg, icon = '✅', isError = false) {
-  clearTimeout(toastTimer);
-  toastMsg.textContent = msg;
-  toastIco.textContent = icon;
-  toastEl.classList.toggle('toast--error', isError);
-  toastEl.classList.add('show');
-  toastTimer = setTimeout(() => toastEl.classList.remove('show'), 2800);
-}
 
 // ── Picker open/close ─────────────────────────────────────────────────────
 function openPicker(slot) {
@@ -404,15 +389,15 @@ async function cookCombo() {
         (c.emoji1 === slot2Emoji && c.emoji2 === slot1Emoji)
       );
       saveCombo(slot1Emoji, slot2Emoji, validUrl);
-      if (isNew) showToast('Saved to My Combos!', '⭐');
+      if (isNew) window.showToast('Saved to My Combos!', '⭐');
     } else {
       showState('error');
-      showToast("Combo not found — try another pair!", '😕', true);
+      window.showToast("Combo not found — try another pair!", '😕', true);
     }
   } catch (err) {
     console.error(err);
     showState('error');
-    showToast("Something went wrong. Please try again.", '⚠️', true);
+    window.showToast("Something went wrong. Please try again.", '⚠️', true);
   }
 }
 
@@ -487,7 +472,7 @@ btnDownload.addEventListener('click', () => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
-  showToast('Downloading your mashup!', '⬇️');
+  window.showToast('Downloading your mashup!', '⬇️');
 });
 
 // ── Copy emojis as text ───────────────────────────────────────────────────
@@ -496,7 +481,7 @@ btnCopy.addEventListener('click', () => {
   const text = slot1Emoji + slot2Emoji;
   if (navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(text)
-      .then(() => showToast(`${text} copied — paste anywhere!`, '✅'))
+      .then(() => window.showToast(`${text} copied — paste anywhere!`, '✅'))
       .catch(() => fallbackCopy(text));
   } else {
     fallbackCopy(text);
@@ -511,68 +496,18 @@ function fallbackCopy(text) {
   ta.select();
   try {
     document.execCommand('copy');
-    showToast(`${text} copied — paste anywhere!`, '✅');
+    window.showToast(`${text} copied — paste anywhere!`, '✅');
   } catch {
-    showToast('Copy failed — try selecting the emojis manually', '⚠️', true);
+    window.showToast('Copy failed — try selecting the emojis manually', '⚠️', true);
   }
   document.body.removeChild(ta);
 }
-
-// ── FAQ: one open at a time ────────────────────────────────────────────────
-document.querySelectorAll('.faq-item').forEach(details => {
-  details.addEventListener('toggle', () => {
-    if (details.open) {
-      document.querySelectorAll('.faq-item').forEach(d => {
-        if (d !== details) d.removeAttribute('open');
-      });
-    }
-  });
-});
-
-// ── Mobile nav hamburger ──────────────────────────────────────────────────
-const hamburger = document.getElementById('nav-hamburger');
-const drawer    = document.getElementById('nav-drawer');
-
-hamburger?.addEventListener('click', () => {
-  const isOpen = hamburger.classList.toggle('open');
-  drawer.classList.toggle('open', isOpen);
-  hamburger.setAttribute('aria-expanded', isOpen);
-  drawer.setAttribute('aria-hidden', !isOpen);
-});
-
-// Close drawer on link click
-document.querySelectorAll('[data-close-drawer]').forEach(link => {
-  link.addEventListener('click', () => {
-    hamburger.classList.remove('open');
-    drawer.classList.remove('open');
-    hamburger.setAttribute('aria-expanded', 'false');
-    drawer.setAttribute('aria-hidden', 'true');
-  });
-});
-
-// ── Sticky nav shadow ─────────────────────────────────────────────────────
-const siteHeader = document.getElementById('site-header');
-window.addEventListener('scroll', () => {
-  siteHeader.classList.toggle('scrolled', window.scrollY > 8);
-}, { passive: true });
-
-// ── Scroll-in animations (Intersection Observer) ──────────────────────────
-const animObserver = new IntersectionObserver(entries => {
-  entries.forEach(entry => {
-    if (entry.isIntersecting) {
-      entry.target.classList.add('visible');
-      animObserver.unobserve(entry.target);
-    }
-  });
-}, { threshold: 0.12 });
-
-document.querySelectorAll('.animate-up').forEach(el => animObserver.observe(el));
 
 // ── Clear-all button ──────────────────────────────────────────────────────
 document.getElementById('btn-clear-combos')?.addEventListener('click', () => {
   if (confirm('Remove all saved combos?')) {
     clearAllCombos();
-    showToast('All combos cleared', '🗑️');
+    window.showToast('All combos cleared', '🗑️');
   }
 });
 
