@@ -18,10 +18,6 @@ media/
 .DS_Store
 
 
-
+git 
 kitchen/migrations/
 kitchen/static/kitchen/img/
-kitchen/static/kitchen/js/site.js
-kitchen/templates/kitchen/base.html
-kitchen/templates/kitchen/blog.html
-kitchen/templates/kitchen/blog_detail.html

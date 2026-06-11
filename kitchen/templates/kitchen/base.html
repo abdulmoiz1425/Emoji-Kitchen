@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Emoji Kitchen — Mix Two Emojis into One{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Emoji Kitchen helps you mix two emojis into one custom sticker. Choose two icons, view the result, then copy or download your favourite mashup — free, fast, no sign-up.{% endblock %}" />
+  <meta name="google-site-verification" content="b8jKIKep5Kcw_yM_JuG86-J0yiv4-H5CfNd5BoUsmBc" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍳</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{% static 'kitchen/css/style.css' %}" />
+  {% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════ NAV ══== -->
+<header class="site-header" id="site-header">
+  <nav class="nav container">
+    <a class="nav__logo" href="{% url 'home' %}">
+      <span class="nav__logo-icon">🍳</span>
+      <span class="nav__logo-wordmark">Emoji <strong>Kitchen</strong></span>
+    </a>
+    <ul class="nav__links">
+      <li><a href="{% url 'home' %}#kitchen">Try it</a></li>
+      <li><a href="{% url 'home' %}#about">About</a></li>
+      <li><a href="{% url 'home' %}#popular">Combos</a></li>
+      <li><a href="{% url 'home' %}#how-to">How to use</a></li>
+      <li><a href="{% url 'blog' %}">Blog</a></li>
+      <li><a href="{% url 'home' %}#faq">FAQ</a></li>
+    </ul>
+    <a class="nav__cta btn btn--primary btn--sm" href="{% url 'home' %}#kitchen">
+      Open Kitchen 🍳
+    </a>
+    <button class="nav__hamburger" id="nav-hamburger" aria-label="Toggle menu" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+  </nav>
+  <div class="nav__drawer" id="nav-drawer" aria-hidden="true">
+    <a href="{% url 'home' %}#kitchen" class="nav__drawer-link" data-close-drawer>🍳 Try it</a>
+    <a href="{% url 'home' %}#about"   class="nav__drawer-link" data-close-drawer>ℹ️ About</a>
+    <a href="{% url 'home' %}#popular" class="nav__drawer-link" data-close-drawer>🎨 Combos</a>
+    <a href="{% url 'home' %}#how-to"  class="nav__drawer-link" data-close-drawer>📖 How to use</a>
+    <a href="{% url 'blog' %}"         class="nav__drawer-link" data-close-drawer>📝 Blog</a>
+    <a href="{% url 'home' %}#faq"     class="nav__drawer-link" data-close-drawer>❓ FAQ</a>
+  </div>
+</header>
+
+{% block content %}{% endblock %}
+
+<!-- ════════════════════════════════════════════════════════ FOOTER ══ -->
+<footer class="site-footer">
+  <div class="footer__top container">
+    <div class="footer__brand">
+      <div class="footer__logo">
+        <span>🍳</span>
+        <span>Emoji <strong>Kitchen</strong></span>
+      </div>
+      <p class="footer__tagline">Mix two emojis.<br>Cook one delicious mashup.</p>
+    </div>
+    <nav class="footer__nav" aria-label="Footer navigation">
+      <h4>Quick links</h4>
+      <ul>
+        <li><a href="{% url 'home' %}#kitchen">Try the Kitchen</a></li>
+        <li><a href="{% url 'home' %}#about">About</a></li>
+        <li><a href="{% url 'home' %}#popular">Popular Combos</a></li>
+        <li><a href="{% url 'home' %}#how-to">How to use</a></li>
+        <li><a href="{% url 'blog' %}">Blog</a></li>
+        <li><a href="{% url 'home' %}#faq">FAQ</a></li>
+      </ul>
+    </nav>
+  </div>
+  <div class="footer__bottom container">
+    <p class="footer__sub">A rebuilt, faster, friendlier emoji mixer.</p>
+    <p class="footer__copyright">Developed by <a href="https://binarymindtechnologies.com/" target="_blank" rel="noopener noreferrer">BinaryMind Technologies</a></p>
+  </div>
+</footer>
+
+{% block modals %}{% endblock %}
+
+<!-- ══════════════════════════════════════════════════════ TOAST ══ -->
+<div class="toast" id="toast" role="status" aria-live="polite">
+  <span id="toast-icon">✅</span>
+  <span id="toast-msg">Done!</span>
+</div>
+
+<script src="{% static 'kitchen/js/site.js' %}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>
