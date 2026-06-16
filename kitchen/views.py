@@ -1,8 +1,21 @@
+import json
+import os
+import random as _random
+
 import requests
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse, Http404
 
 from .models import BlogPost
+
+
+# ── Emoji combo lookup ──────────────────────────────────────────────────────────
+
+with open(os.path.join(os.path.dirname(__file__), 'data', 'emoji_combos.json'), encoding='utf-8') as _f:
+    EMOJI_COMBOS = json.load(_f)
+
+# Pre-build a flat list of pair keys once at startup (O(1) random.choice later)
+_PAIR_KEYS = list(EMOJI_COMBOS['pairs'].keys())
 
 
 # ── Static content ────────────────────────────────────────────────────────────
@@ -212,26 +225,116 @@ def get_combo(request):
     if not emoji1 or not emoji2:
         return JsonResponse({'error': 'Two emojis required'}, status=400)
 
-    hex1 = _emoji_to_hex(emoji1)
-    hex2 = _emoji_to_hex(emoji2)
+    cp1 = _emoji_to_codepoints(emoji1)
+    cp2 = _emoji_to_codepoints(emoji2)
 
-    if not hex1 or not hex2:
+    if not cp1 or not cp2:
         return JsonResponse({'error': 'Invalid emoji characters'}, status=400)
 
-    dates = [
-        '20230301', '20230126', '20221101', '20220815',
-        '20220506', '20220406', '20220203', '20220110',
-        '20211115', '20210831', '20210521', '20210218',
-        '20201001',
-    ]
+    a, b = sorted([cp1, cp2])
+    entry = EMOJI_COMBOS['pairs'].get(f'{a},{b}')
 
-    BASE = 'https://www.gstatic.com/android/keyboard/emojikitchen'
     urls = []
-    for date in dates:
-        urls.append(f'{BASE}/{date}/{hex1}/{hex1}_{hex2}.png')
-        urls.append(f'{BASE}/{date}/{hex2}/{hex2}_{hex1}.png')
+    if entry:
+        date_idx, swap = entry
+        date = EMOJI_COMBOS['dates'][date_idx]
+        left, right = (b, a) if swap else (a, b)
+        left_part = _codepoints_to_url_part(left)
+        right_part = _codepoints_to_url_part(right)
+        urls.append(
+            f'https://www.gstatic.com/android/keyboard/emojikitchen/'
+            f'{date}/{left_part}/{left_part}_{right_part}.png'
+        )
 
     return JsonResponse({'urls': urls, 'emoji1': emoji1, 'emoji2': emoji2})
+
+
+def get_combos_for_emoji(request):
+    """Return all available Kitchen combos that include the given emoji."""
+    emoji = request.GET.get('emoji', '').strip()
+    if not emoji:
+        return JsonResponse({'error': 'emoji required'}, status=400)
+
+    cp = _emoji_to_codepoints(emoji)
+    if not cp:
+        return JsonResponse({'error': 'Invalid emoji'}, status=400)
+
+    results = []
+    seen_partners = set()
+
+    for key, entry in EMOJI_COMBOS['pairs'].items():
+        parts = key.split(',')
+        if len(parts) != 2:
+            continue
+        a, b = parts
+
+        if a == cp:
+            partner_cp = b
+        elif b == cp:
+            partner_cp = a
+        else:
+            continue
+
+        if partner_cp in seen_partners:
+            continue
+        seen_partners.add(partner_cp)
+
+        date_idx, swap = entry
+        date = EMOJI_COMBOS['dates'][date_idx]
+        left, right = (b, a) if swap else (a, b)
+        left_part = _codepoints_to_url_part(left)
+        right_part = _codepoints_to_url_part(right)
+        url = (
+            f'https://www.gstatic.com/android/keyboard/emojikitchen/'
+            f'{date}/{left_part}/{left_part}_{right_part}.png'
+        )
+
+        try:
+            partner_emoji = ''.join(chr(int(c, 16)) for c in partner_cp.split('-'))
+        except ValueError:
+            continue
+
+        results.append({'emoji2': partner_emoji, 'url': url})
+
+    return JsonResponse({'combos': results})
+
+
+def get_random_combo(request):
+    """Return one random valid Emoji Kitchen combo pair with its image URL.
+
+    Tries up to MAX_TRIES random pairs from the dataset, decoding codepoints
+    to emoji characters each time.  Returns the first pair that decodes without
+    error.  The image URL is constructed from the same data used everywhere
+    else, so it is always structurally valid.  The frontend independently
+    verifies the image loads before showing it.
+    """
+    MAX_TRIES = 60
+
+    for _ in range(MAX_TRIES):
+        key = _random.choice(_PAIR_KEYS)
+        parts = key.split(',')
+        if len(parts) != 2:
+            continue
+        a, b = parts
+
+        try:
+            emoji1 = ''.join(chr(int(c, 16)) for c in a.split('-'))
+            emoji2 = ''.join(chr(int(c, 16)) for c in b.split('-'))
+        except (ValueError, OverflowError):
+            continue
+
+        date_idx, swap = EMOJI_COMBOS['pairs'][key]
+        date = EMOJI_COMBOS['dates'][date_idx]
+        left, right = (b, a) if swap else (a, b)
+        left_part  = _codepoints_to_url_part(left)
+        right_part = _codepoints_to_url_part(right)
+        url = (
+            f'https://www.gstatic.com/android/keyboard/emojikitchen/'
+            f'{date}/{left_part}/{left_part}_{right_part}.png'
+        )
+        return JsonResponse({'emoji1': emoji1, 'emoji2': emoji2, 'url': url})
+
+    return JsonResponse({'error': 'Could not find a valid combo'}, status=500)
 
 
 def download_combo(request):
@@ -266,13 +369,10 @@ def proxy_image(request):
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
-def _emoji_to_hex(emoji: str) -> str:
-    codepoints = []
-    for char in emoji:
-        cp = ord(char)
-        if cp == 0xFE0F:
-            continue
-        codepoints.append(hex(cp)[2:].lower())
-    if not codepoints:
-        return ''
-    return 'u' + '_u'.join(codepoints)
+def _emoji_to_codepoints(emoji: str) -> str:
+    codepoints = [hex(ord(char))[2:].lower() for char in emoji]
+    return '-'.join(codepoints)
+
+
+def _codepoints_to_url_part(codepoints: str) -> str:
+    return '-'.join(f'u{part}' for part in codepoints.split('-'))

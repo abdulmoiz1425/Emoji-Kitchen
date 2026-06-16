@@ -6,6 +6,8 @@ urlpatterns = [
     path('blog/', views.blog, name='blog'),
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
     path('api/combo/', views.get_combo, name='get_combo'),
+    path('api/combos-for/', views.get_combos_for_emoji, name='get_combos_for_emoji'),
+    path('api/random-combo/', views.get_random_combo, name='get_random_combo'),
     path('api/download/', views.download_combo, name='download_combo'),
     path('api/proxy/', views.proxy_image, name='proxy_image'),
 ]

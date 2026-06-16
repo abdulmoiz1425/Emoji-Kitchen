@@ -139,7 +139,7 @@ function saveCombo(emoji1, emoji2, url) {
   );
   if (isDupe) return;
   combos.unshift({ emoji1, emoji2, url, savedAt: Date.now() });
-  persistCombos(combos.slice(0, 60)); // cap at 60 saved combos
+  persistCombos(combos.slice(0, 6)); // cap at 6 saved combos
   renderCombos();
 }
 
@@ -156,15 +156,21 @@ function clearAllCombos() {
 }
 
 function loadSavedCombo(combo) {
-  // Restore emojis into slots
-  slot1Emoji = combo.emoji1; slot1EmojiEl.textContent = combo.emoji1; slot1Btn.classList.add('has-emoji');
-  slot2Emoji = combo.emoji2; slot2EmojiEl.textContent = combo.emoji2; slot2Btn.classList.add('has-emoji');
+  compatibleEmojisSet = null; // no compat filter when restoring a saved result
+  // Restore emojis into both pickers
+  [[1, combo.emoji1], [2, combo.emoji2]].forEach(([panel, emoji]) => {
+    setActiveTab(panel, categoryOf(emoji));
+    setSlotEmoji(panel, emoji);
+    PANELS[panel].search.value = '';
+    renderTabs(panel);
+    renderGrid(panel, getCurrentList(panel));
+  });
   // Show image immediately — no need to re-cook
   comboUrl = combo.url;
+  showState('result');           // switches to result-box, clears child states
   resultImg.src = combo.url;
-  resultImg.hidden = false;
+  resultImg.style.display = '';
   resultBox.classList.add('has-result');
-  showState('result');
   btnCopy.disabled = false;
   btnDownload.disabled = false;
   // Scroll mixer into view and confirm
@@ -218,23 +224,30 @@ function renderCombos() {
 }
 
 // ── State ─────────────────────────────────────────────────────────────────
-let activeSlot = null;
 let slot1Emoji = '';
 let slot2Emoji = '';
 let comboUrl   = '';
-let activeTab  = 'Smileys';
+let activeTab1 = 'All Emojis';
+let activeTab2 = 'All Emojis';
+// Set of emoji2 values that have a valid combo with the current slot1 emoji.
+// null = no filter active (panel 2 shows all emojis enabled).
+let compatibleEmojisSet = null;
 
 // ── DOM refs ──────────────────────────────────────────────────────────────
-const overlay      = document.getElementById('picker-overlay');
-const pickerClose  = document.getElementById('picker-close');
-const emojiSearch  = document.getElementById('emoji-search');
-const pickerTabs   = document.getElementById('picker-tabs');
-const pickerGrid   = document.getElementById('picker-grid');
-
-const slot1Btn     = document.getElementById('slot1');
-const slot2Btn     = document.getElementById('slot2');
-const slot1EmojiEl = document.getElementById('slot1-emoji');
-const slot2EmojiEl = document.getElementById('slot2-emoji');
+const PANELS = {
+  1: {
+    search: document.getElementById('emoji-search-1'),
+    tabs:   document.getElementById('picker-tabs-1'),
+    grid:   document.getElementById('picker-grid-1'),
+    chip:   document.getElementById('chip1'),
+  },
+  2: {
+    search: document.getElementById('emoji-search-2'),
+    tabs:   document.getElementById('picker-tabs-2'),
+    grid:   document.getElementById('picker-grid-2'),
+    chip:   document.getElementById('chip2'),
+  },
+};
 
 const resultBox    = document.getElementById('mixer-result');
 const resultImg    = document.getElementById('result-img');
@@ -242,128 +255,249 @@ const resultPlaceholder = document.getElementById('result-placeholder');
 const resultLoading = document.getElementById('result-loading');
 const resultError  = document.getElementById('result-error');
 
+const comboGallery     = document.getElementById('combo-gallery');
+const galleryLoadingEl = document.getElementById('combo-gallery-loading');
+const comboGalleryGrid = document.getElementById('combo-gallery-grid');
+
 const btnSurprise  = document.getElementById('btn-surprise');
 const btnReset     = document.getElementById('btn-reset');
 const btnCopy      = document.getElementById('btn-copy');
 const btnDownload  = document.getElementById('btn-download');
 
-// ── Picker open/close ─────────────────────────────────────────────────────
-function openPicker(slot) {
-  activeSlot = slot;
-  emojiSearch.value = '';
-  renderTabs();
-  renderGrid(getTabEmojis(activeTab));
-  overlay.hidden = false;
-  document.body.style.overflow = 'hidden';
-  setTimeout(() => emojiSearch.focus(), 60);
-}
-
-function closePicker() {
-  overlay.hidden = true;
-  activeSlot = null;
-  document.body.style.overflow = '';
-}
-
-slot1Btn.addEventListener('click', () => openPicker(1));
-slot2Btn.addEventListener('click', () => openPicker(2));
-pickerClose.addEventListener('click', closePicker);
-overlay.addEventListener('click', e => { if (e.target === overlay) closePicker(); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') closePicker(); });
-
 // ── Tabs ──────────────────────────────────────────────────────────────────
-const ALL_TABS = ['Recent', ...Object.keys(EMOJI_DATA)];
+const ALL_TABS = ['All Emojis', 'Recent', ...Object.keys(EMOJI_DATA)];
 
 function getTabEmojis(tab) {
+  if (tab === 'All Emojis') return ALL_EMOJIS;
   if (tab === 'Recent') return getRecent();
   return EMOJI_DATA[tab] || [];
 }
 
-function renderTabs() {
-  pickerTabs.innerHTML = '';
+function getActiveTab(panel) { return panel === 1 ? activeTab1 : activeTab2; }
+function setActiveTab(panel, tab) { if (panel === 1) activeTab1 = tab; else activeTab2 = tab; }
+function getSlotEmoji(panel) { return panel === 1 ? slot1Emoji : slot2Emoji; }
+
+function categoryOf(emoji) {
+  const found = ALL_EMOJIS.find(e => e.emoji === emoji);
+  return found ? found.category : 'Smileys';
+}
+
+// Current list shown in a panel, honouring its search box / active tab
+function getCurrentList(panel) {
+  const q = PANELS[panel].search.value.trim().toLowerCase();
+  if (!q) return getTabEmojis(getActiveTab(panel));
+  return ALL_EMOJIS
+    .filter(({ emoji }) => emoji.includes(q) || (EMOJI_NAMES[emoji] || '').includes(q))
+    .map(({ emoji }) => emoji);
+}
+
+function renderTabs(panel) {
+  const { tabs, search } = PANELS[panel];
+  const activeTab = getActiveTab(panel);
+  tabs.innerHTML = '';
   ALL_TABS.forEach(tab => {
     if (tab === 'Recent' && getRecent().length === 0) return;
     const btn = document.createElement('button');
     btn.className = 'picker__tab' + (tab === activeTab ? ' active' : '');
-    btn.textContent = tab === 'Recent' ? '🕐 Recent' : tab;
+    btn.textContent = tab === 'All Emojis' ? '✨ All' : tab === 'Recent' ? '🕐 Recent' : tab;
     btn.setAttribute('role', 'tab');
     btn.addEventListener('click', () => {
-      activeTab = tab;
-      emojiSearch.value = '';
-      renderTabs();
-      renderGrid(getTabEmojis(tab));
+      setActiveTab(panel, tab);
+      search.value = '';
+      renderTabs(panel);
+      renderGrid(panel, getTabEmojis(tab));
     });
-    pickerTabs.appendChild(btn);
+    tabs.appendChild(btn);
   });
 }
 
 // ── Emoji grid ────────────────────────────────────────────────────────────
-function renderGrid(emojis) {
-  pickerGrid.innerHTML = '';
+function renderGrid(panel, emojis) {
+  const { grid } = PANELS[panel];
+  const selected = getSlotEmoji(panel);
+  grid.innerHTML = '';
 
   if (emojis.length === 0) {
     const msg = document.createElement('p');
     msg.className = 'picker__empty';
-    const isRecent = activeTab === 'Recent';
+    const isRecent = getActiveTab(panel) === 'Recent';
     msg.textContent = isRecent
       ? 'No recent emojis yet — pick one!'
       : 'No emojis match your search.';
-    pickerGrid.appendChild(msg);
+    grid.appendChild(msg);
     return;
   }
 
   const frag = document.createDocumentFragment();
   emojis.forEach(item => {
     const em = typeof item === 'string' ? item : item.emoji;
+    // Disable incompatible emojis in panel 2 once we know what's compatible
+    const isDisabled = panel === 2 && compatibleEmojisSet !== null && !compatibleEmojisSet.has(em);
+
     const btn = document.createElement('button');
-    btn.className = 'picker__emoji';
+    let cls = 'picker__emoji';
+    if (em === selected) cls += ' active';
+    if (isDisabled)      cls += ' is-disabled';
+    btn.className = cls;
     btn.textContent = em;
     btn.setAttribute('role', 'option');
     btn.title = EMOJI_NAMES[em] || em;
-    btn.addEventListener('click', () => selectEmoji(em));
+
+    if (isDisabled) {
+      btn.disabled = true;
+      btn.setAttribute('aria-disabled', 'true');
+      btn.setAttribute('tabindex', '-1');
+    } else {
+      btn.addEventListener('click', () => selectEmoji(panel, em));
+    }
     frag.appendChild(btn);
   });
-  pickerGrid.appendChild(frag);
+  grid.appendChild(frag);
 }
 
 // ── Search ────────────────────────────────────────────────────────────────
-emojiSearch.addEventListener('input', () => {
-  const q = emojiSearch.value.trim().toLowerCase();
-  if (!q) { renderGrid(getTabEmojis(activeTab)); return; }
-  const results = ALL_EMOJIS
-    .filter(({ emoji }) => emoji.includes(q) || (EMOJI_NAMES[emoji] || '').includes(q))
-    .map(({ emoji }) => emoji);
-  renderGrid(results);
+[1, 2].forEach(panel => {
+  PANELS[panel].search.addEventListener('input', () => {
+    renderGrid(panel, getCurrentList(panel));
+  });
 });
 
-// ── Select emoji ──────────────────────────────────────────────────────────
-function selectEmoji(emoji) {
-  addToRecent(emoji);
+// ── View-switch helpers (inline style beats any author CSS display rule) ──
+function showResultBox() {
+  comboGallery.style.display = 'none';
+  resultBox.style.display    = '';     // reverts to CSS flex
+}
 
-  if (activeSlot === 1) {
-    slot1Emoji = emoji;
-    slot1EmojiEl.textContent = emoji;
-    slot1Btn.classList.add('has-emoji');
-  } else {
-    slot2Emoji = emoji;
-    slot2EmojiEl.textContent = emoji;
-    slot2Btn.classList.add('has-emoji');
+function showGalleryView() {
+  resultBox.style.display    = 'none';
+  comboGallery.style.display = '';     // reverts to CSS flex
+}
+
+// ── Combo gallery cache ───────────────────────────────────────────────────
+const combosCache = {};
+
+async function loadAllCombosFor(emoji) {
+  console.log('Loading combos for', emoji);
+
+  if (combosCache[emoji]) {
+    showCombosGallery(combosCache[emoji]);
+    return;
   }
 
-  // Slot pop animation
-  const btn = activeSlot === 1 ? slot1Btn : slot2Btn;
-  btn.animate([
-    { transform:'scale(1.25)' },
-    { transform:'scale(.92)' },
-    { transform:'scale(1)' },
-  ], { duration: 320, easing:'ease-out' });
+  // Show gallery immediately with spinner
+  showGalleryView();
+  galleryLoadingEl.style.display = '';
+  comboGalleryGrid.innerHTML = '';
 
-  closePicker();
+  try {
+    const params = new URLSearchParams({ emoji });
+    const res = await fetch(`/api/combos-for/?${params}`);
+    if (!res.ok) throw new Error(`API ${res.status}`);
+    const data = await res.json();
+    combosCache[emoji] = data.combos || [];
+    console.log('Combos found', combosCache[emoji].length);
+    showCombosGallery(combosCache[emoji]);
+  } catch (err) {
+    console.error('Failed to load combos:', err);
+    // Stay in gallery view — show error inside gallery, not in result box
+    galleryLoadingEl.style.display = 'none';
+    comboGalleryGrid.innerHTML = '<p class="picker__empty">Could not load combos — try again.</p>';
+  }
+}
+
+function showCombosGallery(combos) {
+  showGalleryView();
+  galleryLoadingEl.style.display = 'none';
+  comboGalleryGrid.innerHTML = '';
+
+  // Build the compatible set so renderGrid can disable non-matching emojis in panel 2
+  compatibleEmojisSet = new Set(combos.map(c => c.emoji2));
+  // Re-render panel 2 with disabled state applied (keeps current tab / search)
+  renderGrid(2, getCurrentList(2));
+
+  if (combos.length === 0) {
+    comboGalleryGrid.innerHTML = '<p class="picker__empty">No combos found for this emoji.</p>';
+    return;
+  }
+
+  const frag = document.createDocumentFragment();
+  combos.forEach(({ emoji2, url }) => {
+    const card = document.createElement('button');
+    card.className = 'gallery-card';
+    card.title = `${slot1Emoji} + ${emoji2} — click to select`;
+    card.setAttribute('aria-label', `Combo: ${slot1Emoji} + ${emoji2}`);
+
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = `${slot1Emoji}+${emoji2}`;
+    img.loading = 'lazy';
+    img.onerror = () => { card.style.display = 'none'; };
+
+    const label = document.createElement('span');
+    label.className = 'gallery-card__label';
+    label.textContent = emoji2;
+
+    card.appendChild(img);
+    card.appendChild(label);
+    card.addEventListener('click', () => selectEmoji(2, emoji2));
+    frag.appendChild(card);
+  });
+  comboGalleryGrid.appendChild(frag);
+}
+
+// ── Select emoji ──────────────────────────────────────────────────────────
+function setSlotEmoji(panel, emoji) {
+  if (panel === 1) slot1Emoji = emoji; else slot2Emoji = emoji;
+  const { chip } = PANELS[panel];
+  chip.textContent = emoji;
+  chip.classList.toggle('cook__chip--filled', !!emoji);
+}
+
+function selectEmoji(panel, emoji) {
+  addToRecent(emoji);
+
+  if (panel === 1) {
+    console.log('FIRST EMOJI SELECTED', emoji);
+    setSlotEmoji(1, emoji);
+
+    // Always reset slot2 so we never auto-cook from panel-1 selection
+    setSlotEmoji(2, '');
+    comboUrl = '';
+    btnCopy.disabled = true;
+    btnDownload.disabled = true;
+
+    // Clear compat filter so panel 2 shows all enabled while fetch is in-flight
+    compatibleEmojisSet = null;
+    renderTabs(1);
+    renderGrid(1, getCurrentList(1));
+    renderTabs(2);
+    renderGrid(2, getCurrentList(2)); // all enabled until showCombosGallery fires
+
+    PANELS[1].chip.animate([
+      { transform:'scale(1.3)' }, { transform:'scale(.9)' }, { transform:'scale(1)' },
+    ], { duration: 280, easing:'ease-out' });
+
+    loadAllCombosFor(emoji);
+    return; // never fall through to cookCombo
+  }
+
+  // ── Panel 2 ──
+  console.log('SECOND EMOJI SELECTED', emoji);
+  setSlotEmoji(2, emoji);
+  renderTabs(2);
+  renderGrid(2, getCurrentList(2));
+
+  PANELS[2].chip.animate([
+    { transform:'scale(1.3)' }, { transform:'scale(.9)' }, { transform:'scale(1)' },
+  ], { duration: 280, easing:'ease-out' });
+
   if (slot1Emoji && slot2Emoji) cookCombo();
 }
 
 // ── Cook combo ────────────────────────────────────────────────────────────
 async function cookCombo() {
-  showState('loading');
+  console.log('Cooking single combo', slot1Emoji, slot2Emoji);
+  showState('loading'); // also calls showResultBox() → hides gallery
   comboUrl = '';
   btnCopy.disabled = true;
   btnDownload.disabled = true;
@@ -377,10 +511,10 @@ async function cookCombo() {
     const validUrl = await findValidImage(data.urls || []);
     if (validUrl) {
       comboUrl = validUrl;
-      resultImg.src = validUrl;
-      resultImg.hidden = false;
-      resultBox.classList.add('has-result');
       showState('result');
+      resultImg.src = validUrl;
+      resultImg.style.display = '';
+      resultBox.classList.add('has-result');
       btnCopy.disabled = false;
       btnDownload.disabled = false;
       // Auto-save to My Combos
@@ -417,48 +551,96 @@ function findValidImage(urls) {
 }
 
 function showState(state) {
-  resultPlaceholder.hidden = true;
-  resultLoading.hidden     = true;
-  resultImg.hidden         = true;
-  resultError.hidden       = true;
+  // Switch to result-box view (inline style wins over any CSS display rule)
+  showResultBox();
+
+  // Hide all child states using inline style — CSS display:flex/block on these
+  // elements overrides the UA [hidden] attribute, so we must use style.display.
+  resultPlaceholder.style.display = 'none';
+  resultLoading.style.display     = 'none';
+  resultImg.style.display         = 'none';
+  resultError.style.display       = 'none';
   resultBox.classList.remove('has-result');
 
-  if (state === 'loading') resultLoading.hidden = false;
-  if (state === 'error')   resultError.hidden   = false;
-  if (state === 'idle')    resultPlaceholder.hidden = false;
-  // 'result': resultImg shown above, has-result set above
+  if (state === 'loading') resultLoading.style.display = '';
+  if (state === 'error')   resultError.style.display   = '';
+  if (state === 'idle')    resultPlaceholder.style.display = '';
+  // 'result': caller sets resultImg.style.display='' and adds has-result class
 }
 
 // ── Surprise me ───────────────────────────────────────────────────────────
-btnSurprise.addEventListener('click', () => {
-  const all = ALL_EMOJIS.map(e => e.emoji);
-  const e1  = all[Math.floor(Math.random() * all.length)];
-  let e2;
-  do { e2 = all[Math.floor(Math.random() * all.length)]; } while (e2 === e1);
+// Fetches a guaranteed-valid combo from the backend and shows it directly.
+// Retries up to MAX_RETRIES times if the image fails to load (e.g. CDN 404).
+async function handleSurprise(retriesLeft = 3) {
+  showState('loading');
+  btnSurprise.disabled = true;
 
-  slot1Emoji = e1; slot1EmojiEl.textContent = e1; slot1Btn.classList.add('has-emoji');
-  slot2Emoji = e2; slot2EmojiEl.textContent = e2; slot2Btn.classList.add('has-emoji');
+  try {
+    const res = await fetch('/api/random-combo/');
+    if (!res.ok) throw new Error(`API ${res.status}`);
+    const { emoji1, emoji2, url } = await res.json();
 
-  // Wiggle both slots
-  [slot1Btn, slot2Btn].forEach((btn, i) => {
-    setTimeout(() => {
-      btn.animate([
+    // Verify the image actually loads before committing to this pair
+    const validUrl = await findValidImage([url]);
+    if (!validUrl) {
+      if (retriesLeft > 0) { btnSurprise.disabled = false; return handleSurprise(retriesLeft - 1); }
+      throw new Error('Image failed to load after retries');
+    }
+
+    // Update both pickers — no compat filter, no gallery
+    compatibleEmojisSet = null;
+    [[1, emoji1], [2, emoji2]].forEach(([panel, emoji]) => {
+      addToRecent(emoji);
+      setActiveTab(panel, categoryOf(emoji));
+      setSlotEmoji(panel, emoji);
+      PANELS[panel].search.value = '';
+      renderTabs(panel);
+      renderGrid(panel, getCurrentList(panel));
+
+      PANELS[panel].chip.animate([
         {transform:'rotate(-6deg) scale(1.15)'},
         {transform:'rotate(6deg)  scale(1.15)'},
         {transform:'rotate(0)     scale(1)'},
       ], {duration:400, easing:'ease-out'});
-    }, i * 80);
-  });
+    });
 
-  cookCombo();
-});
+    // Show result directly — no extra API round-trip needed
+    comboUrl = validUrl;
+    showState('result');
+    resultImg.src = validUrl;
+    resultImg.style.display = '';
+    resultBox.classList.add('has-result');
+    btnCopy.disabled = false;
+    btnDownload.disabled = false;
+
+    // Save to My Combos
+    const isNew = !getCombos().some(c =>
+      (c.emoji1 === emoji1 && c.emoji2 === emoji2) ||
+      (c.emoji1 === emoji2 && c.emoji2 === emoji1)
+    );
+    saveCombo(emoji1, emoji2, validUrl);
+    if (isNew) window.showToast('Saved to My Combos!', '⭐');
+
+  } catch (err) {
+    console.error('Surprise failed:', err);
+    showState('error');
+    window.showToast('Could not load a combo — try again!', '⚠️', true);
+  } finally {
+    btnSurprise.disabled = false;
+  }
+}
+
+btnSurprise.addEventListener('click', () => handleSurprise());
 
 // ── Reset ─────────────────────────────────────────────────────────────────
 btnReset.addEventListener('click', () => {
-  slot1Emoji = ''; slot1EmojiEl.textContent = ''; slot1Btn.classList.remove('has-emoji');
-  slot2Emoji = ''; slot2EmojiEl.textContent = ''; slot2Btn.classList.remove('has-emoji');
+  compatibleEmojisSet = null; // restore all panel-2 emojis to enabled
+  [1, 2].forEach(panel => {
+    setSlotEmoji(panel, '');
+    renderGrid(panel, getCurrentList(panel));
+  });
   comboUrl = '';
-  resultImg.src = ''; resultImg.hidden = true;
+  resultImg.src = '';
   btnCopy.disabled = true; btnDownload.disabled = true;
   showState('idle');
 });
@@ -512,7 +694,9 @@ document.getElementById('btn-clear-combos')?.addEventListener('click', () => {
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────
-renderTabs();
-renderGrid(getTabEmojis(activeTab));
+[1, 2].forEach(panel => {
+  renderTabs(panel);
+  renderGrid(panel, getCurrentList(panel));
+});
 showState('idle');
 renderCombos(); // restore saved combos from localStorage

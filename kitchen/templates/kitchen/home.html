@@ -91,35 +91,66 @@
       <p>Making a custom emoji mix takes only a few simple choices. Start with the feeling, object, animal, or symbol you want to show.</p>
     </div>
 
-    <div class="mixer-card animate-up" style="--delay:.1s">
-      <div class="mixer">
-        <div class="mixer__slot-col">
-          <button class="mixer__slot" id="slot1" aria-label="Pick first emoji">
-            <span class="mixer__slot-emoji" id="slot1-emoji"></span>
-            <div class="mixer__slot-hint">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-              <span>Choose emoji</span>
-            </div>
-          </button>
-          <p class="mixer__slot-label">First emoji</p>
+    <div class="cook-card animate-up" style="--delay:.1s">
+
+      <!-- 3-step workflow guide -->
+      <div class="cook__flow" aria-hidden="true">
+        <div class="cook__flow-step">
+          <span class="cook__flow-n">1</span>
+          <span class="cook__flow-lbl">Pick first emoji</span>
         </div>
-        <span class="mixer__op">+</span>
-        <div class="mixer__slot-col">
-          <button class="mixer__slot" id="slot2" aria-label="Pick second emoji">
-            <span class="mixer__slot-emoji" id="slot2-emoji"></span>
-            <div class="mixer__slot-hint">
-              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v8M8 12h8"/></svg>
-              <span>Choose emoji</span>
-            </div>
-          </button>
-          <p class="mixer__slot-label">Second emoji</p>
+        <svg class="cook__flow-arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <div class="cook__flow-step cook__flow-step--mix">
+          <span class="cook__flow-ico">🍳</span>
+          <span class="cook__flow-lbl">Your mashup appears</span>
         </div>
-        <span class="mixer__op">=</span>
-        <div class="mixer__slot-col">
-          <div class="mixer__result" id="mixer-result">
+        <svg class="cook__flow-arr" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        <div class="cook__flow-step">
+          <span class="cook__flow-n">2</span>
+          <span class="cook__flow-lbl">Pick second emoji</span>
+        </div>
+      </div>
+
+      <div class="cook">
+        <!-- LEFT PICKER -->
+        <div class="cook__panel">
+          <div class="picker__search-row">
+            <svg class="picker__search-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="search" id="emoji-search-1" class="picker__search" placeholder="Search emojis…" autocomplete="off" aria-label="Search first emoji" />
+          </div>
+          <div class="picker__tabs" id="picker-tabs-1" role="tablist"></div>
+          <div class="picker__grid cook__grid" id="picker-grid-1" role="listbox" aria-label="First emoji list"></div>
+        </div>
+
+        <!-- RESULT -->
+        <div class="cook__result-col">
+          <div class="cook__chips" aria-hidden="true">
+            <div class="cook__slot">
+              <span class="cook__slot-lbl">First</span>
+              <span class="cook__chip" id="chip1"></span>
+            </div>
+            <span class="cook__plus">+</span>
+            <div class="cook__slot">
+              <span class="cook__slot-lbl">Second</span>
+              <span class="cook__chip" id="chip2"></span>
+            </div>
+          </div>
+
+          <!-- Gallery: all combos for slot1 emoji (shown before slot2 is chosen) -->
+          <div class="combo-gallery" id="combo-gallery" hidden aria-label="All combos for selected emoji">
+            <div class="result-state" id="combo-gallery-loading">
+              <div class="dots-loader"><span></span><span></span><span></span></div>
+              <span class="result-state__label" style="margin-top:12px">Loading combos…</span>
+            </div>
+            <div class="combo-gallery__grid" id="combo-gallery-grid"></div>
+          </div>
+
+          <!-- Single result: shown when both emojis are chosen -->
+          <div class="mixer__result cook__result" id="mixer-result">
             <div id="result-placeholder" class="result-state">
               <span class="result-state__icon">🍳</span>
               <span class="result-state__label">Your mashup<br>appears here</span>
+              <span class="result-state__hint">Pick two emojis to start</span>
             </div>
             <div id="result-loading" class="result-state" hidden>
               <div class="dots-loader"><span></span><span></span><span></span></div>
@@ -131,28 +162,31 @@
               <span class="result-state__label">No combo found —<br>try another pair!</span>
             </div>
           </div>
-          <p class="mixer__slot-label">Your mashup</p>
+          <div class="cook__actions">
+            <button class="btn btn--outline btn--sm" id="btn-copy" disabled title="Copy emojis as text">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+              Copy
+            </button>
+            <button class="btn btn--primary btn--sm" id="btn-download" disabled title="Download mashup as PNG">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Download
+            </button>
+            <button class="btn btn--ghost btn--sm" id="btn-reset" title="Clear selection">↺ Reset</button>
+          </div>
+        </div>
+
+        <!-- RIGHT PICKER -->
+        <div class="cook__panel">
+          <div class="picker__search-row">
+            <svg class="picker__search-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="search" id="emoji-search-2" class="picker__search" placeholder="Search emojis…" autocomplete="off" aria-label="Search second emoji" />
+          </div>
+          <div class="picker__tabs" id="picker-tabs-2" role="tablist"></div>
+          <div class="picker__grid cook__grid" id="picker-grid-2" role="listbox" aria-label="Second emoji list"></div>
         </div>
       </div>
 
-      <div class="mixer__divider"></div>
-
-      <div class="mixer__actions">
-        <div class="mixer__actions-group mixer__actions-group--left">
-          <button class="btn btn--ghost" id="btn-surprise">🎲 Surprise me</button>
-          <button class="btn btn--ghost" id="btn-reset">↺ Reset</button>
-        </div>
-        <div class="mixer__actions-group mixer__actions-group--right">
-          <button class="btn btn--outline" id="btn-copy" disabled>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-            Copy Emojis
-          </button>
-          <button class="btn btn--primary" id="btn-download" disabled>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            Download PNG
-          </button>
-        </div>
-      </div>
+      <button class="cook__shuffle" id="btn-surprise" title="Surprise me" aria-label="Surprise me with a random combo">🎲</button>
     </div>
 
     <!-- My Combos -->
@@ -450,31 +484,6 @@
   </div>
 </section>
 
-{% endblock %}
-
-{% block modals %}
-<!-- ═══════════════════════════════════════ EMOJI PICKER MODAL ══ -->
-<div class="modal-overlay" id="picker-overlay" hidden>
-  <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-    <div class="modal__header">
-      <div class="modal__header-left">
-        <span class="modal__header-icon">🍳</span>
-        <h3 id="modal-title">Pick an emoji</h3>
-      </div>
-      <button class="modal__close" id="picker-close" aria-label="Close picker">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
-      </button>
-    </div>
-    <div class="modal__search">
-      <div class="picker__search-row">
-        <svg class="picker__search-ico" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-        <input type="search" id="emoji-search" class="picker__search" placeholder="Search emojis…" autocomplete="off" />
-      </div>
-    </div>
-    <div class="picker__tabs" id="picker-tabs" role="tablist"></div>
-    <div class="picker__grid"  id="picker-grid"  role="listbox" aria-label="Emoji list"></div>
-  </div>
-</div>
 {% endblock %}
 
 {% block extra_scripts %}
