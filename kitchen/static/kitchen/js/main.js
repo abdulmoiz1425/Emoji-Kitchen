@@ -657,13 +657,32 @@ btnDownload.addEventListener('click', () => {
   window.showToast('Downloading your mashup!', '⬇️');
 });
 
-// ── Copy emojis as text ───────────────────────────────────────────────────
-btnCopy.addEventListener('click', () => {
-  if (!slot1Emoji || !slot2Emoji) return;
+// ── Copy mashup image ────────────────────────────────────────────────────
+btnCopy.addEventListener('click', async () => {
+  if (!comboUrl) return;
+
+  if (navigator.clipboard?.write && window.ClipboardItem) {
+    try {
+      await navigator.clipboard.write([
+        new ClipboardItem({
+          'image/png': fetch(`/api/proxy/?url=${encodeURIComponent(comboUrl)}`).then(res => {
+            if (!res.ok) throw new Error('Image fetch failed');
+            return res.blob();
+          }),
+        }),
+      ]);
+      window.showToast('Mashup copied — paste it anywhere!', '✅');
+      return;
+    } catch (err) {
+      console.error('Image copy failed, falling back to text:', err);
+    }
+  }
+
+  // Fallback for browsers without image-clipboard support
   const text = slot1Emoji + slot2Emoji;
   if (navigator.clipboard?.writeText) {
     navigator.clipboard.writeText(text)
-      .then(() => window.showToast(`${text} copied — paste anywhere!`, '✅'))
+      .then(() => window.showToast(`Image copy isn't supported here — copied ${text} instead`, '⚠️', true))
       .catch(() => fallbackCopy(text));
   } else {
     fallbackCopy(text);

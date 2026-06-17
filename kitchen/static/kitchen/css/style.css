@@ -266,9 +266,9 @@ strong{font-weight:700}
 }
 
 .hero__title{
-  font-size:clamp(2.1rem,5.5vw,3.6rem);
+  font-size:clamp(1.9rem,5vw,3.3rem);
   font-weight:800;color:var(--t9);
-  line-height:1.15;max-width:700px;
+  line-height:1.18;max-width:900px;
 }
 
 .hero__subtitle{
