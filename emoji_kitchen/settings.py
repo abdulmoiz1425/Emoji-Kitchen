@@ -1,12 +1,35 @@
+import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-emoji-kitchen-secret-key-change-in-production'
+# In production, set DJANGO_SECRET_KEY as an environment variable on the server.
+# This fallback is for local development only.
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-emoji-kitchen-secret-key-change-in-production',
+)
 
-DEBUG = True
+# Defaults to False (safe for production). Set DJANGO_DEBUG=True in your local
+# shell/.env for development.
+DEBUG = os.environ.get('DJANGO_DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = os.environ.get(
+    'DJANGO_ALLOWED_HOSTS',
+    'emojikitchenhub.com,www.emojikitchenhub.com,localhost,127.0.0.1',
+).split(',')
+
+# Required so Django accepts POSTs (e.g. /admin/login/) from the live domain.
+CSRF_TRUSTED_ORIGINS = os.environ.get(
+    'DJANGO_CSRF_TRUSTED_ORIGINS',
+    'https://emojikitchenhub.com,https://www.emojikitchenhub.com',
+).split(',')
+
+# Nginx terminates HTTPS and proxies plain HTTP to Django — this tells Django
+# to trust the X-Forwarded-Proto header so it knows the original request was
+# HTTPS. Requires `proxy_set_header X-Forwarded-Proto $scheme;` in the Nginx
+# server block; without it, Django will misdetect every request as insecure.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
