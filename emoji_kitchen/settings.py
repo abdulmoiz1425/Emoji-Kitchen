@@ -8,6 +8,8 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+CSRF_TRUSTED_ORIGINS = ['https://emojikitchenhub.com', 'https://www.emojikitchenhub.com']
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
