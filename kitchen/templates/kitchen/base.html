@@ -24,6 +24,8 @@
       <span class="nav__logo-wordmark">Emoji <strong>Kitchen</strong></span>
     </a>
     <ul class="nav__links">
+      <li><a href="{% url 'home' %}">Home</a></li>
+      <li><a href="{% url 'emoji_maker' %}">Emoji Maker</a></li>
       <li><a href="{% url 'home' %}#kitchen">Try it</a></li>
       <li><a href="{% url 'home' %}#about">About</a></li>
       <li><a href="{% url 'home' %}#popular">Combos</a></li>
@@ -39,6 +41,8 @@
     </button>
   </nav>
   <div class="nav__drawer" id="nav-drawer" aria-hidden="true">
+    <a href="{% url 'home' %}" class="nav__drawer-link" data-close-drawer>🏠 Home</a>
+    <a href="{% url 'emoji_maker' %}" class="nav__drawer-link" data-close-drawer>🪄 Emoji Maker</a>
     <a href="{% url 'home' %}#kitchen" class="nav__drawer-link" data-close-drawer>🍳 Try it</a>
     <a href="{% url 'home' %}#about"   class="nav__drawer-link" data-close-drawer>ℹ️ About</a>
     <a href="{% url 'home' %}#popular" class="nav__drawer-link" data-close-drawer>🎨 Combos</a>

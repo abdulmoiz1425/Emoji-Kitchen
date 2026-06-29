@@ -170,8 +170,61 @@ COMPARISON_ROWS = [
     ('Shows one main idea', 'Can show a more specific reaction'),
 ]
 
+EMOJI_MAKER_FAQS = [
+    {
+        'question': 'What is an emoji maker?',
+        'answer': 'An emoji maker is a tool that helps you create emoji-style images, stickers, or mashups. Emoji Kitchen Hub combines two emoji ideas into one visual reaction.',
+    },
+    {
+        'question': 'How do you make your own emoji online?',
+        'answer': 'Choose two emojis, combine them, then copy or download the result. This is an easy way to make your own emoji free without installing an app.',
+    },
+    {
+        'question': 'Can I create custom emojis for free?',
+        'answer': 'Yes. A free emoji maker online can help you create custom emojis from supported emoji pairs and save the final sticker image.',
+    },
+    {
+        'question': 'How do I make an emoji with my keyboard?',
+        'answer': 'Open your device emoji keyboard and select standard emojis. For a custom mashup, use an online emoji maker, then copy or download the sticker.',
+    },
+    {
+        'question': 'Can I make emojis with a keyboard on Android or iPhone?',
+        'answer': 'You can send standard emojis from both Android and iPhone keyboards. Custom mashup options may differ by keyboard, device, selected emojis, and messaging app.',
+    },
+    {
+        'question': 'Is this an AI emoji maker?',
+        'answer': 'No. This tool does not use AI prompts to generate emoji art. It creates a sticker-style result by combining existing emojis.',
+    },
+    {
+        'question': 'Can I make an emoji from a photo?',
+        'answer': 'No. This is not an emoji maker from photo tool. Use a dedicated photo emoji maker when you want to convert a selfie, pet, or logo into an emoji-style image.',
+    },
+    {
+        'question': 'Can I copy and paste custom emoji stickers?',
+        'answer': 'Yes, when the platform supports pasted images or stickers. If it does not, download the emoji and upload it manually.',
+    },
+    {
+        'question': 'Can I use this as a flag emoji maker?',
+        'answer': 'No. This tool is not designed as a flag emoji maker. It is made for general emoji mashups and sticker-style combinations.',
+    },
+    {
+        'question': 'Is this an emoji maker game?',
+        'answer': 'No. It is not an emoji maker game or a make a emoji game. It is a browser tool for creating and sharing emoji mashups quickly.',
+    },
+]
+
 
 # ── Views ─────────────────────────────────────────────────────────────────────
+
+def robots_txt(request):
+    lines = [
+        'User-agent: *',
+        'Allow: /',
+        '',
+        f'Sitemap: {request.scheme}://{request.get_host()}/sitemap.xml',
+    ]
+    return HttpResponse('\n'.join(lines), content_type='text/plain')
+
 
 def home(request):
     context = {
@@ -184,6 +237,13 @@ def home(request):
         'comparison_rows': COMPARISON_ROWS,
     }
     return render(request, 'kitchen/home.html', context)
+
+
+def emoji_maker(request):
+    context = {
+        'faqs': EMOJI_MAKER_FAQS,
+    }
+    return render(request, 'kitchen/emoji_maker.html', context)
 
 
 def blog(request):
