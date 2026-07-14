@@ -65,6 +65,6 @@ const animObserver = new IntersectionObserver(entries => {
       animObserver.unobserve(entry.target);
     }
   });
-}, { threshold: 0.12 });
+}, { threshold: 0 });
 
 document.querySelectorAll('.animate-up').forEach(el => animObserver.observe(el));
