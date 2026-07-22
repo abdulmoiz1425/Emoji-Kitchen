@@ -170,6 +170,41 @@ COMPARISON_ROWS = [
     ('Shows one main idea', 'Can show a more specific reaction'),
 ]
 
+EMOJI_GENERATOR_FAQS = [
+    {
+        'question': 'Is this emoji generator free?',
+        'answer': 'Yes. You can try supported emoji combinations without paying for individual mixes.',
+    },
+    {
+        'question': 'Do I need to sign up?',
+        'answer': 'No. This is an emoji generator with no sign-up required. Open the mixer, choose two emojis, and make a supported result.',
+    },
+    {
+        'question': 'How do I use an emoji generator?',
+        'answer': 'Choose two compatible emojis, check the result, then copy or download it. Try another pair if your first combination does not produce a mix.',
+    },
+    {
+        'question': 'How do I get the emoji generator on my phone?',
+        'answer': 'Open the tool in your mobile browser. You can use the mixer without installing a separate emoji-mixing app.',
+    },
+    {
+        'question': 'Are the results new emojis on my keyboard?',
+        'answer': 'No. The results are sticker-style images, not new keyboard emoji characters. You can copy or download them for apps that support images or stickers.',
+    },
+    {
+        'question': 'Why does my emoji mix look different after I share it?',
+        'answer': 'Apps can handle copied images, stickers, and previews in different ways. Downloading the result and sending it as an image can help when direct pasting does not work.',
+    },
+    {
+        'question': 'Can I mix three emojis at once?',
+        'answer': 'This tool is made for two-emoji combinations. Select two emojis to create one supported sticker-style result.',
+    },
+    {
+        'question': 'Why does my emoji mix not appear?',
+        'answer': 'A missing result usually means the selected pair is not supported. Try changing one emoji and test again. Common faces, hearts, animals, and food items are good starting points.',
+    },
+]
+
 EMOJI_MAKER_FAQS = [
     {
         'question': 'What is an emoji maker?',
@@ -244,6 +279,13 @@ def emoji_maker(request):
         'faqs': EMOJI_MAKER_FAQS,
     }
     return render(request, 'kitchen/emoji_maker.html', context)
+
+
+def emoji_generator(request):
+    context = {
+        'faqs': EMOJI_GENERATOR_FAQS,
+    }
+    return render(request, 'kitchen/emoji_generator.html', context)
 
 
 def blog(request):

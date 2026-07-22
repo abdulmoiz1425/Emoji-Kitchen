@@ -9,7 +9,7 @@ class StaticViewSitemap(Sitemap):
     changefreq = 'weekly'
 
     def items(self):
-        return ['home', 'emoji_maker', 'blog']
+        return ['home', 'emoji_maker', 'emoji_generator', 'blog']
 
     def location(self, item):
         return reverse(item)
