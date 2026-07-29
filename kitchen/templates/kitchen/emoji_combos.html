@@ -1,0 +1,668 @@
+{% extends 'kitchen/base.html' %}
+{% load static %}
+
+{% block title %}Emoji Combos: Copy &amp; Paste Ideas for Every Mood{% endblock %}
+{% block meta_description %}Find emoji combos for bios, captions, chats, and social posts. Browse cute, aesthetic, funny, love, color, and seasonal sets to copy instantly.{% endblock %}
+
+{% block content %}
+
+<!-- ══════════════════════════════════════════════════════════ INTRO ══ -->
+<section class="section" style="padding-bottom:0">
+  <div class="container container--narrow">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">🎭 Emoji Combos</span>
+      <h1>Emoji Combos to Copy and Paste</h1>
+      <p class="section-head__sub" style="font-size:.78rem;color:var(--t3);margin-top:-8px">
+        Written by: Emoji Kitchen Hub Editorial Team &nbsp;·&nbsp; Last updated: July 21, 2026
+      </p>
+      <p>
+        A single emoji does not always match the mood. You may want a soft set for an Instagram bio,
+        a funny reaction for a group chat, or matching symbols for a caption. This page gives you
+        ready-made emoji combos that you can copy and paste in seconds.
+      </p>
+    </div>
+    <div class="quick-answer animate-up">
+      <strong>Quick answer:</strong> An emoji combo is a group of two or more emojis placed
+      together to express a mood, idea, story, color theme, or aesthetic. Choose a set below,
+      copy it, and paste it into a bio, caption, text, comment, username, or social post.
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════ COMBO BROWSER TOOL ══ -->
+<section class="section" id="combo-tool" style="padding-top:32px;padding-bottom:0">
+  <div class="container">
+    <div class="combo-tool animate-up">
+
+      <!-- Controls -->
+      <div class="combo-tool__header">
+        <span class="combo-tool__title">✨ Browse &amp; Copy Emoji Combos</span>
+      </div>
+      <div class="combo-tool__controls">
+        <div class="combo-search-wrap">
+          <input type="search" class="combo-search" id="combo-search" placeholder="Search combos…" autocomplete="off" />
+        </div>
+        <button class="combo-random-btn" id="combo-random-btn">🎲 Random Combo</button>
+      </div>
+
+      <!-- Category Filter -->
+      <div class="combo-filter" id="combo-filter">
+        <button class="combo-filter__btn active" data-filter="all">All</button>
+        <button class="combo-filter__btn" data-filter="cute">🌸 Cute</button>
+        <button class="combo-filter__btn" data-filter="aesthetic">🕯 Aesthetic</button>
+        <button class="combo-filter__btn" data-filter="funny">😂 Funny</button>
+        <button class="combo-filter__btn" data-filter="love">❤️ Love</button>
+        <button class="combo-filter__btn" data-filter="mood">😄 Mood</button>
+        <button class="combo-filter__btn" data-filter="color">🎨 Color</button>
+        <button class="combo-filter__btn" data-filter="social">📸 Social</button>
+        <button class="combo-filter__btn" data-filter="seasonal">🎄 Seasonal</button>
+        <button class="combo-filter__btn" data-filter="nature">🌿 Nature</button>
+      </div>
+
+      <!-- Combo Cards Grid -->
+      <div class="combo-grid" id="combo-grid"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════ ARTICLE BODY ══ -->
+<section class="section" style="padding-top:40px">
+  <div class="container container--narrow">
+    <div class="blog-detail__content">
+
+      <h2>Popular Emoji Combos to Copy and Paste</h2>
+      <p>
+        The best emoji combos are easy to read, fit the message, and look balanced on a small
+        screen. Start with two to four emojis. Longer sets work better for decorative bios,
+        dividers, and captions.
+      </p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Style</th><th>Combo ideas</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Cute</td><td>🐰🎀✨ · 🌸🫧🦋 · 🧸🍓🤍</td></tr>
+            <tr><td>Aesthetic</td><td>🌙🕯📖 · 🎧☕🌧 · 🪞🕊✨</td></tr>
+            <tr><td>Funny</td><td>🤡📸💀 · 👀🍿😂 · 🧠❌🐒</td></tr>
+            <tr><td>Love</td><td>🫶💌🌹 · 💗🔐♾️ · 🥰🌷🤍</td></tr>
+            <tr><td>Happy</td><td>☀️😁✨ · 🥳🎉💃 · 🌈😊🫶</td></tr>
+            <tr><td>Sad</td><td>🌧😔🖤 · 🥀💔😢 · 🌙🥺💭</td></tr>
+            <tr><td>Chill</td><td>🎧😌☕ · 🌊🕶🍹 · 🛋🍿🌙</td></tr>
+            <tr><td>Party</td><td>🥳🎂🎈 · 🎉🪩💃 · 🍕🎮🔥</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Best, Cool, and Good Pairings</h2>
+      <p>A good combination should make sense at a glance. Use one main emoji for the message, then add one or two supporting emojis for tone.</p>
+      <ul>
+        <li>Main character energy: 👑✨😌</li>
+        <li>Good vibes: ☀️🌈🫶</li>
+        <li>Late-night mood: 🌙🎧🖤</li>
+        <li>Big win: 🏆🔥🙌</li>
+        <li>Weekend plans: 🚗🎶🌅</li>
+        <li>Study mode: 📚☕🧠</li>
+        <li>Gym day: 🏋💪🔥</li>
+        <li>Coffee first: ☕😴➡️😊</li>
+        <li>New post: 📸✨🫶</li>
+        <li>Main event: 🎟🎤🔥</li>
+      </ul>
+
+      <h2>Random, Creative, and Matching Sets</h2>
+      <p>Random pairings work well when you want an unexpected joke or a new profile theme. Matching sets repeat a color, mood, or visual shape.</p>
+      <ul>
+        <li>Cosmic snack: 🌙🍓✨</li>
+        <li>Frog weather: 🐸☔🌿</li>
+        <li>Cherry disco: 🍒🪩❤️</li>
+        <li>Bookish cat: 🐈📚☕</li>
+        <li>Cloud picnic: ☁️🧺🌼</li>
+        <li>Fire and ice: 🔥🧊⚡</li>
+        <li>Golden hour: 🌅📸🧡</li>
+        <li>Soft green: 🍵🌿🐢</li>
+        <li>Silver night: 🌙🩶⭐</li>
+        <li>Candy sky: 🍬☁️🩵</li>
+      </ul>
+      <p>Use the <strong>Random Combo</strong> button above when you need quick emoji combo ideas without choosing a category.</p>
+
+      <h2>Cute Sets</h2>
+      <p>Cute sets often use bows, hearts, flowers, animals, fruit, sparkles, and soft colors. They suit friendly texts, profile names, birthday notes, and photo captions.</p>
+      <h3>Cute and Pretty Ideas</h3>
+      <ul>
+        <li>🎀🧸🌸</li><li>🐰🫧🤍</li><li>🍓🥛💗</li><li>🌷🦋✨</li>
+        <li>🐣🌼☀️</li><li>🧁🍒🎀</li><li>🐱💌🌹</li><li>☁️🪽🩵</li>
+        <li>🐶🦴🤎</li><li>🍰☕🌸</li>
+      </ul>
+      <h3>Sweet, Cute Face, and Cute Girl Ideas</h3>
+      <ul>
+        <li>Sweet mood: 🍯🐝🌼</li>
+        <li>Blushing face: 😊👉👈💗</li>
+        <li>Soft smile: ☺🌸✨</li>
+        <li>Cute girl: 🎀💄🪞</li>
+        <li>Pink outfit: 👛👗🌷</li>
+        <li>Self-care: 🫧🕯</li>
+        <li>Best day: 🥰☀️🦋</li>
+        <li>Sleepy: 😴🧸🌙</li>
+        <li>Shy: 🥺👉👈</li>
+        <li>Tiny celebration: 🥳🧁💕</li>
+      </ul>
+
+      <h2>Aesthetic Sets</h2>
+      <p>Aesthetic sets create a clear visual theme. Keep the colors, objects, and mood consistent so the set looks intentional in a bio or caption.</p>
+      <h3>Soft and Cute Aesthetic Ideas</h3>
+      <ul>
+        <li>☁️🫧🪽</li><li>🌸🕊🤍</li><li>🧸🕯📖</li><li>🎀🪞🌷</li>
+        <li>🦢🫧✨</li><li>🍰☕🩰</li><li>🌙🛏🧸</li><li>🐚🩵☁️</li>
+      </ul>
+      <h3>Old Money, Korean, and Pink Aesthetic Ideas</h3>
+      <ul>
+        <li>Old money: 🏛📚🥂</li>
+        <li>Country club: 🎾🤍🌿</li>
+        <li>Classic style: 🧥⌚☕</li>
+        <li>Korean café: ☕🍰📸</li>
+        <li>Seoul night: 🌃🎧🖤</li>
+        <li>Soft Korean style: 🌷🧸🤍</li>
+        <li>Pink aesthetic: 🎀🌸💗</li>
+        <li>Soft pink: 🩰🫧🌷</li>
+        <li>Light pink: 🐚🤍🌸</li>
+        <li>Pink heart: 💗🎀💌</li>
+      </ul>
+
+      <h2>Color-Based Sets</h2>
+      <p>Color-based sets are useful for matching profile themes, outfits, brand colors, team posts, and photo carousels.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Color</th><th>Copyable combinations</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Pink</td><td>🎀🌸💗 · 🦩🩰🫧</td></tr>
+            <tr><td>Blue</td><td>🩵🌊🐬 · 🌌🦋💙</td></tr>
+            <tr><td>Black</td><td>🖤🌑 · 🎧🕷♠</td></tr>
+            <tr><td>White</td><td>🤍☁️🕊 · 🦢🫧❄️</td></tr>
+            <tr><td>Red</td><td>❤️🌹🍒 · 🔥💋🎸</td></tr>
+            <tr><td>Green</td><td>💚🌿🐢 · 🍵🍀🌱</td></tr>
+            <tr><td>Purple</td><td>💜🔮☂️ · 🍇🌌🪻</td></tr>
+            <tr><td>Yellow</td><td>💛☀️🌻 · 🍋🐝⭐</td></tr>
+            <tr><td>Orange</td><td>🧡🍊🌅 · 🎃🔥🦊</td></tr>
+            <tr><td>Brown</td><td>🤎☕🧸 · 🍂🦌🪵</td></tr>
+            <tr><td>Pastel</td><td>🩷🩵💛 · 🌸☁️🫧</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>Love, Romance, and Friendship</h2>
+      <p>Love-themed sets can show affection, flirting, friendship, or a shared memory. Match the set to the relationship and the tone of the message.</p>
+      <h3>Romantic, Heart, Couple, and Flirty Ideas</h3>
+      <ul>
+        <li>I love you: 🫶❤️♾️</li>
+        <li>Love letter: 💌🌹🥰</li>
+        <li>Locked in: 🔐💗🫂</li>
+        <li>Date night: 🍝🕯❤️</li>
+        <li>Long distance: 🌍💌🫶</li>
+        <li>Flirty: 👀💋🔥</li>
+        <li>Crush: 🥺👉👈💗</li>
+        <li>Couple: 👫🌅❤️</li>
+        <li>Wedding: 💍🤍🥂</li>
+        <li>Heart eyes: 😍🌹💘</li>
+      </ul>
+      <h3>Best Friend and Friendship Ideas</h3>
+      <ul>
+        <li>Best friends: 💗✨</li>
+        <li>Partners in crime: 😎🤝🔥</li>
+        <li>Always together: 🫂🔐♾️</li>
+        <li>Girls' day: 💅☕📸</li>
+        <li>Gaming friends: 🎮🍕😂</li>
+        <li>Travel friends: ✈️🗺🫶</li>
+        <li>Study friends: 📚☕🤝</li>
+        <li>Childhood friends: 🧸📸💛</li>
+      </ul>
+
+      <h2>Mood and Reaction Sets</h2>
+      <p>Mood sets help a short reply feel clearer. Use them for happy news, sarcasm, frustration, tears, laughter, or a calm day.</p>
+      <ul>
+        <li>Happy: 😄☀️✨</li>
+        <li>Excited: 🤩🔥🙌</li>
+        <li>Laughing: 😂🤣💀</li>
+        <li>Crying: 😭🫂💔</li>
+        <li>Sad: 😔🌧🥀</li>
+        <li>Angry: 😤🔥💢</li>
+        <li>Sarcastic: 🙂👍🙃</li>
+        <li>Suspicious: 🤨👀🕵</li>
+        <li>Tired: 😴☕🫠</li>
+        <li>Chill: 😌🎧🌊</li>
+        <li>Trippy: 👁🌀🍄</li>
+        <li>Speechless: 😶👀💭</li>
+        <li>Embarrassed: 🫣😳🙈</li>
+        <li>Proud: 🥹👏🏆</li>
+      </ul>
+
+      <h2>Kawaii and Cutecore Sets</h2>
+      <p>Kawaii sets use sweet faces, pastel details, bows, stars, and small animals. Cutecore sets often add decorative symbols around the emojis.</p>
+      <ul>
+        <li>🐰🌸🎀</li>
+        <li>🧸🎀⋆｡</li>
+        <li>🐇🫧🍓</li>
+        <li>🌷🫶</li>
+        <li>✧˖°🦢🎀</li>
+        <li>🍰🩷</li>
+        <li>🌙🎀🐰</li>
+        <li>🎀🌸💗</li>
+      </ul>
+      <p>Keep symbols limited when the text must fit a short username or app field.</p>
+
+      <h2>Sets for Instagram, TikTok, Snapchat, and Bios</h2>
+      <p>Social media sets should match the post instead of sitting at the end without a clear purpose. Short sets work well in display names and bios. Longer sets can frame captions or separate profile lines.</p>
+      <h3>Instagram Ideas</h3>
+      <ul>
+        <li>Photo dump: 📸🎞🫶</li>
+        <li>Outfit post: 👗🪞✨</li>
+        <li>Travel post: ✈️📍🌅</li>
+        <li>Food post: 🍝📸🤌</li>
+        <li>Fitness post: 🏋🔥💪</li>
+        <li>Beach post: 🌊🐚☀️</li>
+        <li>Night out: 🪩🥂💃</li>
+        <li>New reel: 🎬✨👀</li>
+      </ul>
+      <h3>TikTok and Snapchat Ideas</h3>
+      <ul>
+        <li>Trending sound: 🎧🔥📈</li>
+        <li>Story time: 📖👀🍿</li>
+        <li>Get ready with me: 🪞💄🎀</li>
+        <li>Dance clip: 💃🎵⚡</li>
+        <li>Snap streak: 🔥📸⏳</li>
+        <li>Late snap: 🌙😴📱</li>
+        <li>Funny fail: 🤦😂💀</li>
+      </ul>
+      <h3>Ideas for Bios, Captions, Texting, and Status</h3>
+      <ul>
+        <li>Dreamy bio: ☁️🌙🪽</li>
+        <li>Minimal bio: 🤍 | ☕ | 📚</li>
+        <li>Music bio: 🎧🎶🖤</li>
+        <li>Travel bio: ✈️🌍📍</li>
+        <li>Caption ending: 📸✨</li>
+        <li>Texting reaction: 👀🍿</li>
+        <li>Busy status: 💻☕🔕</li>
+        <li>Offline status: 🌙📵😴</li>
+        <li>With symbols: ⋆｡°✩🌙✩°｡⋆</li>
+        <li>Soft divider: ── 🎀 ──</li>
+      </ul>
+
+      <h2>Birthday, Holiday, Seasonal, and Occasion Sets</h2>
+      <p>Seasonal sets make greetings and event posts easier to scan.</p>
+      <ul>
+        <li>Birthday: 🎂🥳🎈</li>
+        <li>Christmas: 🎄🎁❄️</li>
+        <li>Halloween: 🎃👻🕸</li>
+        <li>Valentine's Day: 💌🌹❤️</li>
+        <li>Summer: ☀️🍉🕶</li>
+        <li>Winter: ❄️🧣☕</li>
+        <li>Beach: 🏖🐚🌊</li>
+        <li>Party: 🎉🪩🥂</li>
+        <li>Graduation: 🎓📚🎉</li>
+        <li>New Year: 🎆🥂🕛</li>
+        <li>Wedding: 💍🤍🌸</li>
+        <li>Baby shower: 🍼🧸🩵</li>
+      </ul>
+
+      <h2>Nature, Animal, Food, and Object Sets</h2>
+      <p>These sets work well for captions, hobbies, pets, weather, and themed profiles.</p>
+      <ul>
+        <li>Flower: 🌸🌷🌼</li>
+        <li>Star: ⭐🌙✨</li>
+        <li>Moon: 🌙☁️🦉</li>
+        <li>Sun: ☀️🌻🍋</li>
+        <li>Butterfly: 🦋🌸🫧</li>
+        <li>Animal: 🐾🌿🤎</li>
+        <li>Cat: 🐈🧶🐾</li>
+        <li>Dog: 🐶🦴🎾</li>
+        <li>Food: 🍕🍟🥤</li>
+        <li>Fire: 🔥⚡</li>
+        <li>Garden: 🌱🐝🌼</li>
+        <li>Rainy day: 🌧☕📖</li>
+        <li>Camping: ⛺🔥🌲</li>
+        <li>Ocean: 🌊🐬🐚</li>
+      </ul>
+
+      <h2>How to Copy and Use a Combination</h2>
+      <p>Copying a set takes only a few steps:</p>
+      <ol>
+        <li>Browse a category or search by mood, color, object, or platform.</li>
+        <li>Choose the combination that fits your message.</li>
+        <li>Select the <strong>Copy</strong> button.</li>
+        <li>Open the app where you want to use it.</li>
+        <li>Paste the set into the text field.</li>
+        <li>Check the preview before posting or sending.</li>
+      </ol>
+      <p>On a phone, press and hold inside the text field when the paste option does not appear. On a computer, use <kbd>Ctrl+V</kbd> on Windows or <kbd>Command+V</kbd> on macOS.</p>
+
+      <h2>Why Emoji May Look Different After Pasting</h2>
+      <p>
+        Emoji are encoded as Unicode characters, but Apple, Google, Microsoft, Samsung, and other
+        platforms draw their own artwork. Unicode Emoji v17.0 is the current released reference set;
+        v18.0 is still in beta as of July 21, 2026.
+      </p>
+      <p>
+        A set may keep the same characters while its colors, shapes, or facial details look different.
+        Joined emoji sequences can also split into separate characters on systems that do not support
+        that sequence.
+      </p>
+      <p>For the cleanest result, preview the set in the final app. Use common emojis when broad device support matters.</p>
+
+      <h2>Plain Combinations vs. Emoji Kitchen Mashups</h2>
+      <p>Plain emoji sequences and Emoji Kitchen mashups are not the same format.</p>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Format</th><th>Result</th><th>How it is shared</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Single emoji</td><td>One standard character</td><td>Plain text</td></tr>
+            <tr><td>Emoji combo</td><td>Two or more characters together</td><td>Plain text</td></tr>
+            <tr><td>Emoji and symbol combo</td><td>Emoji mixed with decorative text symbols</td><td>Plain text</td></tr>
+            <tr><td>Emoji Kitchen mashup</td><td>One sticker that blends emoji designs</td><td>Image or sticker</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>
+        Plain combinations can be pasted into most text fields. Emoji Kitchen creates sticker-style
+        mixes from supported emoji pairs. Google describes its combine mode as mixing two individual
+        emojis into a sticker.
+      </p>
+      <p>Use <strong><a href="{% url 'home' %}#kitchen">Emoji Kitchen</a></strong> when you want one custom image instead of several characters placed side by side.</p>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ FAQ ══ -->
+<section class="section faq-section">
+  <div class="container">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">❓ Help &amp; support</span>
+      <h2>Frequently Asked Questions</h2>
+      <p>Common questions about emoji combos and how to use them.</p>
+    </div>
+    <div class="faq-list">
+      {% for item in faqs %}
+      <details class="faq-item animate-up" style="--delay:{{ forloop.counter0 }}0ms">
+        <summary class="faq-item__q">
+          <span>{{ item.question }}</span>
+          <span class="faq-item__chevron">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </summary>
+        <div class="faq-item__a"><p>{{ item.answer }}</p></div>
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════ CLOSING CTA ══ -->
+<section class="section" style="padding-top:0">
+  <div class="container container--narrow">
+    <div class="section-head section-head--center animate-up">
+      <h2>Pick a Combo That Fits Your Message</h2>
+      <p>
+        The right emoji combos can make short messages easier to read and give profiles a clear
+        style. Start with a category, choose two to four matching characters, and preview the result
+        where you plan to use it.
+      </p>
+      <p>
+        When separate emojis are not enough, use <strong>Emoji Kitchen</strong> to mix two supported
+        designs into one sticker. Pick your favorite set above, copy it, and add it to your next
+        bio, caption, or chat.
+      </p>
+      <a href="{% url 'home' %}#kitchen" class="btn btn--primary" style="margin-top:8px">Open Emoji Kitchen 🍳</a>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ COMBO TOOL JS ══ -->
+<script>
+(function () {
+  'use strict';
+
+  const COMBOS = [
+    // Cute
+    {cat:'cute', label:'Cute', emoji:'🐰🎀✨'},
+    {cat:'cute', label:'Cute', emoji:'🌸🫧🦋'},
+    {cat:'cute', label:'Cute', emoji:'🧸🍓🤍'},
+    {cat:'cute', label:'Cute', emoji:'🎀🧸🌸'},
+    {cat:'cute', label:'Cute', emoji:'🐰🫧🤍'},
+    {cat:'cute', label:'Cute', emoji:'🍓🥛💗'},
+    {cat:'cute', label:'Cute', emoji:'🌷🦋✨'},
+    {cat:'cute', label:'Cute', emoji:'🐣🌼☀️'},
+    {cat:'cute', label:'Cute', emoji:'🧁🍒🎀'},
+    {cat:'cute', label:'Cute', emoji:'🐱💌🌹'},
+    {cat:'cute', label:'Cute', emoji:'☁️🪽🩵'},
+    {cat:'cute', label:'Cute', emoji:'🍰☕🌸'},
+    {cat:'cute', label:'Sweet mood', emoji:'🍯🐝🌼'},
+    {cat:'cute', label:'Soft smile', emoji:'☺🌸✨'},
+    {cat:'cute', label:'Cute girl', emoji:'🎀💄🪞'},
+    {cat:'cute', label:'Sleepy', emoji:'😴🧸🌙'},
+    {cat:'cute', label:'Shy', emoji:'🥺👉👈'},
+    {cat:'cute', label:'Tiny celebration', emoji:'🥳🧁💕'},
+    // Aesthetic
+    {cat:'aesthetic', label:'Aesthetic', emoji:'🌙🕯📖'},
+    {cat:'aesthetic', label:'Aesthetic', emoji:'🎧☕🌧'},
+    {cat:'aesthetic', label:'Aesthetic', emoji:'🪞🕊✨'},
+    {cat:'aesthetic', label:'Soft', emoji:'☁️🫧🪽'},
+    {cat:'aesthetic', label:'Soft', emoji:'🌸🕊🤍'},
+    {cat:'aesthetic', label:'Cosy', emoji:'🧸🕯📖'},
+    {cat:'aesthetic', label:'Vintage', emoji:'🎀🪞🌷'},
+    {cat:'aesthetic', label:'Minimal', emoji:'🦢🫧✨'},
+    {cat:'aesthetic', label:'Café', emoji:'🍰☕🩰'},
+    {cat:'aesthetic', label:'Night', emoji:'🌙🛏🧸'},
+    {cat:'aesthetic', label:'Dreamy', emoji:'🐚🩵☁️'},
+    {cat:'aesthetic', label:'Old money', emoji:'🏛📚🥂'},
+    {cat:'aesthetic', label:'Classic', emoji:'🧥⌚☕'},
+    {cat:'aesthetic', label:'Korean café', emoji:'☕🍰📸'},
+    {cat:'aesthetic', label:'Seoul night', emoji:'🌃🎧🖤'},
+    {cat:'aesthetic', label:'Pink aesthetic', emoji:'🎀🌸💗'},
+    {cat:'aesthetic', label:'Soft pink', emoji:'🩰🫧🌷'},
+    // Funny
+    {cat:'funny', label:'Funny', emoji:'🤡📸💀'},
+    {cat:'funny', label:'Funny', emoji:'👀🍿😂'},
+    {cat:'funny', label:'Funny', emoji:'🧠❌🐒'},
+    {cat:'funny', label:'Laughing', emoji:'😂🤣💀'},
+    {cat:'funny', label:'Sarcastic', emoji:'🙂👍🙃'},
+    {cat:'funny', label:'Suspicious', emoji:'🤨👀🕵'},
+    {cat:'funny', label:'Trippy', emoji:'👁🌀🍄'},
+    {cat:'funny', label:'Speechless', emoji:'😶👀💭'},
+    {cat:'funny', label:'Frog weather', emoji:'🐸☔🌿'},
+    {cat:'funny', label:'Cherry disco', emoji:'🍒🪩❤️'},
+    {cat:'funny', label:'Fire and ice', emoji:'🔥🧊⚡'},
+    {cat:'funny', label:'Funny fail', emoji:'🤦😂💀'},
+    // Love
+    {cat:'love', label:'Love', emoji:'🫶💌🌹'},
+    {cat:'love', label:'Love', emoji:'💗🔐♾️'},
+    {cat:'love', label:'Love', emoji:'🥰🌷🤍'},
+    {cat:'love', label:'I love you', emoji:'🫶❤️♾️'},
+    {cat:'love', label:'Love letter', emoji:'💌🌹🥰'},
+    {cat:'love', label:'Date night', emoji:'🍝🕯❤️'},
+    {cat:'love', label:'Long distance', emoji:'🌍💌🫶'},
+    {cat:'love', label:'Flirty', emoji:'👀💋🔥'},
+    {cat:'love', label:'Crush', emoji:'🥺👉👈💗'},
+    {cat:'love', label:'Wedding', emoji:'💍🤍🥂'},
+    {cat:'love', label:'Heart eyes', emoji:'😍🌹💘'},
+    {cat:'love', label:'Best friends', emoji:'💗✨'},
+    {cat:'love', label:'Partners in crime', emoji:'😎🤝🔥'},
+    {cat:'love', label:'Girls day', emoji:'💅☕📸'},
+    {cat:'love', label:'Travel friends', emoji:'✈️🗺🫶'},
+    // Mood
+    {cat:'mood', label:'Happy', emoji:'😄☀️✨'},
+    {cat:'mood', label:'Happy', emoji:'☀️😁✨'},
+    {cat:'mood', label:'Excited', emoji:'🤩🔥🙌'},
+    {cat:'mood', label:'Crying', emoji:'😭🫂💔'},
+    {cat:'mood', label:'Sad', emoji:'😔🌧🥀'},
+    {cat:'mood', label:'Sad', emoji:'🌧😔🖤'},
+    {cat:'mood', label:'Angry', emoji:'😤🔥💢'},
+    {cat:'mood', label:'Tired', emoji:'😴☕🫠'},
+    {cat:'mood', label:'Chill', emoji:'😌🎧🌊'},
+    {cat:'mood', label:'Chill', emoji:'🎧😌☕'},
+    {cat:'mood', label:'Embarrassed', emoji:'🫣😳🙈'},
+    {cat:'mood', label:'Proud', emoji:'🥹👏🏆'},
+    {cat:'mood', label:'Good vibes', emoji:'☀️🌈🫶'},
+    {cat:'mood', label:'Late night', emoji:'🌙🎧🖤'},
+    {cat:'mood', label:'Study mode', emoji:'📚☕🧠'},
+    {cat:'mood', label:'Gym day', emoji:'🏋💪🔥'},
+    {cat:'mood', label:'Big win', emoji:'🏆🔥🙌'},
+    // Color
+    {cat:'color', label:'Pink', emoji:'🎀🌸💗'},
+    {cat:'color', label:'Pink', emoji:'🦩🩰🫧'},
+    {cat:'color', label:'Blue', emoji:'🩵🌊🐬'},
+    {cat:'color', label:'Blue', emoji:'🌌🦋💙'},
+    {cat:'color', label:'Black', emoji:'🖤🌑'},
+    {cat:'color', label:'Black', emoji:'🎧🕷♠'},
+    {cat:'color', label:'White', emoji:'🤍☁️🕊'},
+    {cat:'color', label:'White', emoji:'🦢🫧❄️'},
+    {cat:'color', label:'Red', emoji:'❤️🌹🍒'},
+    {cat:'color', label:'Red', emoji:'🔥💋🎸'},
+    {cat:'color', label:'Green', emoji:'💚🌿🐢'},
+    {cat:'color', label:'Green', emoji:'🍵🍀🌱'},
+    {cat:'color', label:'Purple', emoji:'💜🔮☂️'},
+    {cat:'color', label:'Yellow', emoji:'💛☀️🌻'},
+    {cat:'color', label:'Orange', emoji:'🧡🍊🌅'},
+    {cat:'color', label:'Brown', emoji:'🤎☕🧸'},
+    {cat:'color', label:'Pastel', emoji:'🩷🩵💛'},
+    {cat:'color', label:'Pastel', emoji:'🌸☁️🫧'},
+    // Social
+    {cat:'social', label:'Photo dump', emoji:'📸🎞🫶'},
+    {cat:'social', label:'Outfit post', emoji:'👗🪞✨'},
+    {cat:'social', label:'Travel post', emoji:'✈️📍🌅'},
+    {cat:'social', label:'Food post', emoji:'🍝📸🤌'},
+    {cat:'social', label:'Fitness post', emoji:'🏋🔥💪'},
+    {cat:'social', label:'Beach post', emoji:'🌊🐚☀️'},
+    {cat:'social', label:'Night out', emoji:'🪩🥂💃'},
+    {cat:'social', label:'New reel', emoji:'🎬✨👀'},
+    {cat:'social', label:'Story time', emoji:'📖👀🍿'},
+    {cat:'social', label:'GRWM', emoji:'🪞💄🎀'},
+    {cat:'social', label:'Dance clip', emoji:'💃🎵⚡'},
+    {cat:'social', label:'Snap streak', emoji:'🔥📸⏳'},
+    {cat:'social', label:'Dreamy bio', emoji:'☁️🌙🪽'},
+    {cat:'social', label:'Music bio', emoji:'🎧🎶🖤'},
+    {cat:'social', label:'Travel bio', emoji:'✈️🌍📍'},
+    {cat:'social', label:'Busy status', emoji:'💻☕🔕'},
+    // Seasonal
+    {cat:'seasonal', label:'Birthday', emoji:'🎂🥳🎈'},
+    {cat:'seasonal', label:'Christmas', emoji:'🎄🎁❄️'},
+    {cat:'seasonal', label:'Halloween', emoji:'🎃👻🕸'},
+    {cat:'seasonal', label:"Valentine's", emoji:'💌🌹❤️'},
+    {cat:'seasonal', label:'Summer', emoji:'☀️🍉🕶'},
+    {cat:'seasonal', label:'Winter', emoji:'❄️🧣☕'},
+    {cat:'seasonal', label:'Beach', emoji:'🏖🐚🌊'},
+    {cat:'seasonal', label:'Party', emoji:'🎉🪩🥂'},
+    {cat:'seasonal', label:'Graduation', emoji:'🎓📚🎉'},
+    {cat:'seasonal', label:'New Year', emoji:'🎆🥂🕛'},
+    {cat:'seasonal', label:'Wedding', emoji:'💍🤍🌸'},
+    {cat:'seasonal', label:'Baby shower', emoji:'🍼🧸🩵'},
+    // Nature
+    {cat:'nature', label:'Flower', emoji:'🌸🌷🌼'},
+    {cat:'nature', label:'Star', emoji:'⭐🌙✨'},
+    {cat:'nature', label:'Moon', emoji:'🌙☁️🦉'},
+    {cat:'nature', label:'Sun', emoji:'☀️🌻🍋'},
+    {cat:'nature', label:'Butterfly', emoji:'🦋🌸🫧'},
+    {cat:'nature', label:'Cat', emoji:'🐈🧶🐾'},
+    {cat:'nature', label:'Dog', emoji:'🐶🦴🎾'},
+    {cat:'nature', label:'Garden', emoji:'🌱🐝🌼'},
+    {cat:'nature', label:'Rainy day', emoji:'🌧☕📖'},
+    {cat:'nature', label:'Camping', emoji:'⛺🔥🌲'},
+    {cat:'nature', label:'Ocean', emoji:'🌊🐬🐚'},
+    {cat:'nature', label:'Bookish cat', emoji:'🐈📚☕'},
+    {cat:'nature', label:'Soft green', emoji:'🍵🌿🐢'},
+    {cat:'nature', label:'Cloud picnic', emoji:'☁️🧺🌼'},
+    {cat:'nature', label:'Golden hour', emoji:'🌅📸🧡'},
+  ];
+
+  const grid     = document.getElementById('combo-grid');
+  const search   = document.getElementById('combo-search');
+  const filterEl = document.getElementById('combo-filter');
+  const randBtn  = document.getElementById('combo-random-btn');
+
+  let activeFilter = 'all';
+  let searchQuery  = '';
+
+  function render() {
+    const q = searchQuery.toLowerCase();
+    const visible = COMBOS.filter(c => {
+      const catMatch = activeFilter === 'all' || c.cat === activeFilter;
+      const searchMatch = !q || c.emoji.includes(q) || c.label.toLowerCase().includes(q) || c.cat.includes(q);
+      return catMatch && searchMatch;
+    });
+
+    if (!visible.length) {
+      grid.innerHTML = '<div class="combo-empty">No combos found — try a different search or category.</div>';
+      return;
+    }
+
+    grid.innerHTML = visible.map(c => `
+      <div class="combo-card">
+        <span class="combo-card__emoji">${c.emoji}</span>
+        <span class="combo-card__label">${c.label}</span>
+        <button class="combo-card__copy" data-combo="${c.emoji}">📋 Copy</button>
+      </div>
+    `).join('');
+
+    grid.querySelectorAll('.combo-card__copy').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const combo = btn.dataset.combo;
+        if (navigator.clipboard?.writeText) {
+          navigator.clipboard.writeText(combo)
+            .then(() => {
+              btn.textContent = '✅ Copied!';
+              setTimeout(() => { btn.textContent = '📋 Copy'; }, 1800);
+              if (window.showToast) window.showToast('Combo copied — paste it anywhere!', '📋');
+            })
+            .catch(() => fallback(combo, btn));
+        } else {
+          fallback(combo, btn);
+        }
+      });
+    });
+  }
+
+  function fallback(text, btn) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => { btn.textContent = '📋 Copy'; }, 1800);
+  }
+
+  filterEl.addEventListener('click', e => {
+    const btn = e.target.closest('.combo-filter__btn');
+    if (!btn) return;
+    filterEl.querySelectorAll('.combo-filter__btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    render();
+  });
+
+  search.addEventListener('input', () => {
+    searchQuery = search.value;
+    render();
+  });
+
+  randBtn.addEventListener('click', () => {
+    const pool = activeFilter === 'all' ? COMBOS : COMBOS.filter(c => c.cat === activeFilter);
+    if (!pool.length) return;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(pick.emoji)
+        .then(() => {
+          if (window.showToast) window.showToast(`Random combo copied: ${pick.emoji}`, '🎲');
+        });
+    }
+  });
+
+  render();
+})();
+</script>
+
+{% endblock %}

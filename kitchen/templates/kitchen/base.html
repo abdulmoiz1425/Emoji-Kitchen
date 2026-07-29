@@ -27,12 +27,15 @@
       <li><a href="{% url 'home' %}">Home</a></li>
       <li><a href="{% url 'emoji_maker' %}">Emoji Maker</a></li>
       <li><a href="{% url 'emoji_generator' %}">Free Emoji Generator</a></li>
-      <li><a href="{% url 'home' %}#kitchen">Try it</a></li>
-      <li><a href="{% url 'home' %}#about">About</a></li>
-      <li><a href="{% url 'home' %}#popular">Combos</a></li>
-      <li><a href="{% url 'home' %}#how-to">How to use</a></li>
+      <li class="nav__item nav__item--dropdown">
+        <a href="{% url 'emoji_combos' %}">Emoji Combos</a>
+        <ul class="nav__dropdown-menu">
+          <li><a href="{% url 'emoji_combos_love' %}">💕 Love Emoji</a></li>
+          <li><a href="{% url 'emoji_combos_cute' %}">🎀 Cute Emoji</a></li>
+          <li><a href="{% url 'emoji_combos_aesthetic' %}">✨ Aesthetic Emoji</a></li>
+        </ul>
+      </li>
       <li><a href="{% url 'blog' %}">Blog</a></li>
-      <li><a href="{% url 'home' %}#faq">FAQ</a></li>
     </ul>
     <a class="nav__cta btn btn--primary btn--sm" href="{% url 'home' %}#kitchen">
       Open Kitchen 🍳
@@ -45,12 +48,11 @@
     <a href="{% url 'home' %}" class="nav__drawer-link" data-close-drawer>🏠 Home</a>
     <a href="{% url 'emoji_maker' %}" class="nav__drawer-link" data-close-drawer>🪄 Emoji Maker</a>
     <a href="{% url 'emoji_generator' %}" class="nav__drawer-link" data-close-drawer>✨ Free Emoji Generator</a>
-    <a href="{% url 'home' %}#kitchen" class="nav__drawer-link" data-close-drawer>🍳 Try it</a>
-    <a href="{% url 'home' %}#about"   class="nav__drawer-link" data-close-drawer>ℹ️ About</a>
-    <a href="{% url 'home' %}#popular" class="nav__drawer-link" data-close-drawer>🎨 Combos</a>
-    <a href="{% url 'home' %}#how-to"  class="nav__drawer-link" data-close-drawer>📖 How to use</a>
+    <a href="{% url 'emoji_combos' %}" class="nav__drawer-link" data-close-drawer>🎭 Emoji Combos</a>
+    <a href="{% url 'emoji_combos_love' %}" class="nav__drawer-link nav__drawer-sublink" data-close-drawer>💕 Love Emoji</a>
+    <a href="{% url 'emoji_combos_cute' %}" class="nav__drawer-link nav__drawer-sublink" data-close-drawer>🎀 Cute Emoji</a>
+    <a href="{% url 'emoji_combos_aesthetic' %}" class="nav__drawer-link nav__drawer-sublink" data-close-drawer>✨ Aesthetic Emoji</a>
     <a href="{% url 'blog' %}"         class="nav__drawer-link" data-close-drawer>📝 Blog</a>
-    <a href="{% url 'home' %}#faq"     class="nav__drawer-link" data-close-drawer>❓ FAQ</a>
   </div>
 </header>
 

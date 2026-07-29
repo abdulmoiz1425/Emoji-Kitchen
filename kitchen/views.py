@@ -170,6 +170,45 @@ COMPARISON_ROWS = [
     ('Shows one main idea', 'Can show a more specific reaction'),
 ]
 
+EMOJI_COMBOS_PAGE_FAQS = [
+    {
+        'question': 'What is an emoji combo?',
+        'answer': 'It is a group of two or more emojis used together to express a mood, topic, reaction, style, or short story.',
+    },
+    {
+        'question': 'How do I copy and paste an emoji combo?',
+        'answer': 'Select the Copy button beside a set, open your chosen app, and paste it into a supported text field.',
+    },
+    {
+        'question': 'Are these combinations free?',
+        'answer': 'Yes. Emoji Kitchen Hub presents its tools as free and available without sign-up.',
+    },
+    {
+        'question': 'Where can I use emoji combinations?',
+        'answer': 'You can use them in texts, captions, comments, bios, status updates, usernames, notes, and most apps that accept standard text.',
+    },
+    {
+        'question': 'How many emojis should I use in a bio?',
+        'answer': 'Two to four emojis suit most short bios. Longer decorative sets can work, but they may make a profile harder to scan.',
+    },
+    {
+        'question': 'Should I add spaces between emojis?',
+        'answer': 'Spaces are optional. No spaces create a compact look, while spaces can make longer or visually busy combinations easier to read.',
+    },
+    {
+        'question': 'Why do some joined emojis split apart?',
+        'answer': 'The device, browser, font, or app may not support that joined sequence. The system then shows its separate parts instead.',
+    },
+    {
+        'question': 'Can a combination have different meanings?',
+        'answer': 'Yes. Context, culture, platform design, and the relationship between the sender and reader can change how a set is understood.',
+    },
+    {
+        'question': 'What is the difference between an emoji combo and Emoji Kitchen?',
+        'answer': 'An emoji combo uses separate text characters. Emoji Kitchen blends supported emojis into one sticker-style image.',
+    },
+]
+
 EMOJI_GENERATOR_FAQS = [
     {
         'question': 'Is this emoji generator free?',
@@ -249,6 +288,138 @@ EMOJI_MAKER_FAQS = [
 ]
 
 
+CUTE_EMOJI_COMBOS_FAQS = [
+    {
+        'question': 'What are some cute emoji combos?',
+        'answer': 'Popular examples include 🎀🌸✨, 🐰🍓🤍, ☁️🌙🫧, 🧸🍯🤎, and 🌷🦋✨. Choose a set that matches your color, mood, occasion, or profile style.',
+    },
+    {
+        'question': 'How do I copy an emoji combination?',
+        'answer': 'Tap the sequence or its Copy button. Open the destination field, then paste it using your phone, tablet, or computer\'s normal paste command.',
+    },
+    {
+        'question': 'Where can I use these emoji sets?',
+        'answer': 'You can use them in Instagram and TikTok bios, Discord names, captions, messages, contact names, usernames, comments, documents, and other fields that accept text.',
+    },
+    {
+        'question': 'What are the best combinations for a bio?',
+        'answer': 'Short decorative sequences work best because they leave room for your name and description. Try ୨୧‧₊˚🎀˚₊‧୨୧, ☁️⋆｡°‧★, or ♡₊˚ 🦢・₊✧.',
+    },
+    {
+        'question': 'What emojis create a cute aesthetic?',
+        'answer': 'Ribbons, hearts, flowers, sparkles, butterflies, clouds, moons, strawberries, bunnies, teddy bears, swans, and pastel-colored hearts are common choices for a cute aesthetic.',
+    },
+    {
+        'question': 'Do emoji combinations work on iPhone and Android?',
+        'answer': 'Standard Unicode sequences can be copied on both platforms, but the artwork may look different depending on the device, operating system, app, and installed emoji font.',
+    },
+    {
+        'question': 'Why does an emoji look different on another phone?',
+        'answer': 'Unicode defines the character and sequence, while platform vendors create their own visual designs. This can change the color, shape, expression, or small details without changing the basic emoji.',
+    },
+    {
+        'question': 'Are these emoji sets free to use?',
+        'answer': 'The text combinations on this page can be copied without signing up. Individual Unicode characters are not owned by anyone — copying a sequence does not make it a new official emoji.',
+    },
+    {
+        'question': 'What is the difference between an emoji combination and an Emoji Kitchen sticker?',
+        'answer': 'An emoji combination contains separate text characters, such as 🐰🍓🤍. An Emoji Kitchen sticker visually merges two selected emojis into one image-based result that is shared as a picture.',
+    },
+    {
+        'question': 'How many emojis should a combination contain?',
+        'answer': 'Two to four emojis work well for most messages and bios. Longer sequences can suit decorative profile layouts, borders, captions, or wallpapers where more visual decoration is expected.',
+    },
+]
+
+
+AESTHETIC_EMOJI_COMBOS_FAQS = [
+    {
+        'question': 'What are aesthetic emoji combos?',
+        'answer': 'They are short groups of emojis or decorative symbols chosen to express one visual mood. Common styles include soft, coquette, dark academia, Y2K, vintage, nature, clean girl and colour-based themes.',
+    },
+    {
+        'question': 'How many emojis should I use in one combination?',
+        'answer': 'Two to five characters work well for most bios, captions and usernames. Use fewer characters in a display name, and use a slightly longer set when the caption has more space.',
+    },
+    {
+        'question': 'How do I copy and paste an emoji set?',
+        'answer': 'Press the Copy button beside the set, open the app where you want to use it, then paste it into the chosen field. Preview the result before saving.',
+    },
+    {
+        'question': 'Which combinations work best for an Instagram bio?',
+        'answer': 'Short sets such as ☁️🫧🤍, 🎀🩷✨ or 🌙🪐⭐ fit well because they create a mood without taking over the bio. Match the set to your profile colours and content.',
+    },
+    {
+        'question': 'Can I use these sets on TikTok, Discord and WhatsApp?',
+        'answer': 'Yes. Standard emojis work in most apps, though their artwork may differ by platform. Decorative text symbols can also depend on font support.',
+    },
+    {
+        'question': 'Why do emojis look different on iPhone and Android?',
+        'answer': 'Platforms draw their own artwork for standard Unicode characters. The meaning stays broadly consistent, but colour, shape and detail can differ.',
+    },
+    {
+        'question': 'Why does a symbol appear as a square?',
+        'answer': 'The device, operating system, app or font may not support that character. Replace it with a common symbol, update the software where appropriate, or use an emoji-only set.',
+    },
+    {
+        'question': 'What is the difference between a combo and an Emoji Kitchen mashup?',
+        'answer': 'A combo keeps several emojis as separate text characters. An Emoji Kitchen mashup blends two supported emojis into one image, which behaves more like a sticker than editable text.',
+    },
+    {
+        'question': 'Can I mix emojis, symbols and kaomoji?',
+        'answer': 'Yes. Keep the set readable and test it on mobile. One kaomoji with one or two matching emojis often looks cleaner than a long row of decorative characters.',
+    },
+    {
+        'question': 'What makes an emoji combination look aesthetic?',
+        'answer': 'A strong set feels intentional. Choose one mood, pick a focal emoji such as a bow, moon or flower, add two supporting characters that match by colour or meaning, and keep the overall palette controlled.',
+    },
+]
+
+
+LOVE_EMOJI_COMBOS_FAQS = [
+    {
+        'question': 'What are the best romantic emoji combinations?',
+        'answer': 'The best option matches the message and recipient. ❤️🥰✨ suits a sweet everyday text, while 💌🌹❤️ works better for a romantic note or love letter.',
+    },
+    {
+        'question': 'How do I copy and paste an emoji sequence?',
+        'answer': 'Tap the combination you want, open the app where you want to use it, and select Paste. Check the preview before sending or posting so you can remove any symbol that does not display correctly.',
+    },
+    {
+        'question': 'Which emoji sets should I send to my boyfriend?',
+        'answer': 'Try 🫵💙🫶, 🤍🫂🔐, or Boyfriend 🧸💙🔐. Choose a style that matches how you normally speak to him — soft, playful, or romantic all work.',
+    },
+    {
+        'question': 'Which romantic combinations work for a girlfriend?',
+        'answer': 'Try 🌹💌💗, 🫵🩷🫶, or Girlfriend 🎀💞🔐. Romantic, soft, and playful options can all work depending on your relationship style.',
+    },
+    {
+        'question': 'What is a good aesthetic romantic sequence?',
+        'answer': '☁️🩷🎀, 🌷🤍🫧, and 🦢💌✨ are balanced options. Short combinations of two or three emojis work best in profile bios where space is limited.',
+    },
+    {
+        'question': 'Can I use these combinations on Instagram and TikTok?',
+        'answer': 'Standard Unicode emojis can usually be pasted into supported text fields on any platform. Always preview them first because decorative symbols and spacing may change between apps.',
+    },
+    {
+        'question': 'Why do emojis look different after I paste them?',
+        'answer': 'Apps and operating systems use their own emoji artwork. The underlying Unicode characters stay the same, but their visual design can change on Apple, Google, Samsung, or Microsoft platforms.',
+    },
+    {
+        'question': 'Why does an emoji show as a square or empty box?',
+        'answer': 'The device, operating system, app, or font may not support that character. Remove the unsupported symbol or replace it with a more widely supported emoji.',
+    },
+    {
+        'question': 'Are love emoji combos the same as Emoji Kitchen stickers?',
+        'answer': 'No. These are plain text sequences made of standard Unicode characters. Emoji Kitchen combines two emoji designs into a single sticker-style image, which is different from a text combination.',
+    },
+    {
+        'question': 'Can I add words to an emoji combination?',
+        'answer': 'Yes. Short phrases such as "love you," "miss you," or "my person" placed next to the emojis can make the meaning clearer without making the message too long.',
+    },
+]
+
+
 # ── Views ─────────────────────────────────────────────────────────────────────
 
 def robots_txt(request):
@@ -286,6 +457,34 @@ def emoji_generator(request):
         'faqs': EMOJI_GENERATOR_FAQS,
     }
     return render(request, 'kitchen/emoji_generator.html', context)
+
+
+def emoji_combos(request):
+    context = {
+        'faqs': EMOJI_COMBOS_PAGE_FAQS,
+    }
+    return render(request, 'kitchen/emoji_combos.html', context)
+
+
+def emoji_combos_love(request):
+    context = {
+        'faqs': LOVE_EMOJI_COMBOS_FAQS,
+    }
+    return render(request, 'kitchen/emoji_combos_love.html', context)
+
+
+def emoji_combos_cute(request):
+    context = {
+        'faqs': CUTE_EMOJI_COMBOS_FAQS,
+    }
+    return render(request, 'kitchen/emoji_combos_cute.html', context)
+
+
+def emoji_combos_aesthetic(request):
+    context = {
+        'faqs': AESTHETIC_EMOJI_COMBOS_FAQS,
+    }
+    return render(request, 'kitchen/emoji_combos_aesthetic.html', context)
 
 
 def blog(request):
