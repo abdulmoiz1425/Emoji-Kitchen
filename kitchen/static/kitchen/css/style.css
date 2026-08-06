@@ -215,14 +215,14 @@ strong{font-weight:700}
 /* Nav dropdown */
 .nav__item{position:relative;list-style:none}
 .nav__dropdown-menu{
-  position:absolute;top:calc(100% + 8px);left:50%;
+  position:absolute;top:100%;left:50%;
   transform:translateX(-50%) translateY(-4px);
   min-width:168px;
   background:var(--bg-pure);
   border:1px solid var(--border-lt);
   border-radius:var(--r-md);
   box-shadow:var(--sh-md);
-  padding:6px;
+  padding:14px 6px 6px;
   opacity:0;visibility:hidden;pointer-events:none;
   transition:opacity .18s ease,transform .18s ease,visibility .18s ease;
   z-index:300;

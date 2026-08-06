@@ -1,0 +1,675 @@
+{% extends "kitchen/base.html" %}
+{% load static %}
+
+{% block title %}Pink Emoji Combos 🎀 Copy and Paste Ideas{% endblock %}
+
+{% block meta_description %}Find pink emoji combos to copy and paste into bios, captions, texts, and usernames. Browse cute, aesthetic, pastel, heart, and coquette styles.{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ── page shell ── */
+.combo-hero{background:linear-gradient(135deg,#fde8f0 0%,#fce4f5 50%,#f0e4fd 100%);padding:56px 0 40px;text-align:center}
+.combo-hero h1{font-size:clamp(1.75rem,4vw,2.6rem);font-weight:800;color:#b03060;margin-bottom:.5rem}
+.combo-hero p{font-size:1.05rem;color:#7a3050;max-width:640px;margin:0 auto 1.5rem}
+
+/* ── tool card ── */
+.combo-tool{background:var(--bg-pure);border:1px solid var(--border-lt);border-radius:var(--r-lg);padding:28px 24px;max-width:860px;margin:0 auto 56px;box-shadow:var(--sh-md)}
+
+/* search row */
+.combo-search-row{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap}
+.combo-search-row input{flex:1;min-width:180px;padding:10px 14px;border:1px solid var(--border-lt);border-radius:var(--r-md);font-size:.95rem;background:var(--bg-section);color:var(--t)}
+.combo-search-row input:focus{outline:none;border-color:#e897b8}
+.btn--random-pink{padding:10px 18px;border-radius:var(--r-md);border:none;background:#f7c5db;color:#8a2040;font-weight:700;font-size:.9rem;cursor:pointer;white-space:nowrap;transition:background .18s}
+.btn--random-pink:hover{background:#f4aecf}
+
+/* filter tabs */
+.combo-filters{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:18px}
+.combo-filter-btn{padding:6px 13px;border-radius:999px;border:1px solid var(--border-lt);background:var(--bg-section);color:var(--t5);font-size:.82rem;font-weight:600;cursor:pointer;transition:background .15s,color .15s,border-color .15s}
+.combo-filter-btn:hover{border-color:#e897b8;color:#c0306a}
+.combo-filter-btn.active{background:#fce4f0;border-color:#e897b8;color:#b03060}
+
+/* combo grid */
+.combo-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(148px,1fr));gap:10px}
+.combo-card{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-radius:var(--r-md);border:1px solid var(--border-lt);background:var(--bg-section);cursor:pointer;transition:border-color .15s,background .15s;gap:6px;min-width:0}
+.combo-card:hover{border-color:#e897b8;background:#fdf0f6}
+.combo-card__emoji{font-size:1.25rem;letter-spacing:1px;flex:1;min-width:0;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+.combo-card__copy{flex-shrink:0;font-size:.7rem;color:#c060a0;background:#fce4f0;border:none;border-radius:var(--r-sm);padding:3px 7px;font-weight:700;cursor:pointer;opacity:.7;transition:opacity .15s}
+.combo-card:hover .combo-card__copy{opacity:1}
+.combo-empty{text-align:center;color:var(--t5);padding:32px 0;font-size:.95rem;grid-column:1/-1}
+
+/* ── article content ── */
+.combo-article{max-width:800px;margin:0 auto;padding:0 0 48px}
+.combo-article h2{font-size:1.4rem;font-weight:800;color:var(--t);margin:2rem 0 .8rem}
+.combo-article h3{font-size:1.1rem;font-weight:700;color:var(--t);margin:1.6rem 0 .6rem}
+.combo-article p{line-height:1.75;color:var(--t5);margin-bottom:.9rem}
+.combo-article ul{padding-left:1.3rem;margin-bottom:.9rem}
+.combo-article ul li{line-height:1.75;color:var(--t5);margin-bottom:.3rem}
+.combo-article ol{padding-left:1.4rem;margin-bottom:.9rem}
+.combo-article ol li{line-height:1.75;color:var(--t5);margin-bottom:.3rem}
+
+/* inline copy-on-click spans */
+.ec{display:inline-block;background:#fce4f0;border:1px solid #f0acd0;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:1.05rem;margin:2px 2px;transition:background .15s}
+.ec:hover{background:#f9cce4}
+
+/* shades table */
+.shades-table{width:100%;border-collapse:collapse;margin-bottom:1.2rem;font-size:.9rem}
+.shades-table th{background:#fce4f0;color:#8a2040;font-weight:700;padding:8px 10px;border:1px solid #f0c0d8;text-align:left}
+.shades-table td{padding:7px 10px;border:1px solid var(--border-lt);color:var(--t5);vertical-align:middle}
+.shades-table tr:nth-child(even) td{background:var(--bg-section)}
+
+/* faq */
+.faq-list{list-style:none;padding:0;margin:0 0 2rem}
+.faq-item{border:1px solid var(--border-lt);border-radius:var(--r-md);margin-bottom:.6rem;overflow:hidden}
+.faq-item summary{padding:14px 18px;font-weight:700;font-size:.95rem;cursor:pointer;color:var(--t);list-style:none;display:flex;align-items:center;justify-content:space-between}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:'＋';font-size:1rem;color:#d060a0;transition:transform .2s}
+.faq-item[open] summary::after{transform:rotate(45deg)}
+.faq-item[open]{background:var(--bg-section)}
+.faq-body{padding:4px 18px 16px;color:var(--t5);line-height:1.7;font-size:.93rem}
+
+/* cta strip */
+.combo-cta{background:linear-gradient(135deg,#fce4f0 0%,#f0d8fc 100%);border-radius:var(--r-lg);padding:36px 28px;text-align:center;margin:0 0 48px}
+.combo-cta h2{font-size:1.4rem;font-weight:800;color:#8a2040;margin-bottom:.6rem}
+.combo-cta p{color:#7a3050;margin-bottom:1.2rem}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- HERO -->
+<section class="combo-hero">
+  <div class="container">
+    <h1>Pink Emoji Combos 🎀</h1>
+    <p>Copy and paste pink emoji combinations for bios, captions, texts, and usernames. Browse cute, aesthetic, pastel, heart, and coquette styles.</p>
+  </div>
+</section>
+
+<!-- TOOL -->
+<section class="container">
+  <div class="combo-tool">
+    <div class="combo-search-row">
+      <input type="text" id="comboSearch" placeholder="Search pink combos…" autocomplete="off" />
+      <button class="btn--random-pink" id="randomBtn">🎲 Random</button>
+    </div>
+    <div class="combo-filters" id="filterBar"></div>
+    <div class="combo-grid" id="comboGrid"></div>
+  </div>
+</section>
+
+<!-- ARTICLE -->
+<section class="container">
+<div class="combo-article">
+
+<h2>Popular Pink Emoji Sets</h2>
+<p>These sets are copied most often across social platforms. They combine bows, flowers, hearts, and soft sparkles for a complete pink aesthetic.</p>
+<p>
+  <span class="ec" title="Click to copy">🎀🌸🩷</span>
+  <span class="ec" title="Click to copy">🩷✨🌷</span>
+  <span class="ec" title="Click to copy">💗🎀💌</span>
+  <span class="ec" title="Click to copy">🌸🫧🦋</span>
+  <span class="ec" title="Click to copy">🩰🎀🌷</span>
+  <span class="ec" title="Click to copy">🦩🌸🩷</span>
+  <span class="ec" title="Click to copy">💕🍓✨</span>
+  <span class="ec" title="Click to copy">🩷🪞🎀</span>
+  <span class="ec" title="Click to copy">🌷💖🫶</span>
+  <span class="ec" title="Click to copy">🎀🧁💗</span>
+  <span class="ec" title="Click to copy">🩷☁️🫧</span>
+  <span class="ec" title="Click to copy">🌸🎀🦢</span>
+</p>
+
+<h2>Short and Minimal Pink Sets</h2>
+<p>Two-symbol sets that stay clean in short usernames, comment sections, or the end of a text message.</p>
+<p>
+  <span class="ec" title="Click to copy">🩷🎀</span>
+  <span class="ec" title="Click to copy">🌸✨</span>
+  <span class="ec" title="Click to copy">💗🌷</span>
+  <span class="ec" title="Click to copy">🎀💌</span>
+  <span class="ec" title="Click to copy">🩷🌸</span>
+  <span class="ec" title="Click to copy">🌷🩰</span>
+  <span class="ec" title="Click to copy">💖🎀</span>
+  <span class="ec" title="Click to copy">🩷🫧</span>
+  <span class="ec" title="Click to copy">🌸💗</span>
+  <span class="ec" title="Click to copy">🎀🦢</span>
+  <span class="ec" title="Click to copy">🩷🌷</span>
+  <span class="ec" title="Click to copy">💕✨</span>
+</p>
+
+<h2>Pink Aesthetic Emoji Sets</h2>
+<h3>Soft Aesthetic</h3>
+<p>Gentle and dreamy — suited for lifestyle accounts, journaling bios, and lo-fi playlists.</p>
+<p>
+  <span class="ec" title="Click to copy">🌸🫧✨</span>
+  <span class="ec" title="Click to copy">🩷☁️🌷</span>
+  <span class="ec" title="Click to copy">💗🌙✨</span>
+  <span class="ec" title="Click to copy">🌷🧸🩷</span>
+  <span class="ec" title="Click to copy">🫧🌸💭</span>
+  <span class="ec" title="Click to copy">🩷🌤️🌺</span>
+  <span class="ec" title="Click to copy">✨💗🌸</span>
+  <span class="ec" title="Click to copy">🌷🫧🩷</span>
+  <span class="ec" title="Click to copy">☁️🌸💖</span>
+  <span class="ec" title="Click to copy">🩷🌿✨</span>
+  <span class="ec" title="Click to copy">💌🌸🫶</span>
+  <span class="ec" title="Click to copy">🌷💗🌙</span>
+</p>
+
+<h3>Cute / Girly Aesthetic</h3>
+<p>Bows, candy, and playful hearts for anyone who embraces full pink energy.</p>
+<p>
+  <span class="ec" title="Click to copy">🎀🧁🩷</span>
+  <span class="ec" title="Click to copy">💗🍭🎀</span>
+  <span class="ec" title="Click to copy">🩷🎠💌</span>
+  <span class="ec" title="Click to copy">🎀🍓🌸</span>
+  <span class="ec" title="Click to copy">💖🧸🎀</span>
+  <span class="ec" title="Click to copy">🩷🍡🎀</span>
+  <span class="ec" title="Click to copy">🎀🌸💗</span>
+  <span class="ec" title="Click to copy">🩷🎂🎀</span>
+  <span class="ec" title="Click to copy">💗🎀🌷</span>
+  <span class="ec" title="Click to copy">🩰🎀🩷</span>
+  <span class="ec" title="Click to copy">🎀💌🌸</span>
+  <span class="ec" title="Click to copy">🍬🩷🎀</span>
+</p>
+
+<h3>Coquette / Kawaii Aesthetic</h3>
+<p>Butterfly clips, cherries, and vintage roses for a coquette-coded profile.</p>
+<p>
+  <span class="ec" title="Click to copy">🎀🦋💗</span>
+  <span class="ec" title="Click to copy">🩷🍒🎀</span>
+  <span class="ec" title="Click to copy">💌🎀🌹</span>
+  <span class="ec" title="Click to copy">🎀🩰💕</span>
+  <span class="ec" title="Click to copy">🌸🎀🍒</span>
+  <span class="ec" title="Click to copy">🩷🌹🎀</span>
+  <span class="ec" title="Click to copy">🦋🎀🩷</span>
+  <span class="ec" title="Click to copy">🍒💗🎀</span>
+  <span class="ec" title="Click to copy">🎀🌷🩰</span>
+  <span class="ec" title="Click to copy">🩷🎀🦢</span>
+  <span class="ec" title="Click to copy">🌹🎀💌</span>
+  <span class="ec" title="Click to copy">🩰🍒🎀</span>
+</p>
+
+<h2>Pink Shades and Color Pairings</h2>
+
+<table class="shades-table">
+  <thead>
+    <tr><th>Pink Shade / Pairing</th><th>Example Sets</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>Light Pink / Baby Pink</td><td>🩷🌸✨ &nbsp; 💗🌷🫧</td></tr>
+    <tr><td>Pastel Pink</td><td>🌸☁️🩷 &nbsp; 🩷🌤️💗</td></tr>
+    <tr><td>Hot Pink</td><td>💗🌺🩷 &nbsp; 🩷🌸💖</td></tr>
+    <tr><td>Dark Pink / Rose</td><td>🌹💗🎀 &nbsp; 🌷🍒💌</td></tr>
+    <tr><td>Pink &amp; White</td><td>🩷🤍🌸 &nbsp; 💗🤍✨</td></tr>
+    <tr><td>Pink &amp; Black</td><td>🩷🖤🎀 &nbsp; 💗🖤🌸</td></tr>
+    <tr><td>Pink &amp; Blue</td><td>🩷🩵✨ &nbsp; 💗💙🌷</td></tr>
+    <tr><td>Pink &amp; Purple</td><td>🩷💜🌸 &nbsp; 💗💜✨</td></tr>
+  </tbody>
+</table>
+
+<h3>Pink and White Ideas</h3>
+<p>
+  <span class="ec" title="Click to copy">🩷🤍🌸</span>
+  <span class="ec" title="Click to copy">💗🤍✨</span>
+  <span class="ec" title="Click to copy">🌸🤍🩷</span>
+  <span class="ec" title="Click to copy">🎀🤍💗</span>
+  <span class="ec" title="Click to copy">🩷🌷🤍</span>
+  <span class="ec" title="Click to copy">💖🤍🌸</span>
+  <span class="ec" title="Click to copy">🤍🩷🎀</span>
+  <span class="ec" title="Click to copy">🌸🤍💌</span>
+</p>
+
+<h3>Pink and Black Ideas</h3>
+<p>
+  <span class="ec" title="Click to copy">🩷🖤🎀</span>
+  <span class="ec" title="Click to copy">💗🖤🌸</span>
+  <span class="ec" title="Click to copy">🎀🖤🩷</span>
+  <span class="ec" title="Click to copy">🖤🌸💗</span>
+  <span class="ec" title="Click to copy">🩷🖤🌷</span>
+  <span class="ec" title="Click to copy">🌹🖤💗</span>
+  <span class="ec" title="Click to copy">🎀🖤💌</span>
+  <span class="ec" title="Click to copy">🩷🖤✨</span>
+</p>
+
+<h3>Pink and Blue Ideas</h3>
+<p>
+  <span class="ec" title="Click to copy">🩷🩵✨</span>
+  <span class="ec" title="Click to copy">💗💙🌷</span>
+  <span class="ec" title="Click to copy">🌸🩵🩷</span>
+  <span class="ec" title="Click to copy">🩷💙🎀</span>
+  <span class="ec" title="Click to copy">💗🫧🩵</span>
+  <span class="ec" title="Click to copy">🩵🌸🩷</span>
+  <span class="ec" title="Click to copy">🩷🌊💗</span>
+  <span class="ec" title="Click to copy">💙🎀🩷</span>
+</p>
+
+<h2>Pink Hearts, Love, and Friendship Sets</h2>
+<h3>Romantic Ideas</h3>
+<p>
+  <span class="ec" title="Click to copy">💗🌹💌</span>
+  <span class="ec" title="Click to copy">🩷💋🌸</span>
+  <span class="ec" title="Click to copy">💖🌷💗</span>
+  <span class="ec" title="Click to copy">🌹💗✨</span>
+  <span class="ec" title="Click to copy">💌🩷🌹</span>
+  <span class="ec" title="Click to copy">🩷💑💗</span>
+  <span class="ec" title="Click to copy">💗🫶🩷</span>
+  <span class="ec" title="Click to copy">🌸💋💗</span>
+  <span class="ec" title="Click to copy">🩷🌹💌</span>
+  <span class="ec" title="Click to copy">💖💗🌷</span>
+  <span class="ec" title="Click to copy">🌹🩷🫶</span>
+  <span class="ec" title="Click to copy">💌🌸💗</span>
+</p>
+
+<h3>Friendship and Self-Love Ideas</h3>
+<p>
+  <span class="ec" title="Click to copy">🩷🫶🌸</span>
+  <span class="ec" title="Click to copy">💗✨🌷</span>
+  <span class="ec" title="Click to copy">🌸🩷🤝</span>
+  <span class="ec" title="Click to copy">💕🎀🌸</span>
+  <span class="ec" title="Click to copy">🩷🧡🌸</span>
+  <span class="ec" title="Click to copy">💗🌻🩷</span>
+  <span class="ec" title="Click to copy">🌸💕✨</span>
+  <span class="ec" title="Click to copy">🩷🌈💗</span>
+  <span class="ec" title="Click to copy">💌🌸🤍</span>
+  <span class="ec" title="Click to copy">🩷💗🫂</span>
+  <span class="ec" title="Click to copy">🌸🫶💗</span>
+  <span class="ec" title="Click to copy">💕🩷🌷</span>
+</p>
+
+<h2>Bio, Caption, and Username Ideas</h2>
+<h3>Bio Sets</h3>
+<p>Place one of these at the start or end of your profile description for a styled look.</p>
+<p>
+  <span class="ec" title="Click to copy">🎀🌸🩷✨</span>
+  <span class="ec" title="Click to copy">💗🌷🎀🫧</span>
+  <span class="ec" title="Click to copy">🩷🌸💌🎀</span>
+  <span class="ec" title="Click to copy">🌸🩷🌷💗</span>
+  <span class="ec" title="Click to copy">🎀💗🌸💖</span>
+  <span class="ec" title="Click to copy">🩷✨🎀🌷</span>
+  <span class="ec" title="Click to copy">💌🌸🩷🎀</span>
+  <span class="ec" title="Click to copy">🌷💗🫧🩷</span>
+  <span class="ec" title="Click to copy">🩷🎀🌸🌙</span>
+  <span class="ec" title="Click to copy">💗🌷🌸🩷</span>
+  <span class="ec" title="Click to copy">🎀🩷💕✨</span>
+  <span class="ec" title="Click to copy">🌸💗🎀🌷</span>
+</p>
+
+<h3>Caption Ending Sets</h3>
+<p>
+  <span class="ec" title="Click to copy">🩷🎀✨</span>
+  <span class="ec" title="Click to copy">💗🌸🩷</span>
+  <span class="ec" title="Click to copy">🌷🎀💗</span>
+  <span class="ec" title="Click to copy">🩷💌🌸</span>
+  <span class="ec" title="Click to copy">🎀🩷🌷</span>
+  <span class="ec" title="Click to copy">✨💗🌸</span>
+  <span class="ec" title="Click to copy">🌸🩷🎀</span>
+  <span class="ec" title="Click to copy">💗🌷✨</span>
+</p>
+
+<h3>Username Dividers</h3>
+<p>
+  <span class="ec" title="Click to copy">🌸•🩷•🌸</span>
+  <span class="ec" title="Click to copy">🎀·💗·🎀</span>
+  <span class="ec" title="Click to copy">🩷˚✧˚🩷</span>
+  <span class="ec" title="Click to copy">·:*🌷*:·</span>
+  <span class="ec" title="Click to copy">❀·🩷·❀</span>
+  <span class="ec" title="Click to copy">𓂅🌸𓂅</span>
+  <span class="ec" title="Click to copy">°•🎀•°</span>
+  <span class="ec" title="Click to copy">⁺˳✧༚🩷༚✧˳⁺</span>
+</p>
+
+<h2>Birthday and Party Pink Sets</h2>
+<p>
+  <span class="ec" title="Click to copy">🩷🎂🎀</span>
+  <span class="ec" title="Click to copy">🎈💗🎉</span>
+  <span class="ec" title="Click to copy">🎀🍰🩷</span>
+  <span class="ec" title="Click to copy">💗🎊🌸</span>
+  <span class="ec" title="Click to copy">🩷🎂✨</span>
+  <span class="ec" title="Click to copy">🎀🎁💗</span>
+  <span class="ec" title="Click to copy">🌸🎈🩷</span>
+  <span class="ec" title="Click to copy">💗🎂🎀</span>
+  <span class="ec" title="Click to copy">🩷🎊🌷</span>
+  <span class="ec" title="Click to copy">🎀🧁🩷</span>
+  <span class="ec" title="Click to copy">💗🎉🎀</span>
+  <span class="ec" title="Click to copy">🎈🩷🎂</span>
+</p>
+
+<h2>Seasonal Pink Sets</h2>
+<h3>Spring</h3>
+<p>
+  <span class="ec" title="Click to copy">🌸🦋🩷</span>
+  <span class="ec" title="Click to copy">🌷🌸💗</span>
+  <span class="ec" title="Click to copy">🩷🌸🌿</span>
+  <span class="ec" title="Click to copy">🌺🌸🩷</span>
+  <span class="ec" title="Click to copy">💗🌷🦋</span>
+  <span class="ec" title="Click to copy">🌸🩷🌱</span>
+</p>
+<h3>Summer</h3>
+<p>
+  <span class="ec" title="Click to copy">🩷🌺☀️</span>
+  <span class="ec" title="Click to copy">💗🍉🌸</span>
+  <span class="ec" title="Click to copy">🌸🩷🏄</span>
+  <span class="ec" title="Click to copy">🩷🌊🌺</span>
+  <span class="ec" title="Click to copy">🍓💗🌸</span>
+  <span class="ec" title="Click to copy">☀️🩷🌷</span>
+</p>
+<h3>Autumn / Winter</h3>
+<p>
+  <span class="ec" title="Click to copy">🩷🍂🌸</span>
+  <span class="ec" title="Click to copy">🎀❄️💗</span>
+  <span class="ec" title="Click to copy">🌸🩷🍁</span>
+  <span class="ec" title="Click to copy">💗🌨️🎀</span>
+  <span class="ec" title="Click to copy">🩷🍵🌸</span>
+  <span class="ec" title="Click to copy">❄️💗🎀</span>
+</p>
+
+<h2>Desi and Traditional Pink Ideas</h2>
+<p>Pink carries deep significance in South Asian celebrations — wedding invitations, Mehndi events, Eid, and festive outfits often feature hot pink and rose tones.</p>
+<p>
+  <span class="ec" title="Click to copy">🩷🌹💍</span>
+  <span class="ec" title="Click to copy">💗🌺👰</span>
+  <span class="ec" title="Click to copy">🌸🩷🎊</span>
+  <span class="ec" title="Click to copy">🩷💐🌹</span>
+  <span class="ec" title="Click to copy">💗🪷🌸</span>
+  <span class="ec" title="Click to copy">🌷🩷💍</span>
+  <span class="ec" title="Click to copy">🌺💗🎀</span>
+  <span class="ec" title="Click to copy">🩷🪔🌸</span>
+  <span class="ec" title="Click to copy">🌹💗💃</span>
+  <span class="ec" title="Click to copy">🩷🌸🎶</span>
+  <span class="ec" title="Click to copy">💐🩷🌺</span>
+  <span class="ec" title="Click to copy">🌸🩷🪷</span>
+</p>
+
+<h2>How to Copy and Use a Pink Emoji Combo</h2>
+<ol>
+  <li>Find a set that fits your style from the grid or article sections above.</li>
+  <li>Click the card or the copy button — the characters are added to your clipboard.</li>
+  <li>Open the app, text field, bio editor, or caption box where you want to use it.</li>
+  <li>Paste using Ctrl+V on a computer or a long-press paste on a phone.</li>
+  <li>Preview how it looks before saving or posting, since different apps render emojis differently.</li>
+</ol>
+
+<h2>What Do Pink Emoji Combinations Mean?</h2>
+<p>Pink is a color associated with softness, warmth, romance, and femininity. In emoji language it carries different signals depending on the specific symbols chosen. A 🩷 next to a 🌸 suggests gentle affection or a calm, aesthetic mood. A 🩷 paired with a 🖤 suggests contrast — cute meets edgy, softness alongside strength. A 🎀 is the defining symbol of coquette and hyper-feminine aesthetics online.</p>
+<p>Context matters most. The same combination in a flirty message means something different from the same combination in a birthday caption.</p>
+
+<h2>Why Can the Same Set Look Different?</h2>
+<p>Unicode defines what each emoji character is, but every platform draws its own artwork. Apple's 🩷 is a softer, glossier pink than Google's version, which has a slightly different hue and shape. Samsung, Microsoft, and social apps each maintain separate emoji fonts. The characters in a set stay identical across platforms — only the visual representation changes.</p>
+<p>The safest approach: paste a set into the specific app you want to publish on and check how it looks before you post it.</p>
+
+<h2>Are These the Same as Emoji Kitchen Stickers?</h2>
+<p>No. The combinations on this page are sequences of separate Unicode emoji characters — they can be typed, copied, and pasted anywhere text is accepted. An Emoji Kitchen sticker is a single merged image created by combining two emojis together. You can make custom merged stickers using the tool on the Emoji Kitchen homepage.</p>
+
+<!-- FAQ -->
+<h2>Frequently Asked Questions</h2>
+<ul class="faq-list">
+  {% for item in faqs %}
+  <details class="faq-item">
+    <summary>{{ item.question }}</summary>
+    <div class="faq-body">{{ item.answer }}</div>
+  </details>
+  {% endfor %}
+</ul>
+
+<h2>Conclusion</h2>
+<p>Pink emoji combinations are one of the most versatile styling tools available on social media. Whether you want a minimal two-symbol signature for a username, a longer row of bows and flowers for a bio, or a seasonal set for a holiday caption, there is a ready combination above. Click any card or inline set to copy it instantly, then paste it wherever you need it.</p>
+
+</div>
+</section>
+
+<!-- CTA -->
+<section class="container">
+  <div class="combo-cta">
+    <h2>Want a Custom Pink Emoji Sticker?</h2>
+    <p>Merge two emojis together into one unique sticker using Emoji Kitchen — free, no sign-up needed.</p>
+    <a href="{% url 'home' %}#kitchen" class="btn btn--primary">Open Emoji Kitchen 🍳</a>
+  </div>
+</section>
+
+<script>
+(function(){
+  const COMBOS = [
+    // Popular
+    {cat:'popular',label:'🎀🌸🩷',emoji:'🎀🌸🩷'},
+    {cat:'popular',label:'🩷✨🌷',emoji:'🩷✨🌷'},
+    {cat:'popular',label:'💗🎀💌',emoji:'💗🎀💌'},
+    {cat:'popular',label:'🌸🫧🦋',emoji:'🌸🫧🦋'},
+    {cat:'popular',label:'🩰🎀🌷',emoji:'🩰🎀🌷'},
+    {cat:'popular',label:'🦩🌸🩷',emoji:'🦩🌸🩷'},
+    {cat:'popular',label:'💕🍓✨',emoji:'💕🍓✨'},
+    {cat:'popular',label:'🩷🪞🎀',emoji:'🩷🪞🎀'},
+    {cat:'popular',label:'🌷💖🫶',emoji:'🌷💖🫶'},
+    {cat:'popular',label:'🎀🧁💗',emoji:'🎀🧁💗'},
+    {cat:'popular',label:'🩷☁️🫧',emoji:'🩷☁️🫧'},
+    {cat:'popular',label:'🌸🎀🦢',emoji:'🌸🎀🦢'},
+    // Minimal
+    {cat:'minimal',label:'🩷🎀',emoji:'🩷🎀'},
+    {cat:'minimal',label:'🌸✨',emoji:'🌸✨'},
+    {cat:'minimal',label:'💗🌷',emoji:'💗🌷'},
+    {cat:'minimal',label:'🎀💌',emoji:'🎀💌'},
+    {cat:'minimal',label:'🩷🌸',emoji:'🩷🌸'},
+    {cat:'minimal',label:'🌷🩰',emoji:'🌷🩰'},
+    {cat:'minimal',label:'💖🎀',emoji:'💖🎀'},
+    {cat:'minimal',label:'🩷🫧',emoji:'🩷🫧'},
+    {cat:'minimal',label:'🌸💗',emoji:'🌸💗'},
+    {cat:'minimal',label:'🎀🦢',emoji:'🎀🦢'},
+    {cat:'minimal',label:'🩷🌷',emoji:'🩷🌷'},
+    {cat:'minimal',label:'💕✨',emoji:'💕✨'},
+    // Aesthetic
+    {cat:'aesthetic',label:'🌸🫧✨',emoji:'🌸🫧✨'},
+    {cat:'aesthetic',label:'🩷☁️🌷',emoji:'🩷☁️🌷'},
+    {cat:'aesthetic',label:'💗🌙✨',emoji:'💗🌙✨'},
+    {cat:'aesthetic',label:'🌷🧸🩷',emoji:'🌷🧸🩷'},
+    {cat:'aesthetic',label:'🫧🌸💭',emoji:'🫧🌸💭'},
+    {cat:'aesthetic',label:'🩷🌤️🌺',emoji:'🩷🌤️🌺'},
+    {cat:'aesthetic',label:'✨💗🌸',emoji:'✨💗🌸'},
+    {cat:'aesthetic',label:'🌷🫧🩷',emoji:'🌷🫧🩷'},
+    {cat:'aesthetic',label:'☁️🌸💖',emoji:'☁️🌸💖'},
+    {cat:'aesthetic',label:'🩷🌿✨',emoji:'🩷🌿✨'},
+    {cat:'aesthetic',label:'💌🌸🫶',emoji:'💌🌸🫶'},
+    {cat:'aesthetic',label:'🌷💗🌙',emoji:'🌷💗🌙'},
+    // Cute/Girly
+    {cat:'cute',label:'🎀🧁🩷',emoji:'🎀🧁🩷'},
+    {cat:'cute',label:'💗🍭🎀',emoji:'💗🍭🎀'},
+    {cat:'cute',label:'🩷🎠💌',emoji:'🩷🎠💌'},
+    {cat:'cute',label:'🎀🍓🌸',emoji:'🎀🍓🌸'},
+    {cat:'cute',label:'💖🧸🎀',emoji:'💖🧸🎀'},
+    {cat:'cute',label:'🩷🍡🎀',emoji:'🩷🍡🎀'},
+    {cat:'cute',label:'🎀🌸💗',emoji:'🎀🌸💗'},
+    {cat:'cute',label:'🩷🎂🎀',emoji:'🩷🎂🎀'},
+    {cat:'cute',label:'💗🎀🌷',emoji:'💗🎀🌷'},
+    {cat:'cute',label:'🩰🎀🩷',emoji:'🩰🎀🩷'},
+    {cat:'cute',label:'🎀💌🌸',emoji:'🎀💌🌸'},
+    {cat:'cute',label:'🍬🩷🎀',emoji:'🍬🩷🎀'},
+    // Coquette/Kawaii
+    {cat:'coquette',label:'🎀🦋💗',emoji:'🎀🦋💗'},
+    {cat:'coquette',label:'🩷🍒🎀',emoji:'🩷🍒🎀'},
+    {cat:'coquette',label:'💌🎀🌹',emoji:'💌🎀🌹'},
+    {cat:'coquette',label:'🎀🩰💕',emoji:'🎀🩰💕'},
+    {cat:'coquette',label:'🌸🎀🍒',emoji:'🌸🎀🍒'},
+    {cat:'coquette',label:'🩷🌹🎀',emoji:'🩷🌹🎀'},
+    {cat:'coquette',label:'🦋🎀🩷',emoji:'🦋🎀🩷'},
+    {cat:'coquette',label:'🍒💗🎀',emoji:'🍒💗🎀'},
+    {cat:'coquette',label:'🎀🌷🩰',emoji:'🎀🌷🩰'},
+    {cat:'coquette',label:'🩷🎀🦢',emoji:'🩷🎀🦢'},
+    {cat:'coquette',label:'🌹🎀💌',emoji:'🌹🎀💌'},
+    {cat:'coquette',label:'🩰🍒🎀',emoji:'🩰🍒🎀'},
+    // Colors
+    {cat:'colors',label:'🩷🤍🌸',emoji:'🩷🤍🌸'},
+    {cat:'colors',label:'💗🤍✨',emoji:'💗🤍✨'},
+    {cat:'colors',label:'🩷🖤🎀',emoji:'🩷🖤🎀'},
+    {cat:'colors',label:'💗🖤🌸',emoji:'💗🖤🌸'},
+    {cat:'colors',label:'🩷🩵✨',emoji:'🩷🩵✨'},
+    {cat:'colors',label:'💗💙🌷',emoji:'💗💙🌷'},
+    {cat:'colors',label:'🩷💜🌸',emoji:'🩷💜🌸'},
+    {cat:'colors',label:'💗💜✨',emoji:'💗💜✨'},
+    {cat:'colors',label:'🌸🤍🩷',emoji:'🌸🤍🩷'},
+    {cat:'colors',label:'🎀🤍💗',emoji:'🎀🤍💗'},
+    {cat:'colors',label:'🎀🖤💌',emoji:'🎀🖤💌'},
+    {cat:'colors',label:'🩵🌸🩷',emoji:'🩵🌸🩷'},
+    // Love/Hearts
+    {cat:'love',label:'💗🌹💌',emoji:'💗🌹💌'},
+    {cat:'love',label:'🩷💋🌸',emoji:'🩷💋🌸'},
+    {cat:'love',label:'💖🌷💗',emoji:'💖🌷💗'},
+    {cat:'love',label:'🌹💗✨',emoji:'🌹💗✨'},
+    {cat:'love',label:'💌🩷🌹',emoji:'💌🩷🌹'},
+    {cat:'love',label:'💗🫶🩷',emoji:'💗🫶🩷'},
+    {cat:'love',label:'🌸💋💗',emoji:'🌸💋💗'},
+    {cat:'love',label:'🩷🌹💌',emoji:'🩷🌹💌'},
+    {cat:'love',label:'🩷🫶🌸',emoji:'🩷🫶🌸'},
+    {cat:'love',label:'💗✨🌷',emoji:'💗✨🌷'},
+    {cat:'love',label:'💕🎀🌸',emoji:'💕🎀🌸'},
+    {cat:'love',label:'💌🌸🤍',emoji:'💌🌸🤍'},
+    // Bios
+    {cat:'bios',label:'🎀🌸🩷✨',emoji:'🎀🌸🩷✨'},
+    {cat:'bios',label:'💗🌷🎀🫧',emoji:'💗🌷🎀🫧'},
+    {cat:'bios',label:'🩷🌸💌🎀',emoji:'🩷🌸💌🎀'},
+    {cat:'bios',label:'🌸🩷🌷💗',emoji:'🌸🩷🌷💗'},
+    {cat:'bios',label:'🎀💗🌸💖',emoji:'🎀💗🌸💖'},
+    {cat:'bios',label:'🩷✨🎀🌷',emoji:'🩷✨🎀🌷'},
+    {cat:'bios',label:'💌🌸🩷🎀',emoji:'💌🌸🩷🎀'},
+    {cat:'bios',label:'🌷💗🫧🩷',emoji:'🌷💗🫧🩷'},
+    {cat:'bios',label:'🩷🎀🌸🌙',emoji:'🩷🎀🌸🌙'},
+    {cat:'bios',label:'💗🌷🌸🩷',emoji:'💗🌷🌸🩷'},
+    {cat:'bios',label:'🎀🩷💕✨',emoji:'🎀🩷💕✨'},
+    {cat:'bios',label:'🌸💗🎀🌷',emoji:'🌸💗🎀🌷'},
+    // Captions
+    {cat:'captions',label:'🩷🎀✨',emoji:'🩷🎀✨'},
+    {cat:'captions',label:'💗🌸🩷',emoji:'💗🌸🩷'},
+    {cat:'captions',label:'🌷🎀💗',emoji:'🌷🎀💗'},
+    {cat:'captions',label:'🩷💌🌸',emoji:'🩷💌🌸'},
+    {cat:'captions',label:'🎀🩷🌷',emoji:'🎀🩷🌷'},
+    {cat:'captions',label:'✨💗🌸',emoji:'✨💗🌸'},
+    {cat:'captions',label:'🌸🩷🎀',emoji:'🌸🩷🎀'},
+    {cat:'captions',label:'💗🌷✨',emoji:'💗🌷✨'},
+    // Birthday
+    {cat:'birthday',label:'🩷🎂🎀',emoji:'🩷🎂🎀'},
+    {cat:'birthday',label:'🎈💗🎉',emoji:'🎈💗🎉'},
+    {cat:'birthday',label:'🎀🍰🩷',emoji:'🎀🍰🩷'},
+    {cat:'birthday',label:'💗🎊🌸',emoji:'💗🎊🌸'},
+    {cat:'birthday',label:'🩷🎂✨',emoji:'🩷🎂✨'},
+    {cat:'birthday',label:'🎀🎁💗',emoji:'🎀🎁💗'},
+    {cat:'birthday',label:'🌸🎈🩷',emoji:'🌸🎈🩷'},
+    {cat:'birthday',label:'💗🎂🎀',emoji:'💗🎂🎀'},
+    {cat:'birthday',label:'🩷🎊🌷',emoji:'🩷🎊🌷'},
+    {cat:'birthday',label:'🎀🧁🩷',emoji:'🎀🧁🩷'},
+    {cat:'birthday',label:'💗🎉🎀',emoji:'💗🎉🎀'},
+    {cat:'birthday',label:'🎈🩷🎂',emoji:'🎈🩷🎂'},
+    // Seasonal
+    {cat:'seasonal',label:'🌸🦋🩷',emoji:'🌸🦋🩷'},
+    {cat:'seasonal',label:'🌷🌸💗',emoji:'🌷🌸💗'},
+    {cat:'seasonal',label:'🩷🌺☀️',emoji:'🩷🌺☀️'},
+    {cat:'seasonal',label:'💗🍉🌸',emoji:'💗🍉🌸'},
+    {cat:'seasonal',label:'🩷🍂🌸',emoji:'🩷🍂🌸'},
+    {cat:'seasonal',label:'🎀❄️💗',emoji:'🎀❄️💗'},
+    {cat:'seasonal',label:'🌸🩷🍁',emoji:'🌸🩷🍁'},
+    {cat:'seasonal',label:'💗🌨️🎀',emoji:'💗🌨️🎀'},
+    {cat:'seasonal',label:'🍓💗🌸',emoji:'🍓💗🌸'},
+    {cat:'seasonal',label:'🩷🍵🌸',emoji:'🩷🍵🌸'},
+    {cat:'seasonal',label:'❄️💗🎀',emoji:'❄️💗🎀'},
+    {cat:'seasonal',label:'🌸🩷🌿',emoji:'🌸🩷🌿'},
+    // Desi
+    {cat:'desi',label:'🩷🌹💍',emoji:'🩷🌹💍'},
+    {cat:'desi',label:'💗🌺👰',emoji:'💗🌺👰'},
+    {cat:'desi',label:'🌸🩷🎊',emoji:'🌸🩷🎊'},
+    {cat:'desi',label:'🩷💐🌹',emoji:'🩷💐🌹'},
+    {cat:'desi',label:'💗🪷🌸',emoji:'💗🪷🌸'},
+    {cat:'desi',label:'🌷🩷💍',emoji:'🌷🩷💍'},
+    {cat:'desi',label:'🌺💗🎀',emoji:'🌺💗🎀'},
+    {cat:'desi',label:'🩷🪔🌸',emoji:'🩷🪔🌸'},
+    {cat:'desi',label:'🌹💗💃',emoji:'🌹💗💃'},
+    {cat:'desi',label:'🩷🌸🎶',emoji:'🩷🌸🎶'},
+    {cat:'desi',label:'💐🩷🌺',emoji:'💐🩷🌺'},
+    {cat:'desi',label:'🌸🩷🪷',emoji:'🌸🩷🪷'},
+  ];
+
+  const CATS = [
+    {key:'all',label:'All'},
+    {key:'popular',label:'Popular'},
+    {key:'minimal',label:'Minimal'},
+    {key:'aesthetic',label:'Aesthetic'},
+    {key:'cute',label:'Cute / Girly'},
+    {key:'coquette',label:'Coquette / Kawaii'},
+    {key:'colors',label:'Colors'},
+    {key:'love',label:'Love / Hearts'},
+    {key:'bios',label:'Bios'},
+    {key:'captions',label:'Captions'},
+    {key:'birthday',label:'Birthday'},
+    {key:'seasonal',label:'Seasonal'},
+    {key:'desi',label:'Desi'},
+  ];
+
+  let activeFilter='all', searchQuery='';
+
+  // Build filter bar
+  const filterBar=document.getElementById('filterBar');
+  CATS.forEach(c=>{
+    const btn=document.createElement('button');
+    btn.className='combo-filter-btn'+(c.key==='all'?' active':'');
+    btn.textContent=c.label;
+    btn.dataset.cat=c.key;
+    btn.addEventListener('click',()=>{
+      activeFilter=c.key;
+      filterBar.querySelectorAll('.combo-filter-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    });
+    filterBar.appendChild(btn);
+  });
+
+  function fallback(text){
+    const ta=document.createElement('textarea');
+    ta.value=text;ta.style.position='fixed';ta.style.opacity='0';
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand('copy');}catch(e){}
+    document.body.removeChild(ta);
+  }
+
+  function copyText(text){
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      navigator.clipboard.writeText(text).catch(()=>fallback(text));
+    } else {fallback(text);}
+    if(window.showToast) window.showToast('Copied!');
+  }
+
+  function render(){
+    const grid=document.getElementById('comboGrid');
+    const q=searchQuery.toLowerCase();
+    const list=COMBOS.filter(c=>{
+      const matchCat=activeFilter==='all'||c.cat===activeFilter;
+      const matchQ=!q||c.label.includes(q)||c.cat.includes(q);
+      return matchCat&&matchQ;
+    });
+    if(!list.length){
+      grid.innerHTML='<p class="combo-empty">No combos found. Try a different search or filter.</p>';
+      return;
+    }
+    grid.innerHTML=list.map((c,i)=>`
+      <div class="combo-card" data-idx="${i}" title="Click to copy">
+        <span class="combo-card__emoji">${c.label}</span>
+        <button class="combo-card__copy" aria-label="Copy ${c.label}">Copy</button>
+      </div>`).join('');
+    grid.querySelectorAll('.combo-card').forEach((card,i)=>{
+      const combo=list[i];
+      card.addEventListener('click',()=>copyText(combo.emoji));
+      card.querySelector('.combo-card__copy').addEventListener('click',e=>{e.stopPropagation();copyText(combo.emoji);});
+    });
+  }
+
+  document.getElementById('comboSearch').addEventListener('input',function(){
+    searchQuery=this.value;render();
+  });
+
+  document.getElementById('randomBtn').addEventListener('click',()=>{
+    const pool=activeFilter==='all'?COMBOS:COMBOS.filter(c=>c.cat===activeFilter);
+    if(!pool.length)return;
+    const pick=pool[Math.floor(Math.random()*pool.length)];
+    copyText(pick.emoji);
+    if(window.showToast) window.showToast('Random combo copied: '+pick.label);
+  });
+
+  // Inline .ec spans copy on click
+  document.querySelectorAll('.ec').forEach(el=>{
+    el.addEventListener('click',()=>copyText(el.textContent.trim()));
+  });
+
+  render();
+})();
+</script>
+{% endblock %}

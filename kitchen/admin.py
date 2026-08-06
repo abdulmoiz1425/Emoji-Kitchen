@@ -25,6 +25,8 @@ class TagAdmin(admin.ModelAdmin):
 
 @admin.register(BlogPost)
 class BlogPostAdmin(admin.ModelAdmin):
+    class Media:
+        js = ('kitchen/js/seo_admin.js',)
     list_display = ('title', 'category', 'status', 'is_featured', 'publish_date', 'updated_at')
     list_filter = ('status', 'is_featured', 'category', 'tags', 'publish_date')
     search_fields = ('title', 'author', 'category__name', 'status')
@@ -45,11 +47,7 @@ class BlogPostAdmin(admin.ModelAdmin):
         }),
         ('SEO', {
             'classes': ('collapse',),
-            'fields': (
-                'seo_title', 'seo_description', 'seo_keywords',
-                'canonical_url', 'meta_robots',
-                'og_title', 'og_description', 'og_image',
-            ),
+            'fields': ('seo_title', 'seo_description', 'focus_keyword_title', 'focus_keyword_description'),
         }),
         ('Timestamps', {
             'classes': ('collapse',),

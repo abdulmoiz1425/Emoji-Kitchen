@@ -108,6 +108,8 @@ class BlogPost(models.Model):
     # ── SEO ──────────────────────────────────────────────────────────────
     seo_title = models.CharField(max_length=70, blank=True, help_text='Falls back to the post title if left blank.')
     seo_description = models.CharField(max_length=160, blank=True, help_text='Falls back to the excerpt if left blank.')
+    focus_keyword_title = models.CharField(max_length=100, blank=True, help_text='Enter a keyword — validated against the SEO title in real time.')
+    focus_keyword_description = models.CharField(max_length=100, blank=True, help_text='Enter a keyword — validated against the meta description in real time.')
     seo_keywords = models.CharField(max_length=255, blank=True, help_text='Comma-separated keywords.')
     canonical_url = models.URLField(blank=True)
     meta_robots = models.CharField(max_length=30, choices=ROBOTS_CHOICES, default='index, follow')

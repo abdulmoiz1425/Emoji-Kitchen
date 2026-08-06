@@ -332,6 +332,94 @@ CUTE_EMOJI_COMBOS_FAQS = [
 ]
 
 
+PINK_EMOJI_COMBOS_FAQS = [
+    {
+        'question': 'What are pink emoji combinations?',
+        'answer': 'They are groups of matching hearts, flowers, bows, sweets, fashion items, and symbols arranged around a pink color or mood. People use them in profiles, captions, usernames, comments, and messages.',
+    },
+    {
+        'question': 'How do I copy and paste a pink emoji combination?',
+        'answer': 'Select the copy button beside a set, then paste it into your chosen app. You can also highlight the characters manually when a copy button is unavailable.',
+    },
+    {
+        'question': 'Which pink emojis look best together?',
+        'answer': '🩷, 🎀, 🌸, 🌷, 💗, 💌, 🩰, 🫧, 🦩, and ✨ pair well because they share soft colors or related themes. Start with two to four symbols.',
+    },
+    {
+        'question': 'Can I use these sets in an Instagram or TikTok bio?',
+        'answer': 'Yes. Choose a short set and preview your profile before saving it. Long symbol strings can wrap onto another line or use too much space.',
+    },
+    {
+        'question': 'What does the pink heart emoji mean?',
+        'answer': 'The 🩷 emoji commonly suggests affection, care, sweetness, friendship, or romance. The surrounding text and relationship decide the final meaning.',
+    },
+    {
+        'question': 'Why do some decorative symbols show as boxes?',
+        'answer': 'The app, font, or device may not support that character. Replace it with a standard emoji or a simpler symbol that displays correctly.',
+    },
+    {
+        'question': 'How many emojis should I use in a bio?',
+        'answer': 'Two to four emojis usually keep a bio readable. Longer sets can work as dividers, but they may distract from your name, links, or main description.',
+    },
+    {
+        'question': 'Can I use the same combination in WhatsApp and Discord?',
+        'answer': 'Usually, yes. Standard Unicode emojis can be pasted into both apps, though the artwork and spacing may look different on each device.',
+    },
+    {
+        'question': 'Why can the same set look different across devices?',
+        'answer': 'The characters stay the same, but platforms draw their own emoji artwork. Colors, shapes, and spacing can change across Apple, Google, Microsoft, Samsung, and social apps. Preview a set in the final app before publishing.',
+    },
+    {
+        'question': 'Are copyable combinations the same as one merged emoji?',
+        'answer': 'No. A copyable set contains separate characters you can paste as text. A merged Emoji Kitchen result is a sticker image designed from two selected emojis.',
+    },
+]
+
+
+FUNNY_EMOJI_COMBOS_FAQS = [
+    {
+        'question': 'What are funny emoji combos?',
+        'answer': 'They are short sequences of emojis arranged to communicate a joke, reaction, mood or silly situation. Most use two to four symbols so the meaning stays clear.',
+    },
+    {
+        'question': 'What are some funny emoji combinations for texting?',
+        'answer': 'Try 👀🍿😂 for drama, 🙂👍🙃 for fake agreement, 🧠❌🐒 for chaos or 📱😳💥 for a shocking message.',
+    },
+    {
+        'question': 'How do I copy and paste a funny emoji combination?',
+        'answer': 'Tap the copy button beside the sequence, open the app where you want to use it and paste it into the text field. Preview it before sending.',
+    },
+    {
+        'question': 'What is a good funny emoji combo for friends?',
+        'answer': 'Use 😎🤝🔥 for partners in chaos, 📸🧾👀 when you have evidence or 🤦😂🫶 when laughing at a harmless mistake.',
+    },
+    {
+        'question': 'Can I use these combinations in Instagram and TikTok bios?',
+        'answer': 'Yes. Choose a short set that fits the available space. Two or three emojis usually look cleaner than a long decorative line.',
+    },
+    {
+        'question': 'What are funny dark humor emoji combinations?',
+        'answer': 'They use mild themes such as deadlines, dead batteries, failed plans or Monday mornings. Avoid graphic, threatening or self-harm-related jokes.',
+    },
+    {
+        'question': 'Why do emojis look different after I paste them?',
+        'answer': 'Platforms can use different artwork for the same Unicode characters. Faces, colors and small details may therefore appear slightly different across devices.',
+    },
+    {
+        'question': 'Are funny emoji combinations the same as Emoji Kitchen mashups?',
+        'answer': 'No. A standard combo places separate Unicode emojis side by side as text. An Emoji Kitchen mashup blends compatible emoji artwork into one sticker-style image.',
+    },
+    {
+        'question': 'What are Gen Z funny emoji combos?',
+        'answer': 'Gen Z combinations often use exaggeration, irony and dramatic reactions — like 😭😭💀 for "I am crying laughing", 💀📴 for "this ended me", or ✨🧠🌈 for delulu mode. Meanings can shift quickly with context.',
+    },
+    {
+        'question': 'How many emojis should a funny combination have?',
+        'answer': 'Two to four emojis work best. One leads the joke, the others support or extend it. Longer sequences can wrap or look crowded in a bio or caption field.',
+    },
+]
+
+
 AESTHETIC_EMOJI_COMBOS_FAQS = [
     {
         'question': 'What are aesthetic emoji combos?',
@@ -478,6 +566,20 @@ def emoji_combos_cute(request):
         'faqs': CUTE_EMOJI_COMBOS_FAQS,
     }
     return render(request, 'kitchen/emoji_combos_cute.html', context)
+
+
+def emoji_combos_funny(request):
+    context = {
+        'faqs': FUNNY_EMOJI_COMBOS_FAQS,
+    }
+    return render(request, 'kitchen/emoji_combos_funny.html', context)
+
+
+def emoji_combos_pink(request):
+    context = {
+        'faqs': PINK_EMOJI_COMBOS_FAQS,
+    }
+    return render(request, 'kitchen/emoji_combos_pink.html', context)
 
 
 def emoji_combos_aesthetic(request):
