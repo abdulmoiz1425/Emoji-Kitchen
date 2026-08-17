@@ -1,0 +1,438 @@
+{% extends "kitchen/base.html" %}
+{% load static %}
+
+{% block title %}Emoji Keyboard Online – Copy and Paste Emojis{% endblock %}
+{% block meta_description %}Use our free Emoji Keyboard to search, select, copy, and paste emojis online. Browse popular categories and add emojis to any message instantly.{% endblock %}
+
+{% block extra_head %}
+<style>
+/* ── hero ── */
+.ek-hero{background:linear-gradient(135deg,#eef2ff 0%,#f0f4ff 50%,#e8f4fd 100%);padding:56px 0 40px;text-align:center}
+.ek-hero h1{font-size:clamp(1.75rem,4vw,2.6rem);font-weight:800;color:var(--t);margin-bottom:.5rem}
+.ek-hero p{font-size:1.05rem;color:var(--t5);max-width:640px;margin:0 auto 1.5rem}
+.ek-quickbox{background:var(--bg-pure);border-left:4px solid var(--accent);border-radius:var(--r-md);padding:14px 18px;max-width:640px;margin:0 auto;text-align:left;font-size:.93rem;color:var(--t5);line-height:1.7}
+.ek-quickbox strong{color:var(--t)}
+
+/* ── keyboard tool ── */
+.ek-tool{background:var(--bg-pure);border:1px solid var(--border-lt);border-radius:var(--r-lg);padding:24px;max-width:920px;margin:0 auto 56px;box-shadow:var(--sh-md)}
+.ek-search-row{display:flex;gap:10px;margin-bottom:16px;flex-wrap:wrap}
+.ek-search-row input{flex:1;min-width:200px;padding:10px 14px;border:1px solid var(--border-lt);border-radius:var(--r-md);font-size:.95rem;background:var(--bg-section);color:var(--t)}
+.ek-search-row input:focus{outline:none;border-color:var(--accent)}
+.ek-search-row input::placeholder{color:var(--t5)}
+.ek-btn-clear{padding:10px 16px;border-radius:var(--r-md);border:1px solid var(--border-lt);background:var(--bg-section);color:var(--t5);font-size:.88rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.ek-btn-clear:hover{background:var(--accent-xlt);color:var(--accent)}
+
+/* category tabs */
+.ek-cats{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px;border-bottom:1px solid var(--border-lt);padding-bottom:12px}
+.ek-cat-btn{padding:5px 12px;border-radius:999px;border:1px solid var(--border-lt);background:var(--bg-section);color:var(--t5);font-size:.8rem;font-weight:600;cursor:pointer;white-space:nowrap;transition:background .15s,color .15s,border-color .15s}
+.ek-cat-btn:hover{border-color:var(--accent);color:var(--accent)}
+.ek-cat-btn.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+/* emoji grid */
+.ek-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:4px;max-height:320px;overflow-y:auto;margin-bottom:14px}
+.ek-grid::-webkit-scrollbar{width:6px}
+.ek-grid::-webkit-scrollbar-thumb{background:var(--border-lt);border-radius:3px}
+.ek-emoji-btn{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-size:1.45rem;border-radius:var(--r-sm);border:1px solid transparent;cursor:pointer;background:transparent;transition:background .12s,border-color .12s;position:relative}
+.ek-emoji-btn:hover{background:var(--accent-xlt);border-color:var(--border-lt)}
+.ek-emoji-btn.selected{background:#dbeafe;border-color:#93c5fd}
+.ek-empty{text-align:center;color:var(--t5);padding:40px 0;grid-column:1/-1;font-size:.95rem}
+
+/* tray */
+.ek-tray{border:1px solid var(--border-lt);border-radius:var(--r-md);padding:10px 12px;background:var(--bg-section);display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:48px}
+.ek-tray-emojis{flex:1;font-size:1.3rem;letter-spacing:2px;word-break:break-all;min-width:0}
+.ek-tray-placeholder{color:var(--t5);font-size:.88rem}
+.ek-tray-actions{display:flex;gap:8px;flex-shrink:0}
+.ek-btn-copy{padding:8px 16px;border-radius:var(--r-md);border:none;background:var(--accent);color:#fff;font-weight:700;font-size:.88rem;cursor:pointer;transition:opacity .15s}
+.ek-btn-copy:hover{opacity:.88}
+.ek-btn-reset{padding:8px 12px;border-radius:var(--r-md);border:1px solid var(--border-lt);background:var(--bg-pure);color:var(--t5);font-size:.88rem;cursor:pointer}
+.ek-btn-reset:hover{color:var(--t)}
+.ek-tray-label{font-size:.75rem;color:var(--t5);margin-bottom:4px}
+
+/* ── article ── */
+.ek-article{max-width:800px;margin:0 auto;padding:0 0 52px}
+.ek-article h2{font-size:1.4rem;font-weight:800;color:var(--t);margin:2.2rem 0 .8rem}
+.ek-article h3{font-size:1.1rem;font-weight:700;color:var(--t);margin:1.6rem 0 .55rem}
+.ek-article p{line-height:1.78;color:var(--t5);margin-bottom:.9rem}
+.ek-article ul{padding-left:1.3rem;margin-bottom:.9rem}
+.ek-article ul li{line-height:1.75;color:var(--t5);margin-bottom:.3rem}
+.ek-article ol{padding-left:1.4rem;margin-bottom:.9rem}
+.ek-article ol li{line-height:1.75;color:var(--t5);margin-bottom:.35rem}
+.ek-article kbd{display:inline-block;background:var(--bg-section);border:1px solid var(--border-lt);border-radius:4px;padding:2px 7px;font-size:.82rem;font-family:monospace;color:var(--t)}
+
+/* comparison tables */
+.ek-table-wrap{overflow-x:auto;margin-bottom:1.4rem}
+.ek-table{width:100%;border-collapse:collapse;font-size:.9rem}
+.ek-table th{background:var(--accent);color:#fff;font-weight:700;padding:9px 12px;text-align:left}
+.ek-table td{padding:8px 12px;border:1px solid var(--border-lt);color:var(--t5);vertical-align:middle}
+.ek-table tr:nth-child(even) td{background:var(--bg-section)}
+.ek-table .yes{color:#1d7a3a;font-weight:700}
+.ek-table .no{color:#b00}
+
+/* faq */
+.faq-list{list-style:none;padding:0;margin:0 0 2rem}
+.faq-item{border:1px solid var(--border-lt);border-radius:var(--r-md);margin-bottom:.6rem;overflow:hidden}
+.faq-item summary{padding:14px 18px;font-weight:700;font-size:.95rem;cursor:pointer;color:var(--t);list-style:none;display:flex;align-items:center;justify-content:space-between}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:'＋';font-size:1rem;color:var(--accent);transition:transform .2s}
+.faq-item[open] summary::after{transform:rotate(45deg)}
+.faq-item[open]{background:var(--bg-section)}
+.faq-body{padding:4px 18px 16px;color:var(--t5);line-height:1.7;font-size:.93rem}
+
+/* cta */
+.ek-cta{background:linear-gradient(135deg,#eef2ff 0%,#e8f4fd 100%);border-radius:var(--r-lg);padding:36px 28px;text-align:center;margin:0 0 48px}
+.ek-cta h2{font-size:1.4rem;font-weight:800;color:var(--t);margin-bottom:.6rem}
+.ek-cta p{color:var(--t5);margin-bottom:1.2rem}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="ek-hero">
+  <div class="container">
+    <h1>Emoji Keyboard Online ⌨️</h1>
+    <p>Search, select, copy, and paste emojis online. Browse categories, build a sequence, and add emojis to any message instantly — no app download needed.</p>
+    <div class="ek-quickbox">
+      <strong>Quick answer:</strong> An emoji keyboard is a tool that helps you find and enter emoji characters. An online version works inside your browser — choose an emoji, copy it, and paste it into a message, document, profile, comment, or social post.
+    </div>
+  </div>
+</section>
+
+<!-- TOOL -->
+<section class="container" style="padding-top:40px">
+  <div class="ek-tool">
+    <!-- search -->
+    <div class="ek-search-row">
+      <input type="text" id="ekSearch" placeholder="Search emojis — try 'happy', 'heart', 'cat', 'pizza'…" autocomplete="off" />
+      <button class="ek-btn-clear" id="ekClearSearch">Clear</button>
+    </div>
+    <!-- category tabs -->
+    <div class="ek-cats" id="ekCats"></div>
+    <!-- grid -->
+    <div class="ek-grid" id="ekGrid" role="grid" aria-label="Emoji grid"></div>
+    <!-- tray -->
+    <div class="ek-tray-label">Selected — click an emoji to add, click again to remove:</div>
+    <div class="ek-tray" id="ekTray">
+      <span class="ek-tray-emojis" id="ekTrayEmojis"></span>
+      <span class="ek-tray-placeholder" id="ekTrayPlaceholder">Click emojis above to select them</span>
+      <div class="ek-tray-actions">
+        <button class="ek-btn-copy" id="ekCopyTray">Copy All</button>
+        <button class="ek-btn-reset" id="ekResetTray">Reset</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ARTICLE -->
+<section class="container">
+<div class="ek-article">
+
+<h2>Use the Online Emoji Picker</h2>
+<p>The fastest method is simple: search for an emoji, select it, then paste it where you need it. The browser tool is free to use and does not require an app download.</p>
+<p>Start with the search box when you already know the feeling, object, animal, or symbol you want. Try plain words such as "happy," "heart," "cat," "pizza," "check," or "warning." Results update as you type, helping you avoid long category lists.</p>
+<p>You can also browse by category when you do not know an emoji's official name. Common groups include:</p>
+<ul>
+  <li>Smileys and emotion</li>
+  <li>People and body</li>
+  <li>Animals and nature</li>
+  <li>Food and drink</li>
+  <li>Activities</li>
+  <li>Travel and places</li>
+  <li>Objects</li>
+  <li>Symbols</li>
+  <li>Flags</li>
+</ul>
+<p>Select one emoji for a quick reaction, or choose several to build a short sequence. After copying, place your cursor inside the destination field and use your device's normal paste command.</p>
+
+<h2>Browse Emoji Faces, Symbols, and Categories</h2>
+<p>Categories help you find the right character without guessing its name. They also make large emoji collections easier to scan.</p>
+
+<h3>Faces, People, and Gestures</h3>
+<p>Faces work well for reactions because they show tone quickly. You can use them for happiness, confusion, surprise, sadness, laughter, anger, or affection. Hand gestures add agreement, thanks, celebration, direction, or emphasis.</p>
+<p>Some people and hand emojis support skin-tone choices. The Unicode Consortium groups emoji data, ordering, names, sequences, and modifier information in its official charts. The currently released charts are Emoji v17.0.</p>
+
+<h3>Animals, Food, and Activities</h3>
+<p>Animals and nature emojis cover pets, wildlife, plants, weather, and outdoor themes. Food and drink categories include meals, fruit, snacks, desserts, and beverages. Activity emojis help with sports, games, music, events, and hobbies.</p>
+<p>These groups are useful when writing invitations, meal plans, sports updates, travel messages, or casual captions.</p>
+
+<h3>Travel, Objects, Symbols, and Flags</h3>
+<p>Travel emojis include places, vehicles, maps, buildings, and weather-related icons. Objects cover technology, tools, clothing, gifts, money, and household items.</p>
+<p>Symbols are useful for clear actions and labels. Common examples include check marks, crosses, arrows, warning signs, hearts, stars, circles, numbers, and information icons. Flags help represent countries, regions, events, and identity, but their appearance depends on platform support.</p>
+
+<h2>Emoji Keyboard Copy and Paste</h2>
+<p>Copy-and-paste tools place standard Unicode text on your clipboard. The emoji is not downloaded as a picture unless the page clearly offers an image or sticker option.</p>
+<p>To copy an emoji:</p>
+<ol>
+  <li>Search or browse the collection.</li>
+  <li>Select the emoji you want.</li>
+  <li>Press the copy button or click the emoji.</li>
+  <li>Open your message, post, or document.</li>
+  <li>Paste with <kbd>Ctrl + V</kbd>, <kbd>Command + V</kbd>, or the device paste menu.</li>
+</ol>
+<p>You can usually paste standard emojis into chat apps, email, documents, comments, social captions, profile fields, and web forms. A specific platform may still limit certain characters or text fields.</p>
+<p>The same copied character may look different on another device. Unicode defines the character and its meaning, while vendors design their own artwork. Unicode also notes that supported emoji sequences can vary by platform.</p>
+<p>For custom sticker-style results rather than standard text characters, try the <a href="{% url 'emoji_maker' %}">Emoji Maker</a>. It mixes supported emoji ideas into an image-based result instead of adding a new keyboard character.</p>
+
+<h2>How to Use This Emoji Tool</h2>
+<p>You only need four steps to find and paste an emoji.</p>
+
+<h3>1. Find the Emoji You Need</h3>
+<p>Enter a simple search term or open a matching category. Search by meaning rather than shape when possible. For example, try "celebration" for party icons or "approved" for check marks.</p>
+
+<h3>2. Select One or More Emojis</h3>
+<p>Choose a single reaction or build a small group. Keep the sequence easy to understand. Three clear emojis often communicate better than a long line of unrelated symbols.</p>
+
+<h3>3. Copy Your Selection</h3>
+<p>Use the copy control after checking your selection. A clear confirmation message will appear so you know the clipboard action worked.</p>
+<p>Modern browser tools use the Clipboard API to copy text. <code>writeText()</code> is widely available but requires a secure HTTPS context in supporting browsers.</p>
+
+<h3>4. Paste Into Your Message</h3>
+<p>Click or tap inside the target text field, then paste. Review the result before sending because line breaks, emoji size, and visual design can change across apps.</p>
+<p>For ready-made sequences based on moods and themes, browse <a href="{% url 'emoji_combos' %}">Emoji Combos</a> and copy an idea that fits your message.</p>
+
+<h2>PC and Mac Emoji Shortcuts</h2>
+<p>Built-in shortcuts are useful when you want to insert an emoji without leaving the app you are using.</p>
+<div class="ek-table-wrap">
+  <table class="ek-table">
+    <thead><tr><th>Device / Method</th><th>How to Open It</th><th>Best Use</th></tr></thead>
+    <tbody>
+      <tr><td>Online tool</td><td>Open the page in a browser</td><td>Searching and copying across devices</td></tr>
+      <tr><td>Windows PC</td><td><kbd>Windows + .</kbd> or <kbd>Windows + ;</kbd></td><td>Typing directly in Windows apps</td></tr>
+      <tr><td>Mac</td><td><kbd>Fn / Globe + E</kbd> or Edit &gt; Emoji &amp; Symbols</td><td>Typing directly in Mac apps</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<h3>Windows PC</h3>
+<p>Place the cursor inside a text field, then press <kbd>Windows + .</kbd> to open the Windows emoji panel. Microsoft also lists <kbd>Windows + ;</kbd> as a shortcut. You can browse with the mouse or keep typing to search. The panel can also include GIFs, kaomoji, and symbols, depending on your Windows version.</p>
+
+<h3>Mac</h3>
+<p>On a Mac, place the cursor in a supported text field and press <kbd>Fn / Globe + E</kbd>. You can also choose Edit &gt; Emoji &amp; Symbols to open the Character Viewer. Apple's viewer supports search, categories, recent items, favorites, and available variations such as skin tones.</p>
+
+<h2>Emoji Faces, Symbols, and Text Emoticons</h2>
+<p>Emoji, symbols, and text emoticons can look similar, but they work differently.</p>
+<p>A standard emoji is a Unicode character or sequence, such as 😂, ❤️, or 👍. A symbol may be a Unicode character that is not mainly used as an emoji, such as ©, →, or ✓. A text emoticon uses ordinary keyboard characters, such as :-), ;), or ¯\_(ツ)_/¯.</p>
+<div class="ek-table-wrap">
+  <table class="ek-table">
+    <thead><tr><th>Type</th><th>Example</th><th>Best For</th></tr></thead>
+    <tbody>
+      <tr><td>Emoji</td><td>😂</td><td>Visual reactions and modern messaging</td></tr>
+      <tr><td>Symbol</td><td>✓</td><td>Labels, status, directions, and formatting</td></tr>
+      <tr><td>Text emoticon</td><td>:-)</td><td>Plain-text systems and retro-style messages</td></tr>
+      <tr><td>Custom sticker</td><td>Mixed image</td><td>Image-friendly chats and social posts</td></tr>
+    </tbody>
+  </table>
+</div>
+<p>Use standard emojis when you need characters that travel with text. Use custom stickers when you want a visual mashup or a reaction that a single Unicode character cannot express. You can create those image-based reactions with the <a href="{% url 'emoji_generator' %}">Free Emoji Generator</a>.</p>
+
+<h2>Online Picker vs Built-In Panels</h2>
+<p>An online picker is better for broad search and copy-paste use, while built-in panels are faster inside desktop apps.</p>
+<div class="ek-table-wrap">
+  <table class="ek-table">
+    <thead><tr><th>Feature</th><th>Online Picker</th><th>Windows Panel</th><th>Mac Character Viewer</th></tr></thead>
+    <tbody>
+      <tr><td>Works in a browser</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td></tr>
+      <tr><td>Needs installation</td><td class="yes">No</td><td class="yes">No</td><td class="yes">No</td></tr>
+      <tr><td>Search by keyword</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+      <tr><td>Works across operating systems</td><td class="yes">Yes</td><td class="no">Windows only</td><td class="no">macOS only</td></tr>
+      <tr><td>Inserts directly into active field</td><td class="no">No, copy and paste</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+      <tr><td>Useful for category browsing</td><td class="yes">Yes</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+      <tr><td>Can be bookmarked</td><td class="yes">Yes</td><td class="no">No</td><td class="no">No</td></tr>
+    </tbody>
+  </table>
+</div>
+<p>Choose the online option when you use several devices, cannot open the built-in panel, or want a large searchable collection. Choose the built-in panel when you are already typing in a supported app and know the shortcut.</p>
+
+<h2>Emoji Keyboard Not Working? Try These Fixes</h2>
+<p>Most problems come from clipboard permission, browser limits, outdated software, unsupported sequences, or the wrong text field.</p>
+
+<h3>The Copy Button Does Not Work</h3>
+<p>Try these steps:</p>
+<ol>
+  <li>Make sure the page uses HTTPS.</li>
+  <li>Click the copy button again after interacting with the page.</li>
+  <li>Check whether your browser blocked clipboard access.</li>
+  <li>Try Chrome, Edge, Firefox, or Safari.</li>
+  <li>Select the emoji manually and use the normal copy command.</li>
+  <li>Refresh the page if the tool stopped responding.</li>
+</ol>
+<p>Clipboard access can fail when a browser denies permission or when the page does not meet secure-context requirements.</p>
+
+<h3>The Emoji Appears as a Box or Empty Symbol</h3>
+<p>A square, box, or broken sequence usually means the device, app, browser, or font does not support that character yet. New emoji often reach platforms at different times. Try updating the operating system and app. You can also choose an older or simpler emoji with wider support.</p>
+
+<h3>The Emoji Button Is Missing</h3>
+<p>On Windows, click inside a text field before using <kbd>Windows + .</kbd>. On Mac, try <kbd>Fn / Globe + E</kbd> or open Edit &gt; Emoji &amp; Symbols. Some apps may capture or replace keyboard shortcuts. When the built-in option still fails, use this browser page as a copy-and-paste alternative.</p>
+
+<h3>The Emoji Looks Different After Pasting</h3>
+<p>This is normal. The underlying character remains the same while Apple, Google, Microsoft, Samsung, and individual apps show different artwork. Review sensitive or unclear symbols before sending them in formal messages.</p>
+
+<h3>The Emoji Cannot Be Pasted Into One Field</h3>
+<p>Some fields accept only letters, numbers, or limited characters. Others remove unsupported text during submission. Test another field or app to confirm whether the problem comes from the destination rather than the copied emoji.</p>
+
+<h2>Frequently Asked Questions</h2>
+<ul class="faq-list">
+  {% for item in faqs %}
+  <details class="faq-item">
+    <summary>{{ item.question }}</summary>
+    <div class="faq-body">{{ item.answer }}</div>
+  </details>
+  {% endfor %}
+</ul>
+
+<h2>Find and Copy Your Next Emoji</h2>
+<p>A useful emoji tool should help you complete three tasks without confusion: find the right character, copy it without extra steps, and paste it into a compatible field. Category browsing helps when you do not know the name, while search works best when you know the feeling or object.</p>
+<p>Use the emoji keyboard on this page for browser-based copying. Use the Windows or Mac panel when you want direct insertion inside an app. Remember that newer characters and complex sequences may not display the same everywhere.</p>
+<p>Start with one clear search term, choose the emoji that matches your message, and paste it where you need it.</p>
+<p style="font-size:.85rem;color:var(--t5);border-top:1px solid var(--border-lt);padding-top:1rem;margin-top:2rem"><em>Editorial note: Device shortcuts and Unicode details were checked against official Microsoft, Apple, Unicode Consortium, and MDN documentation.</em></p>
+</div>
+</section>
+
+<!-- CTA -->
+<section class="container">
+  <div class="ek-cta">
+    <h2>Want a Custom Emoji Sticker?</h2>
+    <p>Merge two emojis into one unique image using Emoji Kitchen — free, no sign-up required.</p>
+    <a href="{% url 'home' %}#kitchen" class="btn btn--primary">Open Emoji Kitchen 🍳</a>
+  </div>
+</section>
+
+<script>
+(function(){
+'use strict';
+
+/* ── emoji data: {e, n, c} — emoji, searchable name, category ── */
+var EMOJIS = [
+/* smileys */
+{e:'😀',n:'grinning face happy smile',c:'smileys'},{e:'😃',n:'grinning face big eyes happy',c:'smileys'},{e:'😄',n:'grinning face smiling eyes happy',c:'smileys'},{e:'😁',n:'beaming face smile grin',c:'smileys'},{e:'😆',n:'grinning squinting face laugh xd',c:'smileys'},{e:'😅',n:'grinning face sweat nervous smile',c:'smileys'},{e:'🤣',n:'rolling on floor laughing lol rofl',c:'smileys'},{e:'😂',n:'face with tears of joy laugh cry',c:'smileys'},{e:'🙂',n:'slightly smiling face',c:'smileys'},{e:'🙃',n:'upside down face silly',c:'smileys'},{e:'😉',n:'winking face wink',c:'smileys'},{e:'😊',n:'smiling face with smiling eyes blush happy',c:'smileys'},{e:'😇',n:'smiling face halo angel good',c:'smileys'},{e:'🥰',n:'smiling face hearts love adore',c:'smileys'},{e:'😍',n:'smiling face heart eyes love',c:'smileys'},{e:'🤩',n:'star struck excited wow amazing',c:'smileys'},{e:'😘',n:'face blowing kiss love kiss',c:'smileys'},{e:'😗',n:'kissing face kiss',c:'smileys'},{e:'😚',n:'kissing face closed eyes kiss',c:'smileys'},{e:'😙',n:'kissing face smiling eyes',c:'smileys'},{e:'🥲',n:'smiling face tear happy cry',c:'smileys'},{e:'😋',n:'face savoring food yummy delicious',c:'smileys'},{e:'😛',n:'face with tongue silly',c:'smileys'},{e:'😜',n:'winking face with tongue silly playful',c:'smileys'},{e:'🤪',n:'zany face silly crazy',c:'smileys'},{e:'😝',n:'squinting face with tongue',c:'smileys'},{e:'🤑',n:'money mouth face rich',c:'smileys'},{e:'🤗',n:'smiling face open hands hug',c:'smileys'},{e:'🤭',n:'face with hand over mouth surprised giggle',c:'smileys'},{e:'🤫',n:'shushing face quiet secret',c:'smileys'},{e:'🤔',n:'thinking face hmm consider',c:'smileys'},{e:'😐',n:'neutral face expressionless',c:'smileys'},{e:'😑',n:'expressionless face blank',c:'smileys'},{e:'😶',n:'face without mouth silent',c:'smileys'},{e:'😏',n:'smirking face smirk',c:'smileys'},{e:'😒',n:'unamused face unhappy',c:'smileys'},{e:'🙄',n:'face with rolling eyes',c:'smileys'},{e:'😬',n:'grimacing face awkward',c:'smileys'},{e:'😌',n:'relieved face peaceful content',c:'smileys'},{e:'😔',n:'pensive face sad thoughtful',c:'smileys'},{e:'😪',n:'sleepy face tired',c:'smileys'},{e:'😴',n:'sleeping face zzz sleep',c:'smileys'},{e:'😷',n:'face with medical mask sick ill',c:'smileys'},{e:'🤒',n:'face with thermometer sick fever',c:'smileys'},{e:'🤕',n:'face with head bandage hurt injured',c:'smileys'},{e:'🤢',n:'nauseated face sick disgusted',c:'smileys'},{e:'🤮',n:'face vomiting sick gross',c:'smileys'},{e:'🤧',n:'sneezing face sick',c:'smileys'},{e:'🥵',n:'hot face sweating overheated',c:'smileys'},{e:'🥶',n:'cold face freezing',c:'smileys'},{e:'😵',n:'face with crossed out eyes dizzy',c:'smileys'},{e:'🤯',n:'exploding head mind blown shocked',c:'smileys'},{e:'🤠',n:'cowboy hat face western',c:'smileys'},{e:'🥳',n:'partying face celebrate birthday',c:'smileys'},{e:'😎',n:'smiling face sunglasses cool',c:'smileys'},{e:'🤓',n:'nerd face glasses smart',c:'smileys'},{e:'🧐',n:'face with monocle curious',c:'smileys'},{e:'😕',n:'confused face unsure',c:'smileys'},{e:'🙁',n:'slightly frowning face sad',c:'smileys'},{e:'😮',n:'face with open mouth surprised',c:'smileys'},{e:'😲',n:'astonished face shocked surprised',c:'smileys'},{e:'😳',n:'flushed face embarrassed',c:'smileys'},{e:'🥺',n:'pleading face puppy eyes begging',c:'smileys'},{e:'😦',n:'frowning face open mouth worried',c:'smileys'},{e:'😧',n:'anguished face distressed',c:'smileys'},{e:'😨',n:'fearful face scared afraid',c:'smileys'},{e:'😰',n:'anxious face sweat worried scared',c:'smileys'},{e:'😥',n:'sad but relieved face worried',c:'smileys'},{e:'😢',n:'crying face sad tear',c:'smileys'},{e:'😭',n:'loudly crying face bawling sob',c:'smileys'},{e:'😱',n:'face screaming in fear scream horror',c:'smileys'},{e:'😤',n:'face with steam from nose angry frustrated',c:'smileys'},{e:'😡',n:'pouting face angry red mad',c:'smileys'},{e:'😠',n:'angry face mad',c:'smileys'},{e:'🤬',n:'face with symbols on mouth cursing swearing angry',c:'smileys'},{e:'😈',n:'smiling face with horns devil evil',c:'smileys'},{e:'👿',n:'angry face with horns devil evil',c:'smileys'},{e:'💀',n:'skull death dead danger',c:'smileys'},{e:'☠️',n:'skull and crossbones danger poison',c:'smileys'},{e:'💩',n:'pile of poo poop funny',c:'smileys'},{e:'🤡',n:'clown face silly',c:'smileys'},{e:'👻',n:'ghost halloween spooky',c:'smileys'},{e:'👽',n:'alien extraterrestrial space',c:'smileys'},{e:'🤖',n:'robot face android machine',c:'smileys'},
+/* people */
+{e:'👋',n:'waving hand wave hello bye',c:'people'},{e:'🤚',n:'raised back of hand',c:'people'},{e:'✋',n:'raised hand stop high five',c:'people'},{e:'🖐️',n:'hand with fingers splayed',c:'people'},{e:'👌',n:'ok hand okay agree',c:'people'},{e:'✌️',n:'victory hand peace two',c:'people'},{e:'🤞',n:'crossed fingers luck hope',c:'people'},{e:'🤟',n:'love you gesture',c:'people'},{e:'🤘',n:'sign of the horns rock metal',c:'people'},{e:'🤙',n:'call me hand shaka',c:'people'},{e:'👈',n:'backhand index pointing left',c:'people'},{e:'👉',n:'backhand index pointing right',c:'people'},{e:'👆',n:'backhand index pointing up',c:'people'},{e:'👇',n:'backhand index pointing down',c:'people'},{e:'☝️',n:'index pointing up number one',c:'people'},{e:'👍',n:'thumbs up like approve good',c:'people'},{e:'👎',n:'thumbs down dislike disapprove bad',c:'people'},{e:'✊',n:'raised fist power',c:'people'},{e:'👊',n:'oncoming fist punch',c:'people'},{e:'🤛',n:'left-facing fist bump',c:'people'},{e:'🤜',n:'right-facing fist bump',c:'people'},{e:'👏',n:'clapping hands applause bravo',c:'people'},{e:'🙌',n:'raising hands celebrate hooray',c:'people'},{e:'👐',n:'open hands hug',c:'people'},{e:'🤲',n:'palms up together prayer',c:'people'},{e:'🤝',n:'handshake deal agreement',c:'people'},{e:'🙏',n:'folded hands please pray thanks',c:'people'},{e:'✍️',n:'writing hand pen note',c:'people'},{e:'💅',n:'nail polish manicure beauty',c:'people'},{e:'💪',n:'flexed bicep strong muscle',c:'people'},{e:'🦾',n:'mechanical arm prosthetic',c:'people'},{e:'👀',n:'eyes look see watching',c:'people'},{e:'👁️',n:'eye see watch',c:'people'},{e:'👅',n:'tongue taste',c:'people'},{e:'👄',n:'mouth lips talk kiss',c:'people'},{e:'👶',n:'baby infant child',c:'people'},{e:'🧒',n:'child kid',c:'people'},{e:'👦',n:'boy child',c:'people'},{e:'👧',n:'girl child',c:'people'},{e:'🧑',n:'person adult',c:'people'},{e:'👱',n:'person blond hair',c:'people'},{e:'👨',n:'man adult male',c:'people'},{e:'👩',n:'woman adult female',c:'people'},{e:'🧓',n:'older person elderly',c:'people'},{e:'👴',n:'old man grandfather elderly',c:'people'},{e:'👵',n:'old woman grandmother elderly',c:'people'},{e:'🧔',n:'person beard',c:'people'},{e:'👮',n:'police officer cop',c:'people'},{e:'🕵️',n:'detective spy',c:'people'},{e:'💂',n:'guard royal',c:'people'},{e:'🥷',n:'ninja',c:'people'},{e:'👷',n:'construction worker hard hat',c:'people'},{e:'🦸',n:'superhero hero',c:'people'},{e:'🦹',n:'supervillain villain',c:'people'},{e:'🧙',n:'mage wizard magic',c:'people'},{e:'🧝',n:'elf fantasy',c:'people'},{e:'🧛',n:'vampire',c:'people'},{e:'🧟',n:'zombie undead',c:'people'},{e:'🧞',n:'genie lamp magic',c:'people'},{e:'🧜',n:'merperson mermaid',c:'people'},{e:'🧚',n:'fairy',c:'people'},{e:'👼',n:'baby angel',c:'people'},{e:'🎅',n:'santa claus christmas holiday',c:'people'},{e:'🤶',n:'mrs claus christmas',c:'people'},{e:'🦊',n:'fox clever',c:'people'},
+/* animals */
+{e:'🐶',n:'dog puppy face animal pet',c:'animals'},{e:'🐱',n:'cat face animal pet',c:'animals'},{e:'🐭',n:'mouse face animal',c:'animals'},{e:'🐹',n:'hamster face cute pet',c:'animals'},{e:'🐰',n:'rabbit face bunny easter',c:'animals'},{e:'🦊',n:'fox face clever animal',c:'animals'},{e:'🐻',n:'bear face animal',c:'animals'},{e:'🐼',n:'panda face cute',c:'animals'},{e:'🐨',n:'koala face australia',c:'animals'},{e:'🐯',n:'tiger face wild cat',c:'animals'},{e:'🦁',n:'lion face king wild',c:'animals'},{e:'🐮',n:'cow face farm animal',c:'animals'},{e:'🐷',n:'pig face farm oink',c:'animals'},{e:'🐸',n:'frog face green',c:'animals'},{e:'🐵',n:'monkey face primate',c:'animals'},{e:'🙈',n:'see no evil monkey',c:'animals'},{e:'🙉',n:'hear no evil monkey',c:'animals'},{e:'🙊',n:'speak no evil monkey',c:'animals'},{e:'🐔',n:'chicken hen bird',c:'animals'},{e:'🐧',n:'penguin bird cold',c:'animals'},{e:'🐦',n:'bird tweet',c:'animals'},{e:'🦆',n:'duck bird water',c:'animals'},{e:'🦅',n:'eagle bird majestic',c:'animals'},{e:'🦉',n:'owl bird wise night',c:'animals'},{e:'🦇',n:'bat vampire night',c:'animals'},{e:'🐺',n:'wolf howl wild',c:'animals'},{e:'🐴',n:'horse face equine',c:'animals'},{e:'🦄',n:'unicorn magical fantasy',c:'animals'},{e:'🐝',n:'honeybee bee insect',c:'animals'},{e:'🦋',n:'butterfly insect beautiful',c:'animals'},{e:'🐛',n:'bug caterpillar insect',c:'animals'},{e:'🐌',n:'snail slow',c:'animals'},{e:'🐞',n:'lady beetle ladybug insect',c:'animals'},{e:'🐢',n:'turtle reptile slow',c:'animals'},{e:'🐍',n:'snake reptile',c:'animals'},{e:'🦎',n:'lizard reptile',c:'animals'},{e:'🦖',n:'t rex dinosaur',c:'animals'},{e:'🦕',n:'sauropod dinosaur brachiosaurus',c:'animals'},{e:'🐙',n:'octopus sea animal',c:'animals'},{e:'🦑',n:'squid sea animal',c:'animals'},{e:'🦀',n:'crab sea animal',c:'animals'},{e:'🐡',n:'blowfish puffer fish sea',c:'animals'},{e:'🐠',n:'tropical fish sea colorful',c:'animals'},{e:'🐟',n:'fish sea',c:'animals'},{e:'🐬',n:'dolphin smart sea',c:'animals'},{e:'🐳',n:'spouting whale sea large',c:'animals'},{e:'🦈',n:'shark danger sea',c:'animals'},{e:'🐊',n:'crocodile reptile',c:'animals'},{e:'🐘',n:'elephant large africa',c:'animals'},{e:'🦒',n:'giraffe long neck africa',c:'animals'},{e:'🦓',n:'zebra africa stripes',c:'animals'},{e:'🦛',n:'hippopotamus water africa',c:'animals'},{e:'🐪',n:'camel desert',c:'animals'},{e:'🦙',n:'llama andes wool',c:'animals'},{e:'🐐',n:'goat farm animal',c:'animals'},{e:'🐑',n:'sheep wool farm',c:'animals'},{e:'🐕',n:'dog pet loyal',c:'animals'},{e:'🐩',n:'poodle dog pet',c:'animals'},{e:'🐈',n:'cat pet',c:'animals'},{e:'🦩',n:'flamingo pink bird',c:'animals'},{e:'🦢',n:'swan bird graceful',c:'animals'},{e:'🕊️',n:'dove peace bird',c:'animals'},{e:'🐇',n:'rabbit bunny',c:'animals'},{e:'🦔',n:'hedgehog spiny',c:'animals'},{e:'🐿️',n:'chipmunk squirrel',c:'animals'},{e:'🌵',n:'cactus desert plant',c:'animals'},{e:'🌲',n:'evergreen tree nature',c:'animals'},{e:'🌳',n:'deciduous tree nature',c:'animals'},{e:'🌴',n:'palm tree tropical',c:'animals'},{e:'🌱',n:'seedling sprout new growth',c:'animals'},{e:'🌿',n:'herb plant green',c:'animals'},{e:'☘️',n:'shamrock clover luck irish',c:'animals'},{e:'🍀',n:'four leaf clover luck',c:'animals'},{e:'🍃',n:'leaf wind nature',c:'animals'},{e:'🍂',n:'fallen leaf autumn fall',c:'animals'},{e:'🍁',n:'maple leaf canada autumn',c:'animals'},{e:'🍄',n:'mushroom fungus',c:'animals'},{e:'💐',n:'bouquet flowers gift',c:'animals'},{e:'🌷',n:'tulip flower spring',c:'animals'},{e:'🌹',n:'rose flower romance',c:'animals'},{e:'🌺',n:'hibiscus flower tropical',c:'animals'},{e:'🌸',n:'cherry blossom flower spring japan',c:'animals'},{e:'🌼',n:'blossom flower yellow',c:'animals'},{e:'🌻',n:'sunflower yellow summer',c:'animals'},{e:'🌞',n:'sun with face bright happy',c:'animals'},{e:'⭐',n:'star sky night',c:'animals'},{e:'🌟',n:'glowing star sparkle',c:'animals'},{e:'✨',n:'sparkles magic stars',c:'animals'},{e:'🌙',n:'crescent moon night',c:'animals'},{e:'☀️',n:'sun bright day warm',c:'animals'},{e:'🌈',n:'rainbow colorful',c:'animals'},{e:'☁️',n:'cloud weather sky',c:'animals'},{e:'❄️',n:'snowflake snow winter cold',c:'animals'},{e:'🌊',n:'wave water ocean sea',c:'animals'},{e:'💧',n:'droplet water rain',c:'animals'},{e:'🔥',n:'fire flame hot',c:'animals'},{e:'🌍',n:'globe earth africa europe',c:'animals'},
+/* food */
+{e:'🍎',n:'red apple fruit',c:'food'},{e:'🍊',n:'tangerine orange fruit',c:'food'},{e:'🍋',n:'lemon sour fruit yellow',c:'food'},{e:'🍌',n:'banana fruit yellow',c:'food'},{e:'🍉',n:'watermelon fruit summer',c:'food'},{e:'🍇',n:'grapes fruit purple',c:'food'},{e:'🍓',n:'strawberry fruit red sweet',c:'food'},{e:'🫐',n:'blueberries fruit',c:'food'},{e:'🍒',n:'cherries fruit red',c:'food'},{e:'🍑',n:'peach fruit',c:'food'},{e:'🥭',n:'mango tropical fruit',c:'food'},{e:'🍍',n:'pineapple tropical fruit',c:'food'},{e:'🥥',n:'coconut tropical',c:'food'},{e:'🥝',n:'kiwi fruit green',c:'food'},{e:'🍅',n:'tomato red vegetable',c:'food'},{e:'🍆',n:'eggplant aubergine purple vegetable',c:'food'},{e:'🥑',n:'avocado green healthy',c:'food'},{e:'🥦',n:'broccoli green vegetable healthy',c:'food'},{e:'🌶️',n:'hot pepper spicy red',c:'food'},{e:'🧄',n:'garlic spice',c:'food'},{e:'🧅',n:'onion vegetable',c:'food'},{e:'🥔',n:'potato vegetable',c:'food'},{e:'🥐',n:'croissant pastry breakfast french',c:'food'},{e:'🍞',n:'bread loaf food',c:'food'},{e:'🥨',n:'pretzel snack',c:'food'},{e:'🧀',n:'cheese dairy',c:'food'},{e:'🥚',n:'egg breakfast',c:'food'},{e:'🍳',n:'cooking egg frying pan breakfast',c:'food'},{e:'🥞',n:'pancakes breakfast stack',c:'food'},{e:'🧇',n:'waffle breakfast',c:'food'},{e:'🥓',n:'bacon breakfast meat',c:'food'},{e:'🥩',n:'cut of meat steak',c:'food'},{e:'🍗',n:'poultry leg chicken drumstick',c:'food'},{e:'🍖',n:'meat on bone',c:'food'},{e:'🌭',n:'hot dog sausage',c:'food'},{e:'🍔',n:'hamburger burger fast food',c:'food'},{e:'🍟',n:'french fries fast food',c:'food'},{e:'🍕',n:'pizza food italian',c:'food'},{e:'🌮',n:'taco mexican food',c:'food'},{e:'🌯',n:'burrito wrap food',c:'food'},{e:'🥗',n:'green salad healthy food',c:'food'},{e:'🍜',n:'steaming bowl noodle ramen',c:'food'},{e:'🍝',n:'spaghetti pasta italian',c:'food'},{e:'🍣',n:'sushi japanese fish',c:'food'},{e:'🍱',n:'bento box japanese lunch',c:'food'},{e:'🥟',n:'dumpling gyoza asian',c:'food'},{e:'🍦',n:'soft ice cream dessert',c:'food'},{e:'🍧',n:'shaved ice dessert',c:'food'},{e:'🍨',n:'ice cream dessert',c:'food'},{e:'🍩',n:'doughnut donut sweet',c:'food'},{e:'🍪',n:'cookie biscuit sweet',c:'food'},{e:'🎂',n:'birthday cake celebration',c:'food'},{e:'🍰',n:'shortcake dessert birthday',c:'food'},{e:'🧁',n:'cupcake sweet dessert',c:'food'},{e:'🍫',n:'chocolate bar sweet',c:'food'},{e:'🍬',n:'candy sweet',c:'food'},{e:'🍭',n:'lollipop candy sweet',c:'food'},{e:'🍿',n:'popcorn movie snack',c:'food'},{e:'🍯',n:'honey pot sweet',c:'food'},{e:'☕',n:'hot beverage coffee tea',c:'food'},{e:'🫖',n:'teapot tea hot drink',c:'food'},{e:'🍵',n:'teacup hot tea',c:'food'},{e:'🧋',n:'bubble tea boba drink',c:'food'},{e:'🥤',n:'cup with straw drink soda',c:'food'},{e:'🍺',n:'beer mug drink cheers',c:'food'},{e:'🍻',n:'clinking beer mugs cheers',c:'food'},{e:'🥂',n:'clinking glasses champagne celebrate',c:'food'},{e:'🍷',n:'wine glass red wine drink',c:'food'},{e:'🍸',n:'cocktail glass martini drink',c:'food'},{e:'🍹',n:'tropical drink cocktail summer',c:'food'},{e:'🍾',n:'bottle with popping cork champagne celebrate',c:'food'},{e:'🧊',n:'ice cube cold',c:'food'},{e:'🍴',n:'fork and knife cutlery eat',c:'food'},{e:'🥄',n:'spoon cutlery',c:'food'},{e:'🧂',n:'salt shaker seasoning',c:'food'},
+/* activities */
+{e:'⚽',n:'soccer ball football sport',c:'activities'},{e:'🏀',n:'basketball sport',c:'activities'},{e:'🏈',n:'american football sport',c:'activities'},{e:'⚾',n:'baseball sport',c:'activities'},{e:'🎾',n:'tennis sport racket',c:'activities'},{e:'🏐',n:'volleyball sport',c:'activities'},{e:'🏉',n:'rugby football sport',c:'activities'},{e:'🎱',n:'pool 8 ball billiards',c:'activities'},{e:'🏓',n:'ping pong table tennis sport',c:'activities'},{e:'🏸',n:'badminton sport',c:'activities'},{e:'🥊',n:'boxing glove sport fight',c:'activities'},{e:'🥋',n:'martial arts uniform karate',c:'activities'},{e:'🎽',n:'running shirt sport',c:'activities'},{e:'🛹',n:'skateboard sport skate',c:'activities'},{e:'🛷',n:'sled snow winter',c:'activities'},{e:'⛷️',n:'skier snow winter sport',c:'activities'},{e:'🏂',n:'snowboarder winter sport',c:'activities'},{e:'🏋️',n:'person lifting weights gym fitness',c:'activities'},{e:'🤼',n:'wrestling sport',c:'activities'},{e:'🤸',n:'gymnastics cartwheel sport',c:'activities'},{e:'🏊',n:'swimming pool sport',c:'activities'},{e:'🚴',n:'cycling bike sport',c:'activities'},{e:'🏆',n:'trophy win champion award',c:'activities'},{e:'🥇',n:'first place gold medal win',c:'activities'},{e:'🥈',n:'second place silver medal',c:'activities'},{e:'🥉',n:'third place bronze medal',c:'activities'},{e:'🏅',n:'sports medal award',c:'activities'},{e:'🎖️',n:'military medal award',c:'activities'},{e:'🎪',n:'circus tent fair carnival',c:'activities'},{e:'🤹',n:'juggling circus performance',c:'activities'},{e:'🎭',n:'performing arts theater masks',c:'activities'},{e:'🩰',n:'ballet shoes dance',c:'activities'},{e:'🎨',n:'artist palette paint art',c:'activities'},{e:'🎬',n:'clapper board film movie',c:'activities'},{e:'🎤',n:'microphone singer music',c:'activities'},{e:'🎧',n:'headphone music listen',c:'activities'},{e:'🎼',n:'musical score notes',c:'activities'},{e:'🎹',n:'musical keyboard piano',c:'activities'},{e:'🥁',n:'drum music beat',c:'activities'},{e:'🎷',n:'saxophone music jazz',c:'activities'},{e:'🎺',n:'trumpet music',c:'activities'},{e:'🎸',n:'guitar music rock',c:'activities'},{e:'🎲',n:'dice game random',c:'activities'},{e:'🎯',n:'bullseye target dart',c:'activities'},{e:'🎳',n:'bowling sport game',c:'activities'},{e:'🎮',n:'video game controller gaming',c:'activities'},{e:'🕹️',n:'joystick game arcade',c:'activities'},{e:'🎰',n:'slot machine casino luck',c:'activities'},{e:'🎉',n:'party popper celebrate birthday',c:'activities'},{e:'🎊',n:'confetti ball celebrate party',c:'activities'},{e:'🎈',n:'balloon party birthday',c:'activities'},{e:'🎀',n:'ribbon bow gift decoration',c:'activities'},{e:'🎁',n:'gift wrapped present birthday',c:'activities'},{e:'🎄',n:'christmas tree holiday xmas',c:'activities'},{e:'🎆',n:'fireworks celebrate',c:'activities'},{e:'🎇',n:'sparkler celebrate new year',c:'activities'},{e:'🧨',n:'firecracker new year chinese',c:'activities'},{e:'✨',n:'sparkles magic celebration',c:'activities'},{e:'🎵',n:'musical note song music',c:'activities'},{e:'🎶',n:'musical notes song music',c:'activities'},
+/* travel */
+{e:'🚗',n:'automobile car red drive',c:'travel'},{e:'🚕',n:'taxi cab yellow',c:'travel'},{e:'🚙',n:'sport utility vehicle suv car',c:'travel'},{e:'🚌',n:'bus public transport',c:'travel'},{e:'🏎️',n:'racing car fast speed',c:'travel'},{e:'🚓',n:'police car',c:'travel'},{e:'🚑',n:'ambulance emergency medical',c:'travel'},{e:'🚒',n:'fire engine truck emergency',c:'travel'},{e:'🚚',n:'delivery truck',c:'travel'},{e:'🚜',n:'tractor farm agriculture',c:'travel'},{e:'🏍️',n:'motorcycle motorbike',c:'travel'},{e:'🛵',n:'motor scooter moped',c:'travel'},{e:'🚲',n:'bicycle bike cycle',c:'travel'},{e:'🛴',n:'kick scooter',c:'travel'},{e:'⚓',n:'anchor boat ship sea',c:'travel'},{e:'⛵',n:'sailboat sail sea wind',c:'travel'},{e:'🚤',n:'speedboat fast water',c:'travel'},{e:'🛳️',n:'passenger ship cruise',c:'travel'},{e:'🚢',n:'ship cruise ocean',c:'travel'},{e:'✈️',n:'airplane plane flight travel',c:'travel'},{e:'🛫',n:'airplane departure take off',c:'travel'},{e:'🛬',n:'airplane arrival landing',c:'travel'},{e:'🚀',n:'rocket space launch',c:'travel'},{e:'🛸',n:'flying saucer ufo space',c:'travel'},{e:'🚁',n:'helicopter flight',c:'travel'},{e:'🪂',n:'parachute skydive jump',c:'travel'},{e:'💺',n:'seat airplane chair',c:'travel'},{e:'🗺️',n:'world map navigate',c:'travel'},{e:'🧭',n:'compass direction navigate',c:'travel'},{e:'🌋',n:'volcano mountain eruption',c:'travel'},{e:'🏔️',n:'snow capped mountain nature',c:'travel'},{e:'⛰️',n:'mountain nature landscape',c:'travel'},{e:'🏕️',n:'camping tent nature',c:'travel'},{e:'🏖️',n:'beach umbrella summer holiday',c:'travel'},{e:'🏜️',n:'desert hot sand',c:'travel'},{e:'🏝️',n:'island tropical paradise',c:'travel'},{e:'🏞️',n:'national park nature',c:'travel'},{e:'🏛️',n:'classical building history',c:'travel'},{e:'🏗️',n:'building construction',c:'travel'},{e:'🏠',n:'house home building',c:'travel'},{e:'🏡',n:'house garden home',c:'travel'},{e:'🏢',n:'office building city',c:'travel'},{e:'🏥',n:'hospital medical building',c:'travel'},{e:'🏦',n:'bank building money',c:'travel'},{e:'🏨',n:'hotel building stay',c:'travel'},{e:'🏪',n:'convenience store shop',c:'travel'},{e:'🏫',n:'school building education',c:'travel'},{e:'🏰',n:'european castle historic',c:'travel'},{e:'🗼',n:'tokyo tower japan',c:'travel'},{e:'🗽',n:'statue of liberty new york usa',c:'travel'},{e:'⛩️',n:'shinto shrine japan gate',c:'travel'},{e:'🕌',n:'mosque islam religion',c:'travel'},{e:'⛲',n:'fountain water park',c:'travel'},{e:'🌁',n:'foggy bridge city',c:'travel'},{e:'🌃',n:'night city stars',c:'travel'},{e:'🏙️',n:'cityscape skyline city',c:'travel'},{e:'🌄',n:'sunrise mountain dawn',c:'travel'},{e:'🌅',n:'sunrise morning dawn',c:'travel'},{e:'🌆',n:'cityscape dusk evening',c:'travel'},{e:'🌉',n:'bridge night city',c:'travel'},
+/* objects */
+{e:'📱',n:'mobile phone smartphone cell',c:'objects'},{e:'💻',n:'laptop computer macbook',c:'objects'},{e:'🖥️',n:'desktop computer monitor screen',c:'objects'},{e:'⌨️',n:'keyboard type input',c:'objects'},{e:'🖱️',n:'computer mouse click',c:'objects'},{e:'📷',n:'camera photo picture',c:'objects'},{e:'📸',n:'camera with flash photo selfie',c:'objects'},{e:'📹',n:'video camera film record',c:'objects'},{e:'📺',n:'television tv screen',c:'objects'},{e:'📻',n:'radio music listen',c:'objects'},{e:'🎥',n:'movie camera film record',c:'objects'},{e:'📞',n:'telephone receiver call phone',c:'objects'},{e:'☎️',n:'telephone old call',c:'objects'},{e:'🔋',n:'battery charge power',c:'objects'},{e:'🔌',n:'electric plug power',c:'objects'},{e:'💡',n:'light bulb idea bright',c:'objects'},{e:'🔦',n:'flashlight torch light',c:'objects'},{e:'🕯️',n:'candle light flame',c:'objects'},{e:'📚',n:'books reading study',c:'objects'},{e:'📖',n:'open book reading',c:'objects'},{e:'📝',n:'memo note write',c:'objects'},{e:'✏️',n:'pencil write draw',c:'objects'},{e:'🖊️',n:'pen write',c:'objects'},{e:'📌',n:'pushpin note location',c:'objects'},{e:'📎',n:'paperclip attach',c:'objects'},{e:'✂️',n:'scissors cut',c:'objects'},{e:'🔑',n:'key unlock access',c:'objects'},{e:'🗝️',n:'old key vintage',c:'objects'},{e:'🔐',n:'locked with key secure',c:'objects'},{e:'🔒',n:'locked secure private',c:'objects'},{e:'🔓',n:'unlocked open',c:'objects'},{e:'🔨',n:'hammer tool build',c:'objects'},{e:'⚒️',n:'hammer and pick tools',c:'objects'},{e:'🛠️',n:'hammer and wrench fix repair',c:'objects'},{e:'🔧',n:'wrench tool repair',c:'objects'},{e:'🔩',n:'nut and bolt fastener',c:'objects'},{e:'⚙️',n:'gear settings mechanic',c:'objects'},{e:'⚖️',n:'balance scale justice law',c:'objects'},{e:'🔗',n:'link chain connect',c:'objects'},{e:'🧲',n:'magnet attract',c:'objects'},{e:'🪜',n:'ladder climb steps',c:'objects'},{e:'🧰',n:'toolbox tools repair',c:'objects'},{e:'🪄',n:'magic wand spell',c:'objects'},{e:'🎩',n:'top hat magic formal',c:'objects'},{e:'👑',n:'crown king queen royal',c:'objects'},{e:'💍',n:'ring diamond engagement',c:'objects'},{e:'💎',n:'gem diamond precious',c:'objects'},{e:'👓',n:'glasses eyewear',c:'objects'},{e:'🕶️',n:'sunglasses cool',c:'objects'},{e:'🧳',n:'luggage travel bag',c:'objects'},{e:'👜',n:'handbag purse fashion',c:'objects'},{e:'👛',n:'purse wallet money',c:'objects'},{e:'🎒',n:'backpack school bag',c:'objects'},{e:'💰',n:'money bag rich wealth',c:'objects'},{e:'💳',n:'credit card payment bank',c:'objects'},{e:'💵',n:'dollar banknote money usa',c:'objects'},{e:'📦',n:'package box delivery',c:'objects'},{e:'📫',n:'mailbox letter post',c:'objects'},{e:'🏷️',n:'label tag price',c:'objects'},{e:'🔖',n:'bookmark save read',c:'objects'},{e:'🩺',n:'stethoscope medical doctor',c:'objects'},{e:'💊',n:'pill medicine tablet',c:'objects'},{e:'💉',n:'syringe injection vaccine',c:'objects'},{e:'🌡️',n:'thermometer temperature sick',c:'objects'},{e:'🧬',n:'dna science biology',c:'objects'},{e:'🔭',n:'telescope space science',c:'objects'},{e:'🔬',n:'microscope science lab',c:'objects'},
+/* symbols */
+{e:'❤️',n:'red heart love romance',c:'symbols'},{e:'🧡',n:'orange heart warm',c:'symbols'},{e:'💛',n:'yellow heart happy',c:'symbols'},{e:'💚',n:'green heart nature',c:'symbols'},{e:'💙',n:'blue heart calm',c:'symbols'},{e:'💜',n:'purple heart royalty',c:'symbols'},{e:'🖤',n:'black heart dark',c:'symbols'},{e:'🤍',n:'white heart pure',c:'symbols'},{e:'🤎',n:'brown heart warm',c:'symbols'},{e:'💔',n:'broken heart sad',c:'symbols'},{e:'❤️‍🔥',n:'heart on fire passionate',c:'symbols'},{e:'💕',n:'two hearts love',c:'symbols'},{e:'💞',n:'revolving hearts love',c:'symbols'},{e:'💓',n:'beating heart love pulse',c:'symbols'},{e:'💗',n:'growing heart love',c:'symbols'},{e:'💖',n:'sparkling heart love shine',c:'symbols'},{e:'💘',n:'heart with arrow love cupid',c:'symbols'},{e:'💝',n:'heart with ribbon gift love',c:'symbols'},{e:'✅',n:'check mark button done yes',c:'symbols'},{e:'☑️',n:'check box done',c:'symbols'},{e:'✔️',n:'check mark done yes correct',c:'symbols'},{e:'❌',n:'cross mark no wrong error',c:'symbols'},{e:'❎',n:'cross mark button no',c:'symbols'},{e:'⭕',n:'hollow red circle yes',c:'symbols'},{e:'🛑',n:'stop sign no',c:'symbols'},{e:'⛔',n:'no entry prohibited',c:'symbols'},{e:'🚫',n:'prohibited no forbidden',c:'symbols'},{e:'⚠️',n:'warning caution alert',c:'symbols'},{e:'🔱',n:'trident emblem',c:'symbols'},{e:'♻️',n:'recycling symbol green environment',c:'symbols'},{e:'💯',n:'hundred points perfect score 100',c:'symbols'},{e:'🔔',n:'bell notification alert',c:'symbols'},{e:'🔕',n:'bell with slash mute silent',c:'symbols'},{e:'📢',n:'loudspeaker announcement',c:'symbols'},{e:'📣',n:'megaphone announcement',c:'symbols'},{e:'🔇',n:'muted speaker silent',c:'symbols'},{e:'🔈',n:'speaker low volume',c:'symbols'},{e:'🔊',n:'speaker high volume loud',c:'symbols'},{e:'🎵',n:'musical note music song',c:'symbols'},{e:'🎶',n:'musical notes music',c:'symbols'},{e:'💤',n:'zzz sleep tired',c:'symbols'},{e:'💬',n:'speech bubble chat message',c:'symbols'},{e:'💭',n:'thought balloon thinking',c:'symbols'},{e:'🗯️',n:'right anger bubble angry',c:'symbols'},{e:'➕',n:'plus add more',c:'symbols'},{e:'➖',n:'minus subtract less',c:'symbols'},{e:'✖️',n:'multiply times math',c:'symbols'},{e:'➗',n:'divide math',c:'symbols'},{e:'❓',n:'red question mark unknown',c:'symbols'},{e:'❗',n:'red exclamation mark important',c:'symbols'},{e:'‼️',n:'double exclamation mark very important',c:'symbols'},{e:'🔅',n:'low brightness dim',c:'symbols'},{e:'🔆',n:'high brightness bright',c:'symbols'},{e:'🔄',n:'counterclockwise arrows rotate refresh',c:'symbols'},{e:'🔙',n:'back arrow return',c:'symbols'},{e:'🔛',n:'on arrow active',c:'symbols'},{e:'🔝',n:'top arrow highest',c:'symbols'},{e:'🆘',n:'sos emergency help',c:'symbols'},{e:'🆕',n:'new button fresh',c:'symbols'},{e:'🆓',n:'free button no cost',c:'symbols'},{e:'🔴',n:'red circle dot',c:'symbols'},{e:'🟠',n:'orange circle dot',c:'symbols'},{e:'🟡',n:'yellow circle dot',c:'symbols'},{e:'🟢',n:'green circle dot',c:'symbols'},{e:'🔵',n:'blue circle dot',c:'symbols'},{e:'🟣',n:'purple circle dot',c:'symbols'},{e:'⚫',n:'black circle dot',c:'symbols'},{e:'⚪',n:'white circle dot',c:'symbols'},{e:'🟥',n:'red square',c:'symbols'},{e:'🟩',n:'green square',c:'symbols'},{e:'🟦',n:'blue square',c:'symbols'},{e:'⬛',n:'black large square',c:'symbols'},{e:'⬜',n:'white large square',c:'symbols'},{e:'☮️',n:'peace symbol',c:'symbols'},{e:'✝️',n:'cross christian religion',c:'symbols'},{e:'☪️',n:'star and crescent islam religion',c:'symbols'},{e:'🕉️',n:'om hinduism religion',c:'symbols'},{e:'✡️',n:'star of david judaism religion',c:'symbols'},{e:'☯️',n:'yin yang balance',c:'symbols'},{e:'⚡',n:'lightning bolt electric energy fast',c:'symbols'},{e:'🌀',n:'cyclone tornado hurricane',c:'symbols'},{e:'🌐',n:'globe with meridians internet world',c:'symbols'},
+/* flags */
+{e:'🏳️',n:'white flag surrender',c:'flags'},{e:'🏴',n:'black flag pirate',c:'flags'},{e:'🚩',n:'triangular flag warning',c:'flags'},{e:'🏁',n:'chequered flag race finish',c:'flags'},{e:'🏴‍☠️',n:'pirate flag jolly roger',c:'flags'},{e:'🏳️‍🌈',n:'rainbow flag pride lgbtq',c:'flags'},{e:'🏳️‍⚧️',n:'transgender flag',c:'flags'},{e:'🇺🇸',n:'united states usa america flag',c:'flags'},{e:'🇬🇧',n:'united kingdom uk england britain flag',c:'flags'},{e:'🇨🇦',n:'canada canadian flag',c:'flags'},{e:'🇦🇺',n:'australia australian flag',c:'flags'},{e:'🇩🇪',n:'germany german flag',c:'flags'},{e:'🇫🇷',n:'france french flag',c:'flags'},{e:'🇯🇵',n:'japan japanese flag',c:'flags'},{e:'🇨🇳',n:'china chinese flag',c:'flags'},{e:'🇮🇳',n:'india indian flag',c:'flags'},{e:'🇧🇷',n:'brazil brazilian flag',c:'flags'},{e:'🇲🇽',n:'mexico mexican flag',c:'flags'},{e:'🇪🇸',n:'spain spanish flag',c:'flags'},{e:'🇮🇹',n:'italy italian flag',c:'flags'},{e:'🇷🇺',n:'russia russian flag',c:'flags'},{e:'🇰🇷',n:'south korea korean flag',c:'flags'},{e:'🇸🇦',n:'saudi arabia flag',c:'flags'},{e:'🇵🇰',n:'pakistan pakistani flag',c:'flags'},{e:'🇵🇭',n:'philippines filipino flag',c:'flags'},{e:'🇮🇩',n:'indonesia indonesian flag',c:'flags'},{e:'🇹🇷',n:'turkey turkish flag',c:'flags'},{e:'🇳🇱',n:'netherlands dutch flag',c:'flags'},{e:'🇵🇱',n:'poland polish flag',c:'flags'},{e:'🇦🇷',n:'argentina argentinian flag',c:'flags'},{e:'🇳🇬',n:'nigeria nigerian flag',c:'flags'},{e:'🇿🇦',n:'south africa flag',c:'flags'},{e:'🇪🇬',n:'egypt egyptian flag',c:'flags'},{e:'🇸🇪',n:'sweden swedish flag',c:'flags'},{e:'🇳🇴',n:'norway norwegian flag',c:'flags'},{e:'🇩🇰',n:'denmark danish flag',c:'flags'},{e:'🇫🇮',n:'finland finnish flag',c:'flags'},{e:'🇨🇭',n:'switzerland swiss flag',c:'flags'},{e:'🇦🇹',n:'austria austrian flag',c:'flags'},{e:'🇳🇿',n:'new zealand kiwi flag',c:'flags'},{e:'🇸🇬',n:'singapore flag',c:'flags'},{e:'🇲🇾',n:'malaysia flag',c:'flags'},{e:'🇺🇦',n:'ukraine ukrainian flag',c:'flags'},{e:'🇵🇹',n:'portugal portuguese flag',c:'flags'},{e:'🇬🇷',n:'greece greek flag',c:'flags'},{e:'🇮🇷',n:'iran iranian flag',c:'flags'},{e:'🇮🇶',n:'iraq flag',c:'flags'},{e:'🇦🇪',n:'united arab emirates uae flag',c:'flags'},{e:'🇧🇩',n:'bangladesh flag',c:'flags'}
+];
+
+var CATS = [
+  {k:'all',l:'All'},
+  {k:'smileys',l:'😀 Smileys'},
+  {k:'people',l:'👋 People'},
+  {k:'animals',l:'🐶 Animals'},
+  {k:'food',l:'🍕 Food'},
+  {k:'activities',l:'⚽ Activities'},
+  {k:'travel',l:'✈️ Travel'},
+  {k:'objects',l:'💡 Objects'},
+  {k:'symbols',l:'❤️ Symbols'},
+  {k:'flags',l:'🚩 Flags'},
+];
+
+var activeFilter='all', searchQuery='', selected=[];
+
+/* ── category tabs ── */
+var catBar=document.getElementById('ekCats');
+CATS.forEach(function(c){
+  var btn=document.createElement('button');
+  btn.className='ek-cat-btn'+(c.k==='all'?' active':'');
+  btn.textContent=c.l;
+  btn.addEventListener('click',function(){
+    activeFilter=c.k;
+    catBar.querySelectorAll('.ek-cat-btn').forEach(function(b){b.classList.remove('active');});
+    btn.classList.add('active');
+    renderGrid();
+  });
+  catBar.appendChild(btn);
+});
+
+/* ── clipboard ── */
+function fallback(text){
+  var ta=document.createElement('textarea');
+  ta.value=text; ta.style.cssText='position:fixed;opacity:0';
+  document.body.appendChild(ta); ta.select();
+  try{document.execCommand('copy');}catch(e){}
+  document.body.removeChild(ta);
+}
+function copyText(text){
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).catch(function(){fallback(text);});
+  }else{fallback(text);}
+  if(window.showToast) window.showToast('Copied!');
+}
+
+/* ── tray ── */
+function renderTray(){
+  var trayEl=document.getElementById('ekTrayEmojis');
+  var ph=document.getElementById('ekTrayPlaceholder');
+  trayEl.textContent=selected.join('');
+  ph.style.display=selected.length?'none':'inline';
+}
+
+/* ── grid ── */
+function renderGrid(){
+  var q=searchQuery.toLowerCase().trim();
+  var list=EMOJIS.filter(function(em){
+    var matchCat=activeFilter==='all'||em.c===activeFilter;
+    var matchQ=!q||em.n.indexOf(q)!==-1||em.e.indexOf(q)!==-1;
+    return matchCat&&matchQ;
+  });
+  var grid=document.getElementById('ekGrid');
+  if(!list.length){
+    grid.innerHTML='<div class="ek-empty">No emojis found. Try a different word.</div>';
+    return;
+  }
+  grid.innerHTML=list.map(function(em,i){
+    var isSel=selected.indexOf(em.e)!==-1;
+    return '<button class="ek-emoji-btn'+(isSel?' selected':'')+'" data-i="'+i+'" title="'+em.n+'" aria-label="'+em.n+'">'+em.e+'</button>';
+  }).join('');
+  grid.querySelectorAll('.ek-emoji-btn').forEach(function(btn,i){
+    var emoji=list[i].e;
+    btn.addEventListener('click',function(){
+      var idx=selected.indexOf(emoji);
+      if(idx===-1){
+        selected.push(emoji);
+        btn.classList.add('selected');
+        copyText(emoji);
+      }else{
+        selected.splice(idx,1);
+        btn.classList.remove('selected');
+      }
+      renderTray();
+    });
+  });
+}
+
+/* ── search ── */
+document.getElementById('ekSearch').addEventListener('input',function(){
+  searchQuery=this.value;
+  renderGrid();
+});
+document.getElementById('ekClearSearch').addEventListener('click',function(){
+  document.getElementById('ekSearch').value='';
+  searchQuery='';
+  renderGrid();
+});
+
+/* ── tray controls ── */
+document.getElementById('ekCopyTray').addEventListener('click',function(){
+  if(!selected.length){if(window.showToast) window.showToast('Nothing selected yet!');return;}
+  copyText(selected.join(''));
+});
+document.getElementById('ekResetTray').addEventListener('click',function(){
+  selected=[];
+  renderTray();
+  renderGrid();
+});
+
+renderGrid();
+})();
+</script>
+{% endblock %}

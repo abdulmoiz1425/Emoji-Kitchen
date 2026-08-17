@@ -11,6 +11,7 @@ urlpatterns = [
     path('emoji-combos/aesthetic/', views.emoji_combos_aesthetic, name='emoji_combos_aesthetic'),
     path('emoji-combos/funny/', views.emoji_combos_funny, name='emoji_combos_funny'),
     path('emoji-combos/pink/', views.emoji_combos_pink, name='emoji_combos_pink'),
+    path('emoji-keyboard/', views.emoji_keyboard, name='emoji_keyboard'),
     path('robots.txt', views.robots_txt, name='robots_txt'),
     path('blog/', views.blog, name='blog'),
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),

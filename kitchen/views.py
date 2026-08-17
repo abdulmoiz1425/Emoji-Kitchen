@@ -332,6 +332,50 @@ CUTE_EMOJI_COMBOS_FAQS = [
 ]
 
 
+EMOJI_KEYBOARD_FAQS = [
+    {
+        'question': 'What is an emoji keyboard?',
+        'answer': 'It is an on-screen tool or panel used to find and enter emojis. A browser version copies Unicode characters to your clipboard, while built-in Windows and Mac panels can insert them directly into supported fields.',
+    },
+    {
+        'question': 'Is this tool free?',
+        'answer': 'Yes. The browser emoji keyboard is free to use and does not require a paid plan or account.',
+    },
+    {
+        'question': 'Do I need to install an app?',
+        'answer': 'No. The browser tool works in any supported web browser, so you do not need to download or install anything.',
+    },
+    {
+        'question': 'How do I open emojis on a Windows keyboard?',
+        'answer': 'Click inside a text field and press Windows + . or Windows + ; to open the Windows emoji panel. You can browse with the mouse or keep typing to search.',
+    },
+    {
+        'question': 'How do I open emojis on a Mac?',
+        'answer': 'Press Fn/Globe + E, or choose Edit > Emoji & Symbols. This opens the Mac Character Viewer in supported apps.',
+    },
+    {
+        'question': 'Can I copy several emojis at once?',
+        'answer': 'Yes. Click multiple emojis to add them to the selection tray, then copy the full sequence into your message in one paste.',
+    },
+    {
+        'question': 'Why do emojis look different on other devices?',
+        'answer': 'Platforms use different artwork for the same Unicode characters. Apple, Google, Microsoft, Samsung, and individual apps each design their own emoji visuals. The underlying character is the same, but the appearance can vary.',
+    },
+    {
+        'question': 'Are copied emojis text or images?',
+        'answer': 'Standard copied emojis are Unicode text characters or sequences. Emoji mashups and custom stickers created with tools like Emoji Kitchen are image files instead.',
+    },
+    {
+        'question': 'Does the website save what I copy?',
+        'answer': 'The copy action places your selected text on your device clipboard only. The website does not store the specific emojis you choose.',
+    },
+    {
+        'question': 'What should I do if the emoji appears as a box or missing symbol?',
+        'answer': 'A square or empty box usually means the device, app, or font does not support that character yet. Try updating your operating system or app, or choose an older emoji with wider platform support.',
+    },
+]
+
+
 PINK_EMOJI_COMBOS_FAQS = [
     {
         'question': 'What are pink emoji combinations?',
@@ -587,6 +631,13 @@ def emoji_combos_aesthetic(request):
         'faqs': AESTHETIC_EMOJI_COMBOS_FAQS,
     }
     return render(request, 'kitchen/emoji_combos_aesthetic.html', context)
+
+
+def emoji_keyboard(request):
+    context = {
+        'faqs': EMOJI_KEYBOARD_FAQS,
+    }
+    return render(request, 'kitchen/emoji_keyboard.html', context)
 
 
 def blog(request):
