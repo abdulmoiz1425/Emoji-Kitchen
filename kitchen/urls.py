@@ -13,6 +13,7 @@ urlpatterns = [
     path('emoji-combos/pink/', views.emoji_combos_pink, name='emoji_combos_pink'),
     path('emoji-keyboard/', views.emoji_keyboard, name='emoji_keyboard'),
     path('robots.txt', views.robots_txt, name='robots_txt'),
+    path('ads.txt', views.ads_txt, name='ads_txt'),
     path('blog/', views.blog, name='blog'),
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
     path('api/combo/', views.get_combo, name='get_combo'),

@@ -68,7 +68,7 @@ FEATURES = [
     {
         'icon': '⚡',
         'title': 'Fast Emoji Mixing',
-        'description': 'The tool shows your emoji mix as soon as you choose both icons — no long prompts, no extra screens, no waiting.',
+        'description': 'The tool shows your <a href="https://emojikitchenhub.com/emoji-maker/" style="text-decoration:underline;text-underline-offset:3px">emoji mix</a> as soon as you choose both icons — no long prompts, no extra screens, no waiting.',
     },
     {
         'icon': '📋',
@@ -121,6 +121,7 @@ POPULAR_COMBOS = [
         'bg': '#FFF8E1',
         'border': '#FFE082',
         'examples': ['😂', '🐸', '😴', '🍕'],
+        'url': '/emoji-combos/funny/',
     },
     {
         'icon': '🥰',
@@ -129,6 +130,7 @@ POPULAR_COMBOS = [
         'bg': '#FCE4EC',
         'border': '#F48FB1',
         'examples': ['🥰', '🌸', '🐱', '❤️'],
+        'url': '/emoji-combos/cute/',
     },
     {
         'icon': '🌸',
@@ -137,6 +139,7 @@ POPULAR_COMBOS = [
         'bg': '#EDE7F6',
         'border': '#CE93D8',
         'examples': ['🌸', '⭐', '🌙', '🌈'],
+        'url': '/emoji-combos/aesthetic/',
     },
     {
         'icon': '🎲',
@@ -145,6 +148,7 @@ POPULAR_COMBOS = [
         'bg': '#E8F5E9',
         'border': '#A5D6A7',
         'examples': ['🎲', '🦄', '🍄', '🚀'],
+        'url': '/emoji-combos/',
     },
 ]
 
@@ -562,6 +566,13 @@ def robots_txt(request):
         f'Sitemap: {request.scheme}://{request.get_host()}/sitemap.xml',
     ]
     return HttpResponse('\n'.join(lines), content_type='text/plain')
+
+
+def ads_txt(request):
+    return HttpResponse(
+        'google.com, pub-3200425003686406, DIRECT, f08c47fec0942fa0',
+        content_type='text/plain',
+    )
 
 
 def home(request):

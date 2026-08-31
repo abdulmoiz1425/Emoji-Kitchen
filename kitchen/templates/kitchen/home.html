@@ -188,7 +188,7 @@
   <div class="container">
     <div class="section-head section-head--center animate-up">
       <span class="section-badge">🔥 Trending</span>
-      <h2>Popular Emoji Kitchen Combinations</h2>
+      <h2>Popular <a href="https://emojikitchenhub.com/emoji-combos/" style="text-decoration:underline;text-underline-offset:4px;color:inherit">Emoji Kitchen Combos</a></h2>
       <p>Popular mixes often join clear feelings with familiar animals, foods, hearts, stars, or objects — easy to understand and great for quick replies.</p>
     </div>
 
@@ -208,7 +208,7 @@
         <div class="popular-card__body">
           <h3 class="popular-card__title">{{ combo.title }}</h3>
           <p class="popular-card__desc">{{ combo.description }}</p>
-          <a href="#kitchen" class="popular-card__cta">Try this style →</a>
+          <a href="{{ combo.url }}" class="popular-card__cta">Try this style →</a>
         </div>
       </article>
       {% endfor %}
@@ -232,7 +232,7 @@
           <span>{{ feature.icon }}</span>
         </div>
         <h3>{{ feature.title }}</h3>
-        <p>{{ feature.description }}</p>
+        <p>{{ feature.description|safe }}</p>
       </article>
       {% endfor %}
     </div>
