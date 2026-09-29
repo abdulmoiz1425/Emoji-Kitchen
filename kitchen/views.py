@@ -575,6 +575,18 @@ def ads_txt(request):
     )
 
 
+def privacy(request):
+    return render(request, 'kitchen/privacy.html')
+
+
+def terms(request):
+    return render(request, 'kitchen/terms.html')
+
+
+def contact(request):
+    return render(request, 'kitchen/contact.html')
+
+
 def home(request):
     context = {
         'faqs': FAQS,
