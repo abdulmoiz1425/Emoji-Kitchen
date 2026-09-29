@@ -7,6 +7,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse, Http404
 
 from .models import BlogPost
+from .seo import absolute_media_url, clean_canonical
 
 
 # ── Emoji combo lookup ──────────────────────────────────────────────────────────
@@ -576,6 +577,18 @@ def ads_txt(request):
 
 
 def home(request):
+    faq_entities = [
+        {
+            '@type': 'Question',
+            'name': item['question'],
+            'acceptedAnswer': {'@type': 'Answer', 'text': item['answer']},
+        }
+        for item in FAQS
+    ]
+    faq_json_ld = json.dumps(
+        {'@context': 'https://schema.org', '@type': 'FAQPage', 'mainEntity': faq_entities},
+        ensure_ascii=False,
+    ).replace('<', '\\u003c')
     context = {
         'faqs': FAQS,
         'features': FEATURES,
@@ -584,6 +597,7 @@ def home(request):
         'how_to_web': HOW_TO_WEB,
         'how_to_phone': HOW_TO_PHONE,
         'comparison_rows': COMPARISON_ROWS,
+        'faq_json_ld': faq_json_ld,
     }
     return render(request, 'kitchen/home.html', context)
 
@@ -679,7 +693,17 @@ def blog_detail(request, slug):
             .select_related('category')[:3]
         )
 
-    context = {'post': post, 'related_posts': related_posts}
+    context = {
+        'post': post,
+        'related_posts': related_posts,
+        'canonical_url': clean_canonical(
+            request,
+            post.canonical_url,
+            post.get_absolute_url(),
+            current_slug=post.slug,
+        ),
+        'share_image': absolute_media_url(request, post.og_image_display),
+    }
     return render(request, 'kitchen/blog_detail.html', context)
 
 

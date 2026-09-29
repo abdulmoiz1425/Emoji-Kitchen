@@ -4,9 +4,10 @@ __pycache__/
 *.pyo
 *.pyd
 
-# Migration files
+# Migration files. Kitchen migrations are tracked so a fresh checkout can migrate.
 **/migrations/*.py
 !**/migrations/__init__.py
+!kitchen/migrations/*.py
 
 # Database files
 db.sqlite3
@@ -19,5 +20,4 @@ media/
 
 
 git 
-kitchen/migrations/
 kitchen/static/kitchen/img/

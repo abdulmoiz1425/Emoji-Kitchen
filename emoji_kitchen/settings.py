@@ -8,6 +8,11 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
+# Nginx terminates TLS and forwards X-Forwarded-Proto. This makes
+# request.is_secure() and build_absolute_uri() use https behind the proxy.
+# SECURE_SSL_REDIRECT is intentionally unset so local runserver stays http.
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+
 CSRF_TRUSTED_ORIGINS = ['https://emojikitchenhub.com', 'https://www.emojikitchenhub.com']
 
 INSTALLED_APPS = [

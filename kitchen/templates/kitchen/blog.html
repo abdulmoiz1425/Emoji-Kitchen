@@ -1,5 +1,6 @@
 {% extends 'kitchen/base.html' %}
 {% load static %}
+{% load seo_tags %}
 
 {% block title %}Blog — Emoji Kitchen{% endblock %}
 {% block meta_description %}Tips, how-tos, and fun discoveries about mixing emojis with Emoji Kitchen — guides, combo ideas, and more from the team.{% endblock %}
@@ -18,7 +19,7 @@
     {% if featured_post %}
     <a href="{{ featured_post.get_absolute_url }}" class="blog-featured animate-up">
       <div class="blog-featured__cover">
-        {% if featured_post.featured_image %}
+        {% if featured_post.featured_image|image_is_usable %}
         <img src="{{ featured_post.featured_image.url }}" alt="{{ featured_post.title }}" loading="lazy">
         {% else %}
         <span class="blog-featured__cover-emoji">📝</span>
@@ -47,7 +48,7 @@
       {% for post in blog_posts %}
       <article class="blog-card animate-up" style="--delay:{{ forloop.counter0 }}00ms">
         <a href="{{ post.get_absolute_url }}" class="blog-card__cover">
-          {% if post.featured_image %}
+          {% if post.featured_image|image_is_usable %}
           <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" loading="lazy">
           {% else %}
           <span class="blog-card__cover-emoji">📝</span>

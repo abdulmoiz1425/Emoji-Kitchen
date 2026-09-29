@@ -1,5 +1,7 @@
 from ckeditor_uploader.fields import RichTextUploadingField
 from django.db import models
+
+from kitchen.seo import strip_meta_description_label
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import strip_tags
@@ -162,7 +164,7 @@ class BlogPost(models.Model):
 
     @property
     def meta_description(self):
-        return self.seo_description or self.excerpt
+        return strip_meta_description_label(self.seo_description or self.excerpt)
 
     @property
     def og_title_display(self):
@@ -170,7 +172,7 @@ class BlogPost(models.Model):
 
     @property
     def og_description_display(self):
-        return self.og_description or self.meta_description
+        return strip_meta_description_label(self.og_description) or self.meta_description
 
     @property
     def og_image_display(self):

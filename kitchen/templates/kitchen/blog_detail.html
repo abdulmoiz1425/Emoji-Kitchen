@@ -1,31 +1,31 @@
 {% extends 'kitchen/base.html' %}
 {% load static %}
+{% load seo_tags %}
 
 {% block title %}{{ post.meta_title }} — Emoji Kitchen{% endblock %}
 {% block meta_description %}{{ post.meta_description }}{% endblock %}
+
+{% block canonical_href %}{{ canonical_url }}{% endblock %}
 
 {% block extra_head %}
 {% if post.seo_keywords %}
 <meta name="keywords" content="{{ post.seo_keywords }}" />
 {% endif %}
 <meta name="robots" content="{{ post.meta_robots }}" />
-{% if post.canonical_url %}
-<link rel="canonical" href="{{ post.canonical_url }}" />
-{% endif %}
 
 <meta property="og:type" content="article" />
 <meta property="og:title" content="{{ post.og_title_display }}" />
 <meta property="og:description" content="{{ post.og_description_display }}" />
-{% if post.og_image_display %}
-<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{{ post.og_image_display.url }}" />
+<meta property="og:url" content="{{ canonical_url }}" />
+{% if share_image %}
+<meta property="og:image" content="{{ share_image }}" />
 {% endif %}
-<meta property="og:url" content="{{ request.build_absolute_uri }}" />
 
-<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:card" content="{% if share_image %}summary_large_image{% else %}summary{% endif %}" />
 <meta name="twitter:title" content="{{ post.og_title_display }}" />
 <meta name="twitter:description" content="{{ post.og_description_display }}" />
-{% if post.og_image_display %}
-<meta name="twitter:image" content="{{ request.scheme }}://{{ request.get_host }}{{ post.og_image_display.url }}" />
+{% if share_image %}
+<meta name="twitter:image" content="{{ share_image }}" />
 {% endif %}
 {% endblock %}
 
@@ -51,14 +51,14 @@
         </div>
       </header>
 
-      {% if post.featured_image %}
+      {% if post.featured_image|image_is_usable %}
       <div class="blog-detail__cover">
         <img src="{{ post.featured_image.url }}" alt="{{ post.title }}">
       </div>
       {% endif %}
 
       <div class="blog-detail__content">
-        {{ post.content|safe }}
+        {{ post.content|clean_post_html|safe }}
       </div>
 
       {% if post.tags.all %}
@@ -77,7 +77,7 @@
         {% for related in related_posts %}
         <article class="blog-card animate-up" style="--delay:{{ forloop.counter0 }}00ms">
           <a href="{{ related.get_absolute_url }}" class="blog-card__cover">
-            {% if related.featured_image %}
+            {% if related.featured_image|image_is_usable %}
             <img src="{{ related.featured_image.url }}" alt="{{ related.title }}" loading="lazy">
             {% else %}
             <span class="blog-card__cover-emoji">📝</span>
