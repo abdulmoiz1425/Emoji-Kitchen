@@ -4,6 +4,11 @@
 {% block title %}Emoji Kitchen – Mix Emojis, Play & Create Stickers{% endblock %}
 {% block meta_description %}Use Emoji Kitchen to mix emojis, create fun stickers, play with emoji combos, and share them on WhatsApp, iPhone, or anywhere online.{% endblock %}
 
+{% block extra_head %}
+{% include "kitchen/_social_meta.html" with page_title="Emoji Kitchen – Mix Emojis, Play & Create Stickers" page_description="Use Emoji Kitchen to mix emojis, create fun stickers, play with emoji combos, and share them on WhatsApp, iPhone, or anywhere online." %}
+<script type="application/ld+json">{{ faq_json_ld|safe }}</script>
+{% endblock %}
+
 {% block content %}
 
 <!-- ══════════════════════════════════════════════════════════ HERO ══ -->
@@ -314,15 +319,15 @@
       <div class="share-bubbles" aria-hidden="true">
         <div class="share-bubble share-bubble--left">
           <img src="https://www.gstatic.com/android/keyboard/emojikitchen/20201001/u1f431/u1f431_u1f525.png"
-               alt="" onerror="this.outerHTML='<span>😼</span>'" />
+               alt="Cat and fire emoji mashup" onerror="this.outerHTML='<span>😼</span>'" />
         </div>
         <div class="share-bubble share-bubble--right">
           <img src="https://www.gstatic.com/android/keyboard/emojikitchen/20211115/u1f436/u1f436_u2665-ufe0f.png"
-               alt="" onerror="this.outerHTML='<span>🐶</span>'" />
+               alt="Dog and heart emoji mashup" onerror="this.outerHTML='<span>🐶</span>'" />
         </div>
         <div class="share-bubble share-bubble--left share-bubble--sm">
           <img src="https://www.gstatic.com/android/keyboard/emojikitchen/20201001/u1f600/u1f600_u1f31f.png"
-               alt="" onerror="this.outerHTML='<span>🌟</span>'" />
+               alt="Grinning face and glowing star emoji mashup" onerror="this.outerHTML='<span>🌟</span>'" />
         </div>
       </div>
       <div class="share-showcase">
