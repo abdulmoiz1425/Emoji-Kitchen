@@ -1,5 +1,16 @@
 from django.urls import path
+from django.views.generic import RedirectView
+
 from . import views
+
+# Old device URLs 404'd on the live site. The real posts are /blog/<slug>/.
+# Query strings are not preserved.
+_LEGACY_BLOG = (
+    'emoji-kitchen-iphone',
+    'emoji-kitchen-samsung',
+    'emoji-kitchen-gboard',
+    'emoji-kitchen-whatsapp',
+)
 
 urlpatterns = [
     path('', views.home, name='home'),
@@ -17,6 +28,7 @@ urlpatterns = [
     path('privacy/', views.privacy, name='privacy'),
     path('terms/', views.terms, name='terms'),
     path('contact/', views.contact, name='contact'),
+    path('disclaimer/', views.disclaimer, name='disclaimer'),
     path('blog/', views.blog, name='blog'),
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
     path('api/combo/', views.get_combo, name='get_combo'),
@@ -24,4 +36,13 @@ urlpatterns = [
     path('api/random-combo/', views.get_random_combo, name='get_random_combo'),
     path('api/download/', views.download_combo, name='download_combo'),
     path('api/proxy/', views.proxy_image, name='proxy_image'),
+]
+
+urlpatterns += [
+    path(
+        f'{slug}/',
+        RedirectView.as_view(url=f'/blog/{slug}/', permanent=True, query_string=False),
+        name=f'legacy_{slug.replace("-", "_")}',
+    )
+    for slug in _LEGACY_BLOG
 ]

@@ -7,6 +7,14 @@ import sys
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'emoji_kitchen.settings')
+    # Local CLI only. gunicorn/wsgi does not import manage.py, so the live
+    # process stays DEBUG=false and must get DJANGO_SECRET_KEY from the environment.
+    os.environ.setdefault('DJANGO_DEBUG', 'true')
+    if os.environ.get('DJANGO_DEBUG', '').strip().lower() in {'1', 'true', 'yes', 'on'}:
+        os.environ.setdefault(
+            'DJANGO_SECRET_KEY',
+            'django-insecure-dev-only-emoji-kitchen-not-for-production',
+        )
     try:
         from django.core.management import execute_from_command_line
     except ImportError as exc:

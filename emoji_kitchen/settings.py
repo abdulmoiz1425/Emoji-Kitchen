@@ -1,12 +1,46 @@
+import os
 from pathlib import Path
+
+from django.core.exceptions import ImproperlyConfigured
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-emoji-kitchen-secret-key-change-in-production'
+# Production (gunicorn / emoji_kitchen.wsgi) does not set DJANGO_DEBUG, so DEBUG
+# stays false. manage.py defaults DJANGO_DEBUG=true for local runserver only.
+# DevOps must set these before deploy, or the live process will not boot:
+#   DJANGO_SECRET_KEY — long random secret (required when DEBUG is false)
+#   DJANGO_ALLOWED_HOSTS — optional comma-separated hosts; default is
+#       emojikitchenhub.com,www.emojikitchenhub.com
+# Do not set DJANGO_DEBUG on the server.
 
-DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+def _as_bool(value):
+    return (value or '').strip().lower() in {'1', 'true', 'yes', 'on'}
+
+
+DEBUG = _as_bool(os.environ.get('DJANGO_DEBUG', ''))
+
+_DEV_SECRET_KEY = 'django-insecure-dev-only-emoji-kitchen-not-for-production'
+_DEFAULT_HOSTS = ['emojikitchenhub.com', 'www.emojikitchenhub.com']
+
+
+def _host_list(raw):
+    return [host.strip() for host in (raw or '').split(',') if host.strip()]
+
+
+if DEBUG:
+    SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY') or _DEV_SECRET_KEY
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+else:
+    SECRET_KEY = (os.environ.get('DJANGO_SECRET_KEY') or '').strip()
+    if not SECRET_KEY:
+        raise ImproperlyConfigured(
+            'DJANGO_SECRET_KEY must be set when DEBUG is false. '
+            'Do not set DJANGO_DEBUG on the server.'
+        )
+    ALLOWED_HOSTS = _host_list(os.environ.get('DJANGO_ALLOWED_HOSTS')) or list(_DEFAULT_HOSTS)
+    if '*' in ALLOWED_HOSTS:
+        raise ImproperlyConfigured('ALLOWED_HOSTS must not be "*" when DEBUG is false.')
 
 # Nginx terminates TLS and forwards X-Forwarded-Proto. This makes
 # request.is_secure() and build_absolute_uri() use https behind the proxy.

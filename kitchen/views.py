@@ -3,6 +3,7 @@ import os
 import random as _random
 
 import requests
+from django.contrib.sitemaps.views import sitemap as django_sitemap
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse, Http404
 
@@ -17,6 +18,8 @@ with open(os.path.join(os.path.dirname(__file__), 'data', 'emoji_combos.json'), 
 
 # Pre-build a flat list of pair keys once at startup (O(1) random.choice later)
 _PAIR_KEYS = list(EMOJI_COMBOS['pairs'].keys())
+# Same loaded file the mixer uses. Do not hardcode this.
+COMBO_COUNT = len(_PAIR_KEYS)
 
 
 # ── Static content ────────────────────────────────────────────────────────────
@@ -24,11 +27,11 @@ _PAIR_KEYS = list(EMOJI_COMBOS['pairs'].keys())
 FAQS = [
     {
         'question': 'Is the tool free to use?',
-        'answer': 'Yes. Google offers the feature through supported services, and this browser tool lets you make emoji mashups without a paid plan.',
+        'answer': 'Yes. This unofficial browser tool lets you make emoji mashups without a paid plan. It is not run by Google.',
     },
     {
         'question': 'Is the tool an app?',
-        'answer': 'It is a feature rather than a separate Google app. You can use it through Gboard on Android or through Google Search in a browser.',
+        'answer': 'No. Emoji Kitchen Hub is a website, not an app, and it is not run by Google. Google’s own Emoji Kitchen feature is separate and can be used through Gboard on Android or Google Search.',
     },
     {
         'question': 'Can I use the tool on iPhone?',
@@ -559,6 +562,14 @@ LOVE_EMOJI_COMBOS_FAQS = [
 
 # ── Views ─────────────────────────────────────────────────────────────────────
 
+def public_sitemap(request, sitemaps, **kwargs):
+    """Serve sitemap.xml without Django's default X-Robots-Tag: noindex."""
+    response = django_sitemap(request, sitemaps, **kwargs)
+    if 'X-Robots-Tag' in response:
+        del response['X-Robots-Tag']
+    return response
+
+
 def robots_txt(request):
     lines = [
         'User-agent: *',
@@ -578,6 +589,10 @@ def ads_txt(request):
 
 def privacy(request):
     return render(request, 'kitchen/privacy.html')
+
+
+def disclaimer(request):
+    return render(request, 'kitchen/disclaimer.html')
 
 
 def terms(request):
@@ -610,6 +625,7 @@ def home(request):
         'how_to_phone': HOW_TO_PHONE,
         'comparison_rows': COMPARISON_ROWS,
         'faq_json_ld': faq_json_ld,
+        'combo_count_display': f'{COMBO_COUNT:,}',
     }
     return render(request, 'kitchen/home.html', context)
 
