@@ -1,22 +1,59 @@
-{% extends 'kitchen/base.html' %}
+{% extends 'kitchen/legal_page.html' %}
 
 {% block title %}Disclaimer — Emoji Kitchen{% endblock %}
-{% block meta_description %}Disclaimer for Emoji Kitchen Hub, an unofficial fan-made emoji mixer at emojikitchenhub.com.{% endblock %}
+{% block meta_description %}Disclaimer page for Emoji Kitchen Hub.{% endblock %}
 
-{% block content %}
-<section class="section">
-  <div class="container container--narrow">
-    <div class="section-head animate-up">
-      <span class="section-badge">ℹ️ Disclaimer</span>
-      <h1>Disclaimer</h1>
-      <p>This page covers emojikitchenhub.com.</p>
-    </div>
-    <div class="animate-up" style="--delay:.08s">
-      <p>Emoji Kitchen Hub is an unofficial fan-made tool. It is not run by Google, and it is not the Emoji Kitchen feature inside Google products.</p>
-      <p>Stickers shown in the mixer come from Google’s combinations. The pictures are loaded so you can preview a mix. This site does not own those sticker designs.</p>
-      <h2>Contact</h2>
-      <p>Questions: <a href="mailto:abdulmannanfiv@gmail.com">abdulmannanfiv@gmail.com</a>.</p>
-    </div>
-  </div>
-</section>
+{% block legal_body %}
+<h1>Disclaimer</h1>
+<p>The information and tools provided on EmojiKitchenHub are intended for general informational and utility purposes.</p>
+<p>By using this website, you acknowledge that information, features, tools, and external resources may change over time. Please review the following disclaimer carefully.</p>
+<h2>General Information</h2>
+<p>EmojiKitchenHub provides emoji-related tools, combinations, guides, resources, and other informational content.</p>
+<p>While we aim to provide useful and understandable information, we do not guarantee that every piece of information will always be complete, current, or error-free.</p>
+<p>Information should be considered in the context in which it is provided.</p>
+<h2>No Professional Advice</h2>
+<p>Content published on EmojiKitchenHub is not intended to provide professional, legal, financial, medical, technical, or other specialized professional advice.</p>
+<p>If you require professional advice, you should consult an appropriately qualified professional.</p>
+<h2>Accuracy of Information</h2>
+<p>We make reasonable efforts to provide useful information, but errors, omissions, outdated information, or changes in third-party services may occur.</p>
+<p>Website content may be updated, corrected, changed, or removed without prior notice.</p>
+<p>EmojiKitchenHub does not guarantee that all information will remain accurate or available at all times.</p>
+<h2>Tool and Output Disclaimer</h2>
+<p>EmojiKitchenHub may provide interactive emoji-related tools and generated or displayed results.</p>
+<p>Tool results are provided for general utility and entertainment purposes. Results may depend on the information, selections, technology, or functionality available at the time of use.</p>
+<p>We do not guarantee that every tool result will be complete, accurate, suitable for every purpose, or continuously available.</p>
+<p>Users should use their own judgment when relying on tool outputs.</p>
+<h2>Third-Party Websites and Services</h2>
+<p>EmojiKitchenHub may reference or interact with third-party websites, services, technologies, or platforms.</p>
+<p>Third-party services operate independently from EmojiKitchenHub and may have their own terms, privacy policies, technologies, and practices.</p>
+<p>We are not responsible for changes made by third-party services or for content or practices outside our control.</p>
+<h2>External Links</h2>
+<p>The website may contain links to external websites.</p>
+<p>An external link does not necessarily mean that EmojiKitchenHub endorses, sponsors, or has an official relationship with the linked website or service.</p>
+<p>Visitors should review the privacy policies and terms of any external website they choose to visit.</p>
+<h2>Trademark and Brand Disclaimer</h2>
+<p>Third-party names, logos, product names, and trademarks mentioned on EmojiKitchenHub belong to their respective owners.</p>
+<p>EmojiKitchenHub does not claim ownership of third-party trademarks.</p>
+<p>References to third-party products, services, technologies, or platforms are intended to identify or describe their respective subject matter and should not be interpreted as evidence of an official partnership unless explicitly stated.</p>
+<h2>Google and Emoji Kitchen Independence Disclosure</h2>
+<p>EmojiKitchenHub is an independent website and is not affiliated with, endorsed by, or sponsored by Google or other third-party brands mentioned on this website.</p>
+<p>References to Google, Emoji Kitchen, Gboard, Android, Apple, Samsung, WhatsApp, or other third-party products or brands, where present, do not establish an official relationship with EmojiKitchenHub.</p>
+<p>All applicable third-party names and trademarks remain the property of their respective owners.</p>
+<h2>Changes to Website Content</h2>
+<p>EmojiKitchenHub may update, modify, remove, or replace website content and features as the website develops.</p>
+<p>We may make changes without prior notice when appropriate.</p>
+<h2>Limitation of Liability</h2>
+<p>To the extent permitted by applicable law, EmojiKitchenHub is not responsible for losses or damages arising from reliance on information, tools, features, external links, or third-party services available through or referenced by the website.</p>
+<p>Nothing in this disclaimer is intended to exclude or limit any responsibility that cannot legally be excluded or limited under applicable law.</p>
+<h2>Contact Information</h2>
+<p>If you have questions about this Disclaimer, please contact:</p>
+<p><strong>[CONTACT EMAIL]</strong></p>
+<h2>Related Policies / Useful Links</h2>
+<ul>
+<li><a href="{% url 'about' %}">About Us</a></li>
+<li><a href="{% url 'contact' %}">Contact Us</a></li>
+<li><a href="{% url 'privacy' %}">Privacy Policy</a></li>
+<li><a href="{% url 'cookie_policy' %}">Cookie Policy</a></li>
+<li><a href="{% url 'terms' %}">Terms &amp; Conditions</a></li>
+</ul>
 {% endblock %}

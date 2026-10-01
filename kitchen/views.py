@@ -591,6 +591,14 @@ def privacy(request):
     return render(request, 'kitchen/privacy.html')
 
 
+def about(request):
+    return render(request, 'kitchen/about.html')
+
+
+def cookie_policy(request):
+    return render(request, 'kitchen/cookie_policy.html')
+
+
 def disclaimer(request):
     return render(request, 'kitchen/disclaimer.html')
 
