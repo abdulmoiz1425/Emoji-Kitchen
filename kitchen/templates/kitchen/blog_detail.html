@@ -61,6 +61,11 @@
         {{ post.content|clean_post_html|safe }}
       </div>
 
+      <p class="blog-detail__tools">
+        Try it yourself with the <a href="{% url 'emoji_maker' %}">emoji maker</a> or open
+        <a href="{% url 'home' %}#kitchen">Emoji Kitchen</a> to mix two emojis into a sticker.
+      </p>
+
       {% if post.tags.all %}
       <div class="blog-detail__tags">
         {% for tag in post.tags.all %}
