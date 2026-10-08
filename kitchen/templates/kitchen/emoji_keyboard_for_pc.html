@@ -1,0 +1,176 @@
+{% extends "kitchen/base.html" %}
+{% load static %}
+
+{% block title %}Emoji Keyboard for PC: Shortcuts &amp; Windows 11 Guide{% endblock %}
+{% block meta_description %}Need an emoji keyboard for PC? Learn the Windows 11 and 10 shortcuts, how to type emojis, and how to use a free online emoji keyboard.{% endblock %}
+
+{% block extra_head %}
+{% include "kitchen/_social_meta.html" with page_title="Emoji Keyboard for PC: Shortcuts &amp; Windows 11 Guide" page_description="Need an emoji keyboard for PC? Learn the Windows 11 and 10 shortcuts, how to type emojis, and how to use a free online emoji keyboard." %}
+{% if faq_json_ld %}<script type="application/ld+json">{{ faq_json_ld|safe }}</script>{% endif %}
+<style>
+/* ── hero ── */
+.ek-hero{background:linear-gradient(135deg,#eef2ff 0%,#f0f4ff 50%,#e8f4fd 100%);padding:56px 0 40px;text-align:center}
+.ek-hero h1{font-size:clamp(1.75rem,4vw,2.6rem);font-weight:800;color:var(--t);margin-bottom:.5rem}
+.ek-hero p{font-size:1.05rem;color:var(--t5);max-width:640px;margin:0 auto 1.5rem}
+.ek-quickbox{background:var(--bg-pure);border-left:4px solid var(--accent);border-radius:var(--r-md);padding:14px 18px;max-width:640px;margin:0 auto;text-align:left;font-size:.93rem;color:var(--t5);line-height:1.7}
+.ek-quickbox strong{color:var(--t)}
+
+/* ── article ── */
+.ek-article{max-width:800px;margin:0 auto;padding:40px 0 52px}
+.ek-article h2{font-size:1.4rem;font-weight:800;color:var(--t);margin:2.2rem 0 .8rem}
+.ek-article h3{font-size:1.1rem;font-weight:700;color:var(--t);margin:1.6rem 0 .55rem}
+.ek-article p{line-height:1.78;color:var(--t5);margin-bottom:.9rem}
+.ek-article ul{padding-left:1.3rem;margin-bottom:.9rem}
+.ek-article ul li{line-height:1.75;color:var(--t5);margin-bottom:.3rem}
+.ek-article ol{padding-left:1.4rem;margin-bottom:.9rem}
+.ek-article ol li{line-height:1.75;color:var(--t5);margin-bottom:.35rem}
+.ek-article kbd{display:inline-block;background:var(--bg-section);border:1px solid var(--border-lt);border-radius:4px;padding:2px 7px;font-size:.82rem;font-family:monospace;color:var(--t)}
+
+/* tables */
+.ek-table-wrap{overflow-x:auto;margin-bottom:1.4rem}
+.ek-table{width:100%;border-collapse:collapse;font-size:.9rem}
+.ek-table th{background:var(--accent);color:#fff;font-weight:700;padding:9px 12px;text-align:left}
+.ek-table td{padding:8px 12px;border:1px solid var(--border-lt);color:var(--t5);vertical-align:middle}
+.ek-table tr:nth-child(even) td{background:var(--bg-section)}
+.ek-table .yes{color:#1d7a3a;font-weight:700}
+.ek-table .no{color:#b00}
+
+/* faq */
+.faq-list{margin:0 0 2rem}
+.faq-item{border:1px solid var(--border-lt);border-radius:var(--r-md);margin-bottom:.6rem;overflow:hidden}
+.faq-item summary{padding:14px 18px;font-weight:700;font-size:.95rem;cursor:pointer;color:var(--t);list-style:none;display:flex;align-items:center;justify-content:space-between}
+.faq-item summary::-webkit-details-marker{display:none}
+.faq-item summary::after{content:'＋';font-size:1rem;color:var(--accent);transition:transform .2s}
+.faq-item[open] summary::after{transform:rotate(45deg)}
+.faq-item[open]{background:var(--bg-section)}
+.faq-body{padding:4px 18px 16px;color:var(--t5);line-height:1.7;font-size:.93rem}
+
+/* cta */
+.ek-cta{background:linear-gradient(135deg,#eef2ff 0%,#e8f4fd 100%);border-radius:var(--r-lg);padding:36px 28px;text-align:center;margin:0 0 48px}
+.ek-cta h2{font-size:1.4rem;font-weight:800;color:var(--t);margin-bottom:.6rem}
+.ek-cta p{color:var(--t5);margin-bottom:1.2rem}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- HERO -->
+<section class="ek-hero">
+  <div class="container">
+    <h1>Emoji Keyboard for PC: Shortcuts &amp; How to Use</h1>
+    <p>Have you ever needed an emoji on your computer and could not find it quickly? Windows already includes an emoji panel, but the shortcut is easy to miss.</p>
+    <div class="ek-quickbox">
+      <strong>Quick answer:</strong> The emoji keyboard for pc is simple to use once you know the right keys. Click inside a text field, then press <kbd>Windows + .</kbd> (period). The emoji panel opens, where you can browse or search for an emoji. Microsoft also lists <kbd>Windows + ;</kbd> (semicolon) as an alternative shortcut.
+    </div>
+  </div>
+</section>
+
+<!-- ARTICLE -->
+<section class="container">
+<div class="ek-article">
+
+<h2>What Is an Emoji Keyboard on a PC?</h2>
+<p>An emoji keyboard on a PC is an on-screen panel that lets you find and insert emoji characters while typing. On Windows, Microsoft refers to this feature as the emoji panel.</p>
+<p>You do not need a special keyboard with emoji keys. The built-in panel works during text entry and can also provide GIFs, kaomoji, symbols, and clipboard history, depending on the Windows version and panel features available.</p>
+
+<h2>How to Open the Emoji Keyboard for PC</h2>
+<p>The built-in Windows shortcut is <kbd>Windows + .</kbd>. Start with an active text field, then open the panel.</p>
+<ol>
+  <li>Click inside a message box, document, search box, or other text field.</li>
+  <li>Press <kbd>Windows + .</kbd> (period).</li>
+  <li>Wait for the emoji panel to appear.</li>
+  <li>Browse the categories or type a word to search.</li>
+  <li>Select the emoji you want to insert it at the cursor.</li>
+</ol>
+<p>Microsoft's current keyboard guide applies to Windows 11 and Windows 10. Its shortcut reference lists both <kbd>Windows + .</kbd> and <kbd>Windows + ;</kbd> for opening the emoji panel.</p>
+
+<h2>What Is the Windows Emoji Keyboard Shortcut?</h2>
+<p>The main shortcut is <kbd>Windows + .</kbd> (period), while <kbd>Windows + ;</kbd> (semicolon) is the alternative. Both shortcuts open the same emoji panel.</p>
+<div class="ek-table-wrap">
+  <table class="ek-table">
+    <thead><tr><th>Shortcut</th><th>Action</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Windows + .</kbd></td><td>Open the emoji panel</td></tr>
+      <tr><td><kbd>Windows + ;</kbd></td><td>Open the emoji panel</td></tr>
+      <tr><td><kbd>Ctrl + V</kbd></td><td>Paste copied emoji text</td></tr>
+    </tbody>
+  </table>
+</div>
+<p>The first two shortcuts come directly from Microsoft's Windows keyboard documentation. After opening the panel, you can select an emoji with the mouse or search by typing.</p>
+
+<h2>How to Type Emojis on a Windows PC</h2>
+<p>For many users, the emoji keyboard for pc is easiest when they are already typing in an app. Put the cursor where the emoji should go, open the panel, and choose the character.</p>
+<p>Search for words such as heart, laughing, fire, or party. Windows filters available results as you type. Microsoft also documents keyboard navigation with Tab, arrow keys, and Enter.</p>
+<p>For browser-based copy and paste, you can use an <a href="{% url 'emoji_keyboard' %}">online emoji keyboard</a> instead. Emoji Kitchen Hub lets you search, browse categories, select multiple emojis, and copy the selection without installing an app.</p>
+
+<h2>Windows Emoji Panel vs. Online Emoji Keyboard</h2>
+<p>Both options help you add emojis on a computer, but they work best in different situations.</p>
+<div class="ek-table-wrap">
+  <table class="ek-table">
+    <thead><tr><th>Feature</th><th>Windows Emoji Panel</th><th>Online Emoji Keyboard</th></tr></thead>
+    <tbody>
+      <tr><td>Open with a shortcut</td><td class="yes">Yes</td><td class="no">No</td></tr>
+      <tr><td>Search by keyword</td><td class="yes">Yes</td><td class="yes">Yes</td></tr>
+      <tr><td>Insert into active field</td><td class="yes">Yes</td><td>Copy and paste</td></tr>
+      <tr><td>Installation needed</td><td class="yes">No</td><td class="yes">No</td></tr>
+      <tr><td>Works in a browser</td><td class="no">No</td><td class="yes">Yes</td></tr>
+      <tr><td>Works across operating systems</td><td class="no">No</td><td class="yes">Yes</td></tr>
+      <tr><td>Select several emojis before copying</td><td>Limited by app workflow</td><td class="yes">Yes</td></tr>
+    </tbody>
+  </table>
+</div>
+<p>Use the Windows panel inside a supported text field. Use an online picker when you want browser search, a sequence, or multi-emoji copying.</p>
+
+<h2>Why Is My Emoji Keyboard Not Working?</h2>
+<p>The first fix is simple: click inside a text field before using the shortcut. The panel is designed to open during text entry.</p>
+<p>If nothing happens, try these checks:</p>
+<ul>
+  <li>Press <kbd>Windows + .</kbd> and then <kbd>Windows + ;</kbd>.</li>
+  <li>Test the shortcut in another text field, such as Notepad.</li>
+  <li>Check whether the Windows key works with another shortcut.</li>
+  <li>Restart the app and try again.</li>
+  <li>Check for available Windows updates.</li>
+</ul>
+<p>Microsoft support discussions also show that emoji-panel behavior can change after Windows updates.</p>
+
+<h3>Why is a newer emoji missing from the panel?</h3>
+<p>A newer emoji may display on a website or inside an app before it appears in the Windows picker. In a 2026 Microsoft support response, a Microsoft staff moderator explained that some newer characters were supported for display but had not yet been added to the system-wide picker.</p>
+<p>When that happens, copying the emoji from a trusted source can be a practical workaround. Support can differ by app, font, and sequence.</p>
+
+<h2>Can You Use Emojis Without the Windows Key?</h2>
+<p>Yes. A browser-based picker is a simple alternative when the Windows key is unavailable or the built-in panel does not work.</p>
+<p>Open an online emoji tool, search by meaning, select the emoji, copy it, and paste it into your message or document. This also works across computers, phones, and tablets.</p>
+<p>Standard emojis are Unicode characters or sequences. The Unicode Consortium maintains the emoji character data, names, sequences, and related information used across software platforms.</p>
+
+<h2>Are PC Emojis the Same on Every Device?</h2>
+<p>The same Unicode character can look different because platforms use their own emoji artwork. Newer emoji sequences can also reach devices at different times. Unicode's current charts list the characters, sequences, names, and related emoji data.</p>
+
+<h2>FAQs</h2>
+<div class="faq-list">
+  {% for item in faqs %}
+  <details class="faq-item">
+    <summary>{{ item.question }}</summary>
+    <div class="faq-body">{{ item.answer }}</div>
+  </details>
+  {% endfor %}
+</div>
+
+<h2>Use the Right Emoji Method for Your PC</h2>
+<p>The built-in emoji keyboard for pc makes everyday typing simple. Click into a text field, press <kbd>Windows + .</kbd> or <kbd>Windows + ;</kbd>, and choose the emoji you need.</p>
+<p>The three key points are easy to remember: use an active text field, learn both Windows shortcuts, and expect newer emojis to appear at different times across software.</p>
+<p>For quick in-app typing, the Windows panel is usually enough. When you want broader search, multi-selection, or easy copy and paste, an online emoji keyboard gives you another practical option.</p>
+<p>Try the Windows shortcut first. When you need more choice, open Emoji Kitchen Hub's online picker and copy the emoji straight into your message.</p>
+
+</div>
+</section>
+
+<!-- CTA -->
+<section class="container">
+  <div class="ek-cta">
+    <h2>Want a Custom Emoji Sticker?</h2>
+    <p>Merge two emojis into one unique image using Emoji Kitchen — free, no sign-up required. You can also use the <a href="{% url 'emoji_maker' %}">emoji maker</a>, the <a href="{% url 'emoji_generator' %}">emoji generator</a>, or browse <a href="{% url 'emoji_combos' %}">emoji combos</a> to copy and paste.</p>
+    <a href="{% url 'home' %}#kitchen" class="btn btn--primary">Open Emoji Kitchen 🍳</a>
+  </div>
+</section>
+
+{% endblock %}
