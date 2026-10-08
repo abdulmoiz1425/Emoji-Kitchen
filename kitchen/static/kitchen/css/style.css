@@ -170,7 +170,11 @@ strong{font-weight:700}
 .nav__links a{
   padding:6px 14px;border-radius:var(--r-f);
   font-size:.875rem;font-weight:600;color:var(--t5);
+  white-space:nowrap;
   transition:background var(--t),color var(--t);
+}
+@media(max-width:1279px){
+  .nav__links a{padding:6px 9px;font-size:.84rem}
 }
 .nav__links a:hover{background:var(--accent-xlt);color:var(--accent)}
 
@@ -207,7 +211,7 @@ strong{font-weight:700}
 }
 .nav__drawer-link:hover{background:var(--accent-xlt);color:var(--accent)}
 
-@media(max-width:680px){
+@media(max-width:1180px){
   .nav__links,.nav__cta{display:none}
   .nav__hamburger{display:flex}
 }
@@ -1806,3 +1810,26 @@ strong{font-weight:700}
   .hero__title{font-size:1.9rem}
   .stat{padding:6px 14px}
 }
+
+/* ════════════════════════════════════════════════════════════════════
+   STICKY WHATSAPP BUTTON (home page)
+════════════════════════════════════════════════════════════════════ */
+.wa-float{
+  position:fixed;right:20px;bottom:20px;z-index:700;
+  width:56px;height:56px;border-radius:50%;
+  background:#25D366;color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 20px rgba(0,0,0,.28);
+  transition:transform .2s var(--ease-bounce),box-shadow .2s;
+}
+.wa-float svg{width:30px;height:30px}
+.wa-float:hover{transform:scale(1.08);box-shadow:0 8px 26px rgba(0,0,0,.34)}
+.wa-float:focus-visible{outline:3px solid #fff;outline-offset:2px;box-shadow:0 0 0 6px #128C7E}
+.wa-float::after{
+  content:"";position:absolute;inset:0;border-radius:50%;
+  border:2px solid #25D366;opacity:0;
+  animation:wa-pulse 2.6s ease-out infinite;pointer-events:none;
+}
+@keyframes wa-pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.55);opacity:0}}
+@media(prefers-reduced-motion:reduce){.wa-float::after{animation:none}.wa-float{transition:none}}
+@media(max-width:560px){.wa-float{right:14px;bottom:14px;width:52px;height:52px}}
