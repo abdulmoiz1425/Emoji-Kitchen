@@ -23,6 +23,7 @@ urlpatterns = [
     path('emoji-combos/funny/', views.emoji_combos_funny, name='emoji_combos_funny'),
     path('emoji-combos/pink/', views.emoji_combos_pink, name='emoji_combos_pink'),
     path('emoji-keyboard/', views.emoji_keyboard, name='emoji_keyboard'),
+    path('emoji-keyboard-for-pc/', views.emoji_keyboard_for_pc, name='emoji_keyboard_for_pc'),
     path('robots.txt', views.robots_txt, name='robots_txt'),
     path('ads.txt', views.ads_txt, name='ads_txt'),
     path('privacy/', views.privacy, name='privacy'),

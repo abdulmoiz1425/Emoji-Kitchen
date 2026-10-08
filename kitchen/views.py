@@ -384,6 +384,42 @@ EMOJI_KEYBOARD_FAQS = [
 ]
 
 
+EMOJI_KEYBOARD_PC_FAQS = [
+    {
+        'question': 'How do I open the emoji keyboard for PC?',
+        'answer': 'Click inside a text field and press Windows + . (period). You can also press Windows + ; (semicolon) to open the Windows emoji panel.',
+    },
+    {
+        'question': 'What is the shortcut for emojis on Windows?',
+        'answer': 'Use Windows + . as the main shortcut. Microsoft also lists Windows + ; as an alternative shortcut for the emoji panel.',
+    },
+    {
+        'question': 'How do I type emojis on a computer?',
+        'answer': 'Place your cursor in a supported text field, open the Windows emoji panel, then select an emoji. You can also copy an emoji from a browser-based picker and paste it.',
+    },
+    {
+        'question': 'Can I use emojis without a touchscreen?',
+        'answer': 'Yes. A touchscreen is not required. You can open the panel with the keyboard shortcut and use the mouse or keyboard to select an emoji. Microsoft documents keyboard navigation for the panel.',
+    },
+    {
+        'question': 'Why is my Windows emoji keyboard not showing?',
+        'answer': 'Make sure your cursor is inside a text field, then try both Windows shortcuts. If the panel still does not appear, test another app and check for Windows updates.',
+    },
+    {
+        'question': 'Can I copy several emojis at once?',
+        'answer': 'Yes. Browser-based emoji pickers can let you select multiple characters and copy them as one sequence. Emoji Kitchen Hub supports multi-emoji selection and copying.',
+    },
+    {
+        'question': 'Do emojis look different on Windows and phones?',
+        'answer': 'Yes. Different platforms use different artwork for the same Unicode characters. The character can stay the same while the design changes.',
+    },
+    {
+        'question': 'Can I make custom emoji images on a PC?',
+        'answer': 'Yes. Custom emoji images are different from standard Unicode emojis. You can use an emoji maker to create a sticker-style image when you want something beyond a normal text character.',
+    },
+]
+
+
 PINK_EMOJI_COMBOS_FAQS = [
     {
         'question': 'What are pink emoji combinations?',
@@ -701,6 +737,14 @@ def emoji_keyboard(request):
     return render(request, 'kitchen/emoji_keyboard.html', context)
 
 
+def emoji_keyboard_for_pc(request):
+    context = {
+        'faqs': EMOJI_KEYBOARD_PC_FAQS,
+        'faq_json_ld': _faq_json_ld(EMOJI_KEYBOARD_PC_FAQS),
+    }
+    return render(request, 'kitchen/emoji_keyboard_for_pc.html', context)
+
+
 def blog(request):
     posts = BlogPost.objects.visible().select_related('category').prefetch_related('tags')
     featured_post = posts.filter(is_featured=True).first()
@@ -893,6 +937,22 @@ def proxy_image(request):
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
+
+def _faq_json_ld(faqs):
+    """FAQPage structured data for a list of {'question', 'answer'} dicts."""
+    entities = [
+        {
+            '@type': 'Question',
+            'name': item['question'],
+            'acceptedAnswer': {'@type': 'Answer', 'text': item['answer']},
+        }
+        for item in faqs
+    ]
+    return json.dumps(
+        {'@context': 'https://schema.org', '@type': 'FAQPage', 'mainEntity': entities},
+        ensure_ascii=False,
+    ).replace('<', '\\u003c')
+
 
 def _emoji_to_codepoints(emoji: str) -> str:
     codepoints = [hex(ord(char))[2:].lower() for char in emoji]
