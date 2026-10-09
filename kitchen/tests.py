@@ -292,20 +292,39 @@ class WhatsAppFooterTests(PageTestCase):
 # ── Internal linking ──────────────────────────────────────────────────────────
 
 class InternalLinkTests(PageTestCase):
-    def test_new_page_receives_body_links_from_four_pages(self):
-        for source in ['/emoji-keyboard/', '/emoji-combos/', '/emoji-maker/', '/emoji-generator/']:
+    def test_new_page_receives_body_links_from_five_pages(self):
+        for source in ['/', '/emoji-keyboard/', '/emoji-combos/', '/emoji-maker/', '/emoji-generator/']:
             self.assertIn(PC, self.body_links(source), f'{source} does not link to {PC}')
 
-    def test_new_page_sends_body_links_to_five_pages(self):
+    def test_new_page_sends_body_links_to_nine_pages(self):
         links = self.body_links(PC)
-        for target in ['/', '/emoji-keyboard/', '/emoji-maker/', '/emoji-generator/', '/emoji-combos/']:
+        targets = ['/', '/emoji-keyboard/', '/emoji-maker/', '/emoji-generator/', '/emoji-combos/',
+                   '/blog/emoji-kitchen-whatsapp/', '/blog/emoji-kitchen-iphone/',
+                   '/blog/emoji-kitchen-samsung/', '/blog/emoji-kitchen-gboard/']
+        for target in targets:
             self.assertIn(target, links, f'{PC} does not link to {target}')
 
-    def test_required_anchor_texts(self):
-        self.assertIn('emoji keyboard for pc', self.body_links('/emoji-maker/')[PC])
-        self.assertIn('windows emoji keyboard shortcut', self.body_links('/emoji-generator/')[PC])
-        self.assertIn('emoji keyboard for pc guide', self.body_links('/emoji-keyboard/')[PC])
-        self.assertIn('emoji keyboard for pc guide', self.body_links('/emoji-combos/')[PC])
+    def test_required_anchor_texts_for_incoming_links(self):
+        self.assertEqual(self.body_links('/')[PC], ['windows emoji keyboard'])
+        self.assertEqual(self.body_links('/emoji-keyboard/')[PC], ['windows emoji keyboard'])
+        self.assertEqual(self.body_links('/emoji-generator/')[PC], ['emoji keyboard shortcut'])
+        self.assertEqual(self.body_links('/emoji-maker/')[PC], ['emoji keyboard for pc'])
+        self.assertEqual(self.body_links('/emoji-combos/')[PC], ['emoji keyboard for pc guide'])
+
+    def test_required_anchor_texts_for_outgoing_links(self):
+        links = self.body_links(PC)
+        self.assertEqual(links['/emoji-keyboard/'], ['emoji keyboard'])
+        self.assertEqual(links['/blog/emoji-kitchen-whatsapp/'], ['emoji kitchen whatsapp'])
+
+    def test_each_page_links_to_the_new_page_only_once(self):
+        for source in ['/', '/emoji-keyboard/', '/emoji-combos/', '/emoji-maker/', '/emoji-generator/']:
+            self.assertEqual(len(self.body_links(source)[PC]), 1, f'{source} links to {PC} more than once')
+
+    def test_more_than_three_incoming_and_outgoing_internal_links(self):
+        incoming = [p for p in ALL_PAGES if p != PC and PC in self.body_links(p)]
+        outgoing = [t for t in self.body_links(PC) if t != PC]
+        self.assertGreater(len(incoming), 3, incoming)
+        self.assertGreater(len(outgoing), 3, outgoing)
 
     def test_closing_sentence_links_emoji_kitchen_to_home(self):
         html = self.fetch(PC)
@@ -313,7 +332,7 @@ class InternalLinkTests(PageTestCase):
 
     def test_added_links_are_plain(self):
         """Internal links to the new page carry no nofollow and no target=_blank."""
-        for source in ['/emoji-keyboard/', '/emoji-combos/', '/emoji-maker/', '/emoji-generator/']:
+        for source in ['/', '/emoji-keyboard/', '/emoji-combos/', '/emoji-maker/', '/emoji-generator/']:
             for href, _text, attrs in self.parse(source).body_links:
                 if urlparse(href).path == PC:
                     self.assertNotIn('nofollow', attrs.get('rel') or '', source)
@@ -372,8 +391,19 @@ class NavigationTests(PageTestCase):
         for path in ALL_PAGES:
             header = self.header_html(path)
             self.assertEqual(header.count(f'href="{PC}"'), 2, f'{path}: expected nav + drawer link')
-            self.assertIn('>Emoji Keyboard for PC</a>', header, path)
-            self.assertIn('nav__drawer-link', header[header.index(f'href="{PC}"'):], path)
+            self.assertIn('Emoji Keyboard for PC</a>', header, path)
+
+    def test_pc_page_is_inside_the_emoji_keyboard_dropdown_not_a_top_level_item(self):
+        for path in ALL_PAGES:
+            header = self.header_html(path)
+            dropdown = re.search(
+                r'<li class="nav__item nav__item--dropdown">\s*<a href="/emoji-keyboard/">Emoji Keyboard</a>'
+                r'\s*<ul class="nav__dropdown-menu">(.*?)</ul>', header, re.S)
+            self.assertIsNotNone(dropdown, f'{path}: Emoji Keyboard is not a dropdown')
+            self.assertEqual(dropdown.group(1).count(f'href="{PC}"'), 1, path)
+            # the only other PC link is the indented item in the mobile menu
+            self.assertEqual(header.count(f'href="{PC}"'), 2, path)
+            self.assertIn(f'<a href="{PC}" class="nav__drawer-link nav__drawer-sublink"', header, path)
 
     def test_nav_link_sits_next_to_emoji_keyboard(self):
         header = self.header_html('/')
@@ -385,8 +415,8 @@ class NavigationTests(PageTestCase):
         css = (Path(settings.BASE_DIR) / 'kitchen/static/kitchen/css/style.css').read_text(encoding='utf-8')
         link_rule = re.search(r'\.nav__links a\{(.*?)\}', css, re.S).group(1)
         self.assertIn('white-space:nowrap', link_rule)
-        # seven menu items need ~1180px on one line; below that the hamburger takes over
-        self.assertRegex(css, r'@media\(max-width:1180px\)\{\s*\.nav__links,\.nav__cta\{display:none\}')
+        # the six menu items fit on one line from ~1040px; below that the hamburger takes over
+        self.assertRegex(css, r'@media\(max-width:1040px\)\{\s*\.nav__links,\.nav__cta\{display:none\}')
 
 
 class StickyWhatsAppButtonTests(PageTestCase):

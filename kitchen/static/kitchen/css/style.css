@@ -211,7 +211,7 @@ strong{font-weight:700}
 }
 .nav__drawer-link:hover{background:var(--accent-xlt);color:var(--accent)}
 
-@media(max-width:1180px){
+@media(max-width:1040px){
   .nav__links,.nav__cta{display:none}
   .nav__hamburger{display:flex}
 }
