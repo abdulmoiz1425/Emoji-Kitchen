@@ -328,24 +328,25 @@ class InternalLinkTests(PageTestCase):
 
     def test_closing_sentence_links_emoji_kitchen_to_home(self):
         html = self.fetch(PC)
-        self.assertIn('using <a href="/" style="text-decoration:underline;text-underline-offset:3px">'
+        self.assertIn('using <a href="/" style="color:var(--accent-dk);text-decoration:none">'
                       'Emoji Kitchen</a> — free, no sign-up required.', html)
 
-    def test_interlinking_words_are_underlined(self):
-        """The site CSS removes link underlines, so interlinks carry an explicit underline."""
-        def underlined(attrs):
-            return 'text-decoration:underline' in (attrs.get('style') or '')
+    def test_interlinking_words_use_the_link_colour_and_no_underline(self):
+        """The site CSS strips link styling, so interlinks carry an explicit colour and no underline."""
+        def styled(attrs):
+            style = (attrs.get('style') or '').replace(' ', '')
+            return 'color:var(--accent-dk)' in style and 'underline' not in style
 
         # 1. incoming links: the one link on each source page that points to the PC page
         for source in ['/', '/emoji-keyboard/', '/emoji-combos/', '/emoji-maker/', '/emoji-generator/']:
             tags = [(h, t, a) for h, t, a in self.parse(source).body_links if urlparse(h).path == PC]
             self.assertEqual(len(tags), 1, source)
-            self.assertTrue(underlined(tags[0][2]), f'{source}: "{_clean(tags[0][1])}" is not underlined')
+            self.assertTrue(styled(tags[0][2]), f'{source}: "{_clean(tags[0][1])}" is not coloured')
         # 2. outgoing links in the PC page article (the "Open Emoji Kitchen" button is not a text link)
         for href, text, attrs in self.parse(PC).body_links:
             if 'btn' in (attrs.get('class') or ''):
                 continue
-            self.assertTrue(underlined(attrs), f'{PC}: "{_clean(text)}" -> {href} is not underlined')
+            self.assertTrue(styled(attrs), f'{PC}: "{_clean(text)}" -> {href} is not coloured')
 
     def test_added_links_are_plain(self):
         """Internal links to the new page carry no nofollow and no target=_blank."""
