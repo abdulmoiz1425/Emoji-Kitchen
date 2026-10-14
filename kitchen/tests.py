@@ -296,13 +296,14 @@ class InternalLinkTests(PageTestCase):
         for source in ['/', '/emoji-keyboard/', '/emoji-combos/', '/emoji-maker/', '/emoji-generator/']:
             self.assertIn(PC, self.body_links(source), f'{source} does not link to {PC}')
 
-    def test_new_page_sends_body_links_to_nine_pages(self):
+    def test_new_page_sends_body_links_to_the_blog_posts_and_the_keyboard_page(self):
         links = self.body_links(PC)
-        targets = ['/', '/emoji-keyboard/', '/emoji-maker/', '/emoji-generator/', '/emoji-combos/',
-                   '/blog/emoji-kitchen-whatsapp/', '/blog/emoji-kitchen-iphone/',
-                   '/blog/emoji-kitchen-samsung/', '/blog/emoji-kitchen-gboard/']
-        for target in targets:
+        for target in ['/emoji-keyboard/', '/blog/emoji-kitchen-whatsapp/', '/blog/emoji-kitchen-iphone/',
+                       '/blog/emoji-kitchen-samsung/', '/blog/emoji-kitchen-gboard/']:
             self.assertIn(target, links, f'{PC} does not link to {target}')
+        # the bottom sentence was deliberately left without links to these pages
+        for target in ['/emoji-maker/', '/emoji-generator/', '/emoji-combos/']:
+            self.assertNotIn(target, links, f'{PC} should not link to {target} in its body')
 
     def test_required_anchor_texts_for_incoming_links(self):
         self.assertEqual(self.body_links('/')[PC], ['windows emoji keyboard'])
@@ -326,10 +327,13 @@ class InternalLinkTests(PageTestCase):
         self.assertGreater(len(incoming), 3, incoming)
         self.assertGreater(len(outgoing), 3, outgoing)
 
-    def test_closing_sentence_links_emoji_kitchen_to_home(self):
+    def test_closing_sentence_has_no_links(self):
         html = self.fetch(PC)
-        self.assertIn('using <a href="/" style="color:var(--accent-dk);text-decoration:none">'
-                      'Emoji Kitchen</a> — free, no sign-up required.', html)
+        sentence = ('Merge two emojis into one unique image using Emoji Kitchen — free, no sign-up required. '
+                    'You can also use the emoji maker, the emoji generator, or browse emoji combos to copy and paste.')
+        self.assertIn(f'<p>{sentence}</p>', html)  # plain text, no <a> inside the paragraph
+        # the button below it is unchanged
+        self.assertIn('<a href="/#kitchen" class="btn btn--primary">Open Emoji Kitchen', html)
 
     def test_interlinking_words_use_the_link_colour_and_no_underline(self):
         """The site CSS strips link styling, so interlinks carry an explicit colour and no underline."""
