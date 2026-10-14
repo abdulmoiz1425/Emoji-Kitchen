@@ -1,15 +1,22 @@
 import json
+import os
 import re
+import subprocess
+import sys
+import tempfile
 import xml.etree.ElementTree as ET
 from html.parser import HTMLParser
 from pathlib import Path
+from unittest import mock
 from urllib.parse import urljoin, urlparse
 
 from django.conf import settings
-from django.test import TestCase
+from django.test import SimpleTestCase, TestCase
 from django.urls import resolve, reverse
 
 from . import views
+from emoji_kitchen.envfile import load_env
+
 from .models import BlogPost
 from .sitemaps import StaticViewSitemap
 
@@ -532,3 +539,94 @@ class RegressionTests(PageTestCase):
     def test_blog_visibility(self):
         self.assertEqual(self.client.get('/blog/hidden-draft/').status_code, 404)
         self.assertEqual(self.client.get('/blog/emoji-kitchen-iphone/').status_code, 200)
+
+
+# ── Server settings via .env (so plain `python manage.py runserver` is safe) ───
+
+class EnvFileLoaderTests(SimpleTestCase):
+    def write(self, text):
+        handle = tempfile.NamedTemporaryFile('w', suffix='.env', delete=False, encoding='utf-8')
+        handle.write(text)
+        handle.close()
+        self.addCleanup(os.unlink, handle.name)
+        return handle.name
+
+    def load(self, text, existing=None):
+        path = self.write(text)
+        with mock.patch.dict(os.environ, {'DJANGO_ENV_FILE': path, **(existing or {})}):
+            for key in ('A_KEY', 'B_KEY', 'C_KEY', 'D_KEY', 'E_KEY', 'DJANGO_DEBUG'):
+                if key not in (existing or {}):
+                    os.environ.pop(key, None)
+            loaded = load_env()
+            return loaded, dict(os.environ)
+
+    def test_reads_plain_quoted_export_and_skips_comments_blank_and_bad_lines(self):
+        loaded, env = self.load(
+            '# comment\n\nA_KEY=plain\nB_KEY="double quoted"\nC_KEY=\'single\'\n'
+            'export D_KEY=exported\nnot a pair\nE_KEY=has=equals\n'
+        )
+        self.assertTrue(loaded)
+        self.assertEqual(env['A_KEY'], 'plain')
+        self.assertEqual(env['B_KEY'], 'double quoted')
+        self.assertEqual(env['C_KEY'], 'single')
+        self.assertEqual(env['D_KEY'], 'exported')
+        self.assertEqual(env['E_KEY'], 'has=equals')
+
+    def test_real_environment_wins_over_the_file(self):
+        _loaded, env = self.load('DJANGO_DEBUG=false\n', existing={'DJANGO_DEBUG': 'true'})
+        self.assertEqual(env['DJANGO_DEBUG'], 'true')
+
+    def test_missing_file_is_not_an_error(self):
+        with mock.patch.dict(os.environ, {'DJANGO_ENV_FILE': '/nonexistent/path/.env'}):
+            self.assertFalse(load_env())
+
+
+class ManagePyModeTests(SimpleTestCase):
+    """Runs the real manage.py in a clean environment, as the server and a laptop would."""
+
+    CODE = ('from django.conf import settings; '
+            'print(settings.DEBUG, settings.ALLOWED_HOSTS, settings.SECRET_KEY == "from-env-file")')
+
+    def run_manage(self, env_text=None, extra_env=None):
+        env = {k: v for k, v in os.environ.items() if not k.startswith('DJANGO_')}
+        if env_text is not None:
+            handle = tempfile.NamedTemporaryFile('w', suffix='.env', delete=False, encoding='utf-8')
+            handle.write(env_text)
+            handle.close()
+            self.addCleanup(os.unlink, handle.name)
+            env['DJANGO_ENV_FILE'] = handle.name
+        else:
+            env['DJANGO_ENV_FILE'] = '/nonexistent/path/.env'   # never pick up a developer's real .env
+        env.update(extra_env or {})
+        result = subprocess.run(
+            [sys.executable, 'manage.py', 'shell', '-c', self.CODE],
+            cwd=settings.BASE_DIR, env=env, capture_output=True, text=True, timeout=60,
+        )
+        self.assertEqual(result.returncode, 0, result.stderr[-500:])
+        return result.stdout.strip().splitlines()[-1]
+
+    def test_with_env_file_manage_py_runs_in_production_mode(self):
+        out = self.run_manage('DJANGO_DEBUG=false\nDJANGO_SECRET_KEY=from-env-file\n')
+        self.assertEqual(out, "False ['emojikitchenhub.com', 'www.emojikitchenhub.com'] True")
+
+    def test_without_env_file_manage_py_is_local_development_mode(self):
+        out = self.run_manage(None)
+        self.assertEqual(out, "True ['localhost', '127.0.0.1'] False")
+
+    def test_a_real_environment_variable_still_beats_the_env_file(self):
+        out = self.run_manage('DJANGO_DEBUG=false\nDJANGO_SECRET_KEY=from-env-file\n',
+                              extra_env={'DJANGO_DEBUG': 'true'})
+        self.assertTrue(out.startswith('True '))
+
+    def test_production_mode_refuses_to_start_without_a_secret_key(self):
+        env = {k: v for k, v in os.environ.items() if not k.startswith('DJANGO_')}
+        handle = tempfile.NamedTemporaryFile('w', suffix='.env', delete=False, encoding='utf-8')
+        handle.write('DJANGO_DEBUG=false\n')
+        handle.close()
+        self.addCleanup(os.unlink, handle.name)
+        env['DJANGO_ENV_FILE'] = handle.name
+        result = subprocess.run([sys.executable, 'manage.py', 'check'], cwd=settings.BASE_DIR,
+                                env=env, capture_output=True, text=True, timeout=60)
+        self.assertNotEqual(result.returncode, 0)
+        self.assertIn('DJANGO_SECRET_KEY must be set', result.stderr)
+

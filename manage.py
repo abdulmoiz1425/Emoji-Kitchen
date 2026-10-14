@@ -7,8 +7,11 @@ import sys
 def main():
     """Run administrative tasks."""
     os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'emoji_kitchen.settings')
-    # Local CLI only. gunicorn/wsgi does not import manage.py, so the live
-    # process stays DEBUG=false and must get DJANGO_SECRET_KEY from the environment.
+    # The server keeps DJANGO_DEBUG=false and DJANGO_SECRET_KEY in a .env file next to
+    # this script (see emoji_kitchen/envfile.py), so `python manage.py runserver` is safe
+    # there. With no .env (local development) DEBUG defaults to true below.
+    from emoji_kitchen.envfile import load_env
+    load_env()
     os.environ.setdefault('DJANGO_DEBUG', 'true')
     if os.environ.get('DJANGO_DEBUG', '').strip().lower() in {'1', 'true', 'yes', 'on'}:
         os.environ.setdefault(
