@@ -1002,3 +1002,112 @@ class KeyboardPagesContentTests(PageTestCase):
     def test_pc_page_still_has_no_links_in_the_closing_sentence(self):
         self.assertIn('<p>Merge two emojis into one unique image using Emoji Kitchen', self.fetch(PC))
 
+
+# ── Emoji Combos hub and the five combo pages: content from the "Emoji Updates" document ──
+
+COMBO_PAGE_TEXT = {
+    # path: (title, meta description, first sentence of the new introduction)
+    '/emoji-combos/': ('Emoji Combos to Copy and Paste - Ideas for Every Mood',
+                       'Browse emoji combos for cute, aesthetic, funny, love and color themes. Choose a sequence for a bio, caption or message.',
+                       'Emoji combos are groups of two or more emoji characters used together to express a mood, topic or visual style.'),
+    '/emoji-combos/love/': ('Love Emoji Combos to Copy and Paste',
+                            'Browse romantic, affectionate and soft love emoji combos for messages, captions and bios.',
+                            'Love emoji combos bring hearts, faces, flowers and other symbols together to add tone to a message.'),
+    '/emoji-combos/cute/': ('Cute Emoji Combos to Copy and Paste',
+                            'Find cute emoji combos with animals, bows, flowers, hearts and soft expressions for bios, messages and captions.',
+                            'Cute emoji combos often use friendly faces, small animals, hearts, flowers, bows and soft colors.'),
+    '/emoji-combos/aesthetic/': ('Aesthetic Emoji Combos for Bios and Captions',
+                                 'Explore aesthetic emoji combos by mood, color and visual style. Find coordinated sequences for profiles and captions.',
+                                 'Aesthetic emoji combos use a consistent visual mood, such as soft pastels, night skies, flowers, nature, minimal symbols or warm neutral tones.'),
+    '/emoji-combos/funny/': ('Funny Emoji Combos to Copy and Paste',
+                             'Browse funny emoji combos for reactions, jokes, group chats and captions. Choose a sequence that fits the context.',
+                             'Funny emoji combos bring faces, objects, animals and symbols together to make a reaction more playful.'),
+    '/emoji-combos/pink/': ('Pink Emoji Combos to Copy and Paste',
+                            'Explore pink emoji combos featuring hearts, flowers, bows and pastel symbols for bios, captions, profiles and messages.',
+                            'Pink emoji combos bring together hearts, flowers, bows, ribbons and other symbols that suit a pink or pastel visual theme.'),
+}
+GUIDES = {   # page -> the guide the document adds before the FAQs
+    '/emoji-combos/cute/': 'How to Choose a Cute Emoji Combo',
+    '/emoji-combos/aesthetic/': 'How to Build a Consistent Emoji Style',
+    '/emoji-combos/funny/': 'Choosing a Funny Emoji Reaction',
+    '/emoji-combos/pink/': 'How to Choose a Pink Emoji Combo',
+}
+# collections that must never shrink: minimum emoji-list items / collection entries per page
+COLLECTION_MINIMUMS = {
+    '/emoji-combos/': (155, 140), '/emoji-combos/love/': (352, 173), '/emoji-combos/cute/': (202, 185),
+    '/emoji-combos/aesthetic/': (90, 194), '/emoji-combos/funny/': (159, 149), '/emoji-combos/pink/': (5, 140),
+}
+
+
+class ComboPagesContentTests(PageTestCase):
+    def test_titles_and_meta_descriptions(self):
+        for path, (title, meta, _intro) in COMBO_PAGE_TEXT.items():
+            page = self.parse(path)
+            self.assertEqual(_clean(page.title), title, path)
+            self.assertEqual(page.meta['description'], meta, path)
+            self.assertEqual(len(page.h1), 1, path)
+
+    def test_introductions_replaced_and_quick_answer_boxes_removed(self):
+        for path, (_t, _m, intro) in COMBO_PAGE_TEXT.items():
+            html = self.fetch(path)
+            self.assertIn(intro, html, path)
+            self.assertNotIn('quick-answer', html, path)
+
+    def test_hub_theme_block_replaces_the_repeated_category_paragraphs(self):
+        html = self.fetch('/emoji-combos/')
+        self.assertEqual(html.count('<h2>Browse Emoji Combos by Theme</h2>'), 1)
+        for theme in ['Cute', 'Aesthetic', 'Love', 'Funny', 'Pink']:
+            self.assertIn(f'<h3>{theme} Emoji Combos</h3>', html)
+        links = self.body_links('/emoji-combos/')
+        for target in COMBOS:
+            self.assertIn(target, links)
+        for old in ['Cute sets often use bows, hearts, flowers, animals, fruit', 'Aesthetic sets create a clear visual theme',
+                    'Color-based sets are useful for matching profile themes', 'Love-themed sets can show affection',
+                    'Mood sets help a short reply feel clearer']:
+            self.assertNotIn(old, html)
+        self.assertIn('This page is the starting point for browsing.', html)
+
+    def test_love_page_replacements(self):
+        html = self.fetch('/emoji-combos/love/')
+        self.assertIn('<h2>Soft and Aesthetic Love Combos</h2>', html)
+        self.assertIn('<h2>Choose a Love Combo That Fits the Message</h2>', html)
+        for old in ['Aesthetic Emoji Sets for Love', 'Find Your Favorite Romantic Emoji Set']:
+            self.assertNotIn(old, html)
+        # the curated lists that followed the replaced paragraph are still there
+        for kept in ['<h3>Soft Aesthetic Sets</h3>', '<h3>Aesthetic Sets for Bios</h3>', '<h3>Aesthetic Sets for Captions</h3>']:
+            self.assertIn(kept, html)
+        links = self.body_links('/emoji-combos/love/')
+        for target in ['/emoji-combos/cute/', '/emoji-combos/aesthetic/', '/emoji-combos/pink/', '/']:
+            self.assertIn(target, links)
+
+    def test_selection_guides_sit_before_the_faqs_once(self):
+        for path, heading in GUIDES.items():
+            html = self.fetch(path)
+            self.assertEqual(html.count(f'<h2>{heading}</h2>'), 1, path)
+            self.assertLess(html.index(f'<h2>{heading}</h2>'), html.index('Frequently Asked Questions'), path)
+
+    def test_documented_internal_links_in_the_introductions(self):
+        expected = {
+            '/emoji-combos/cute/': ['/emoji-combos/aesthetic/', '/emoji-combos/love/'],
+            '/emoji-combos/aesthetic/': ['/emoji-combos/cute/', '/emoji-combos/love/'],
+            '/emoji-combos/pink/': ['/emoji-combos/aesthetic/', '/emoji-combos/love/'],
+        }
+        for path, targets in expected.items():
+            links = self.body_links(path)
+            for target in targets:
+                self.assertIn(target, links, f'{path} does not link to {target}')
+
+    def test_emoji_collections_were_not_touched(self):
+        for path, (min_li, min_entries) in COLLECTION_MINIMUMS.items():
+            html = self.fetch(path)
+            self.assertGreaterEqual(html.count('<li>'), min_li, path)
+            entries = len(re.findall(r"\{cat:'", html)) + html.count('class="ec"')
+            self.assertGreaterEqual(entries, min_entries, path)
+            self.assertIn('<script>', html)
+
+    def test_no_editor_notes_reach_visitors(self):
+        for path in COMBO_PAGE_TEXT:
+            html = self.fetch(path)
+            for note in EDITOR_NOTES + ['should provide focused collections', 'rather than repeating every item']:
+                self.assertNotIn(note, html, f'"{note}" is on {path}')
+
