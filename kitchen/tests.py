@@ -1111,3 +1111,90 @@ class ComboPagesContentTests(PageTestCase):
             for note in EDITOR_NOTES + ['should provide focused collections', 'rather than repeating every item']:
                 self.assertNotIn(note, html, f'"{note}" is on {path}')
 
+
+# ── About, Contact, Disclaimer, Terms, Privacy and Cookie pages ────────────────
+
+class LegalAndSupportPagesTests(PageTestCase):
+    def test_about_title_meta_and_introduction(self):
+        page = self.parse('/about-us/')
+        self.assertEqual(_clean(page.title), 'About Emoji Kitchen Hub - Our Tools and Guides')
+        self.assertEqual(page.meta['description'], 'Learn about Emoji Kitchen Hub, its emoji tools, educational resources '
+                         'and how to report corrections or problems.')
+        html = self.fetch('/about-us/')
+        self.assertIn('<h2>About Emoji Kitchen Hub</h2>', html)
+        self.assertIn('Emoji Kitchen Hub is not an official Google service and is not operated by Google.', html)
+        self.assertNotIn('Welcome to EmojiKitchenHub', html)
+        self.assertIn('<h2>Independent Website Disclosure</h2>', html)      # the accurate independence statements stay
+
+    def test_about_maintenance_section_sits_before_the_contact_section(self):
+        html = self.fetch('/about-us/')
+        self.assertEqual(html.count('<h2>Maintaining Our Guides and Tools</h2>'), 1)
+        self.assertLess(html.index('Maintaining Our Guides and Tools'), html.index('<h2>Contact Us</h2>'))
+        self.assertIn('/contact/', self.body_links('/about-us/'))
+        self.assertIn('/privacy/', self.body_links('/about-us/'))
+        self.assertIn('you can contact us at <a href="mailto:', html)
+
+    def test_contact_title_meta_and_introduction(self):
+        page = self.parse('/contact/')
+        self.assertEqual(_clean(page.title), 'Contact Emoji Kitchen Hub')
+        self.assertEqual(page.meta['description'], 'Contact Emoji Kitchen Hub to report a tool problem, suggest a correction, '
+                         'or ask a question about the website.')
+        html = self.fetch('/contact/')
+        self.assertIn('<h2>Contact Emoji Kitchen Hub</h2>', html)
+        self.assertIn('Do not send passwords or other sensitive information in a bug report.', html)
+        self.assertIn('<h2>Suggest a Correction</h2>', html)
+        self.assertIn('A screenshot can help explain the issue', html)
+        self.assertEqual(html.count('<h2>Technical Issues</h2>'), 1)         # existing guidance kept, not duplicated
+        self.assertNotIn('<h2>Report a Tool Problem</h2>', html)
+
+    def test_contact_makes_no_response_time_promise(self):
+        html = self.fetch('/contact/').lower()
+        for promise in ['within 24', 'within 48', 'within 72', 'within one', 'within two', 'business day', 'reply within', 'respond within']:
+            self.assertNotIn(promise, html)
+
+    def test_disclaimer_and_terms_openings(self):
+        disclaimer, terms = self.fetch('/disclaimer/'), self.fetch('/terms/')
+        self.assertIn('Emoji Kitchen Hub provides emoji-related tools, collections and educational information.', disclaimer)
+        self.assertIn('By using this website, you acknowledge that information, features, tools, and external resources may change over time.', disclaimer)
+        self.assertIn('We do not guarantee that every tool result will be complete, accurate, suitable for every purpose, or continuously available.', disclaimer)
+        self.assertIn('Visitors are responsible for choosing how to use the tools', terms)
+        for kept in ['<h2>1. Introduction</h2>', '<h2>2. Acceptance of Terms</h2>', '<h2>3. Use of the Website</h2>',
+                     'If you do not agree with these Terms, please do not use the website.']:
+            self.assertIn(kept, terms)
+
+    def test_policies_do_not_promise_a_last_updated_date_they_do_not_show(self):
+        for path in ['/privacy/', '/cookie-policy/']:
+            self.assertNotIn('Last Updated', self.fetch(path), path)
+            self.assertNotIn('Last updated', self.fetch(path), path)
+
+    def test_cookie_policy_states_what_the_code_verifiably_does(self):
+        html = self.fetch('/cookie-policy/')
+        self.assertIn('<h2>What This Website Uses Today</h2>', html)
+        self.assertIn("up to six) in your browser's local storage", html)
+        self.assertIn('does not set its own cookies on its public pages and does not use a separate analytics service', html)
+        self.assertIn('https://policies.google.com/technologies/partner-sites', html)
+        self.assertIn('https://adssettings.google.com', html)
+        self.assertIn('EmojiKitchenHub uses Google AdSense to show advertising on some pages.', self.fetch('/privacy/'))
+
+    def test_the_facts_stated_in_the_policies_are_still_true(self):
+        """If one of these fails, update the Cookie Policy and Privacy Policy as well."""
+        js = (Path(settings.BASE_DIR) / 'kitchen/static/kitchen/js/main.js').read_text(encoding='utf-8')
+        self.assertIn('persistCombos(combos.slice(0, 6))', js)                  # "up to six"
+        self.assertIn("localStorage.setItem(COMBOS_KEY", js)                     # local storage, on the device
+        self.assertIn("sessionStorage.setItem(RECENT_KEY", js)                   # session storage
+        self.assertNotRegex(js, r'method:\s*[\'"]POST')                           # the saved list is never uploaded
+        for path in MIXER_PAGES + [PC, '/emoji-combos/', '/blog/', '/about-us/', '/contact/', '/privacy/', '/cookie-policy/']:
+            self.assertFalse(self.client.get(path).cookies, f'{path} sets a cookie')
+        templates = Path(settings.BASE_DIR) / 'kitchen/templates'
+        scripts = '\n'.join(p.read_text(encoding='utf-8') for p in templates.rglob('*.html'))
+        for tracker in ['googletagmanager', 'gtag(', 'google-analytics', 'clarity.ms', 'hotjar', 'plausible', 'matomo']:
+            self.assertNotIn(tracker, scripts, f'a tracking script ({tracker}) was added: update the policies')
+        self.assertIn('fonts.googleapis.com', scripts)                           # Google Fonts, as the Cookie Policy says
+        self.assertIn('pagead2.googlesyndication.com', self.fetch('/'))          # AdSense, as the policies say
+
+    def test_all_contact_emails_still_appear_on_the_legal_pages(self):
+        for path in LEGAL:
+            html = self.fetch(path)
+            self.assertIn('mailto:abdulmannanfiv@gmail.com', html, path)
+            self.assertIn('mailto:mannanmaan1425@gmail.com', html, path)
+
