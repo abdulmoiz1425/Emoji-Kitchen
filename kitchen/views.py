@@ -226,78 +226,46 @@ EMOJI_COMBOS_PAGE_FAQS = [
 EMOJI_GENERATOR_FAQS = [
     {
         'question': 'Is this emoji generator free?',
-        'answer': 'Yes. You can try supported emoji combinations without paying for individual mixes.',
+        'answer': 'Yes. The tool is free to use in your browser.',
     },
     {
-        'question': 'Do I need to sign up?',
-        'answer': 'No. This is an emoji generator with no sign-up required. Open the mixer, choose two emojis, and make a supported result.',
+        'question': 'Do I need to install an app?',
+        'answer': 'No. The tool runs in your browser. If it does not load, refresh the page and try a supported browser.',
     },
     {
-        'question': 'How do I use an emoji generator?',
-        'answer': 'Choose two compatible emojis, check the result, then copy or download it. Try another pair if your first combination does not produce a mix.',
+        'question': 'Can I combine three emojis at once?',
+        'answer': 'No. The tool combines two emojis at a time.',
     },
     {
-        'question': 'How do I get the emoji generator on my phone?',
-        'answer': 'Open the tool in your mobile browser. You can use the mixer without installing a separate emoji-mixing app.',
+        'question': 'Are the results new Unicode emojis?',
+        'answer': 'No. The result is a sticker-style image rather than a new character added to a standard emoji keyboard.',
     },
     {
-        'question': 'Are the results new emojis on my keyboard?',
-        'answer': 'No. The results are sticker-style images, not new keyboard emoji characters. You can copy or download them for apps that support images or stickers.',
-    },
-    {
-        'question': 'Why does my emoji mix look different after I share it?',
-        'answer': 'Apps can handle copied images, stickers, and previews in different ways. Downloading the result and sending it as an image can help when direct pasting does not work.',
-    },
-    {
-        'question': 'Can I mix three emojis at once?',
-        'answer': 'This tool is made for two-emoji combinations. Select two emojis to create one supported sticker-style result.',
-    },
-    {
-        'question': 'Why does my emoji mix not appear?',
-        'answer': 'A missing result usually means the selected pair is not supported. Try changing one emoji and test again. Common faces, hearts, animals, and food items are good starting points.',
+        'question': 'Why is no result appearing?',
+        'answer': 'The selected pair may be unsupported, or the tool may not have loaded correctly. Try a different pair and report repeated failures.',
     },
 ]
 
 EMOJI_MAKER_FAQS = [
     {
-        'question': 'What is an emoji maker?',
-        'answer': 'An emoji maker is a tool that helps you create emoji-style images, stickers, or mashups. Emoji Kitchen Hub combines two emoji ideas into one visual reaction.',
-    },
-    {
-        'question': 'How do you make your own emoji online?',
-        'answer': 'Choose two emojis, combine them, then copy or download the result. This is an easy way to make your own emoji free without installing an app.',
-    },
-    {
-        'question': 'Can I create custom emojis for free?',
-        'answer': 'Yes. A free emoji maker online can help you create custom emojis from supported emoji pairs and save the final sticker image.',
-    },
-    {
-        'question': 'How do I make an emoji with my keyboard?',
-        'answer': 'Open your device emoji keyboard and select standard emojis. For a custom mashup, use an online emoji maker, then copy or download the sticker.',
-    },
-    {
-        'question': 'Can I make emojis with a keyboard on Android or iPhone?',
-        'answer': 'You can send standard emojis from both Android and iPhone keyboards. Custom mashup options may differ by keyboard, device, selected emojis, and messaging app.',
-    },
-    {
-        'question': 'Is this an AI emoji maker?',
-        'answer': 'No. This tool does not use AI prompts to generate emoji art. It creates a sticker-style result by combining existing emojis.',
+        'question': 'Does this tool create a new Unicode emoji?',
+        'answer': 'No. It creates a sticker-style image from supported emoji designs, not a new Unicode character.',
     },
     {
         'question': 'Can I make an emoji from a photo?',
-        'answer': 'No. This is not an emoji maker from photo tool. Use a dedicated photo emoji maker when you want to convert a selfie, pet, or logo into an emoji-style image.',
+        'answer': 'No. This tool combines existing emoji designs. It does not convert photos into emojis.',
     },
     {
-        'question': 'Can I copy and paste custom emoji stickers?',
-        'answer': 'Yes, when the platform supports pasted images or stickers. If it does not, download the emoji and upload it manually.',
+        'question': 'Does every emoji pair work?',
+        'answer': 'No. Only supported pairs produce a result.',
     },
     {
-        'question': 'Can I use this as a flag emoji maker?',
-        'answer': 'No. This tool is not designed as a flag emoji maker. It is made for general emoji mashups and sticker-style combinations.',
+        'question': 'Can I use the result in any application?',
+        'answer': 'Not necessarily. Applications handle copied images and stickers differently. If pasting does not work, try downloading the result if that option is available.',
     },
     {
-        'question': 'Is this an emoji maker game?',
-        'answer': 'No. It is not an emoji maker game or a make a emoji game. It is a browser tool for creating and sharing emoji mashups quickly.',
+        'question': 'What should I use for standard emoji characters?',
+        'answer': 'Use the online emoji keyboard to select and copy standard emoji characters for text.',
     },
 ]
 

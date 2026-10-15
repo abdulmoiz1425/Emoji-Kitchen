@@ -1910,3 +1910,4 @@ strong{font-weight:700}
 .limits-text{max-width:760px;margin:0 auto}
 .limits-text p{font-size:1rem;color:var(--t5);line-height:1.75;margin:0 0 1rem}
 .limits-section .section-head{margin-bottom:28px}
+.section-head p + p{margin-top:12px}   /* two-paragraph introductions (Emoji Maker, Emoji Generator) */
