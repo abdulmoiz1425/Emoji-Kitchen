@@ -88,34 +88,24 @@ FAQS = [
 
 FEATURES = [
     {
-        'icon': '🆓',
-        'title': 'Free Emoji Combiner',
-        'description': 'Use the combiner without paying for each mix. Try many ideas, build a sticker collection, and find combinations that fit the exact tone of your message.',
+        'icon': '🪄',
+        'title': 'Explore Emoji Mashups',
+        'description': 'Choose two emojis in the mixer and check whether a supported sticker-style result is available. If the pair does not produce a result, try a different combination. For a closer look at the tool, see the <a href="/emoji-maker/" style="text-decoration:underline;text-underline-offset:3px">Emoji Maker</a> or the <a href="/emoji-generator/" style="text-decoration:underline;text-underline-offset:3px">Emoji Generator</a>.',
     },
     {
-        'icon': '⚡',
-        'title': 'Fast Emoji Mixing',
-        'description': 'The tool shows your <a href="https://emojikitchenhub.com/emoji-maker/" style="text-decoration:underline;text-underline-offset:3px">emoji mix</a> as soon as you choose both icons — no long prompts, no extra screens, no waiting.',
+        'icon': '⌨️',
+        'title': 'Copy Standard Emojis',
+        'description': 'Use the <a href="/emoji-keyboard/" style="text-decoration:underline;text-underline-offset:3px">online emoji keyboard</a> when you need ordinary emoji characters for messages, documents, captions or profiles. These characters can be used as text, unlike a sticker-style image.',
     },
     {
-        'icon': '📋',
-        'title': 'Easy Copy & Download',
-        'description': 'Copy the sticker for a message you want to send now, or download the image to keep it for future chats, posts, and other media.',
+        'icon': '🎭',
+        'title': 'Find Emoji Combos by Theme',
+        'description': 'Browse <a href="/emoji-combos/" style="text-decoration:underline;text-underline-offset:3px">themed combinations</a> for different moods and visual styles. The collections help you narrow your choices instead of searching through unrelated examples.',
     },
     {
-        'icon': '🌐',
-        'title': 'Works in Your Browser',
-        'description': 'A browser-based tool that works on phones, tablets, and computers — without needing Gboard, an app install, or a large screen.',
-    },
-    {
-        'icon': '🎨',
-        'title': 'Creative Combinations',
-        'description': 'Related pairs make clear results, while unexpected pairs produce funny or surprising stickers. The right mix says what words sometimes cannot.',
-    },
-    {
-        'icon': '💾',
-        'title': 'Recent Combos in Your Browser',
-        'description': 'The mixer keeps your six most recent combinations in this browser so you can reload them. They are stored on this device only and are not tied to an account.',
+        'icon': '📖',
+        'title': 'Learn How Emoji Features Work',
+        'description': 'Read the <a href="/blog/" style="text-decoration:underline;text-underline-offset:3px">relevant guide</a> when you need help with a keyboard, device or sharing workflow. Instructions can differ between browsers, operating systems and applications, so choose the guide that matches your situation.',
     },
 ]
 
@@ -180,19 +170,12 @@ POPULAR_COMBOS = [
 ]
 
 HOW_TO_WEB = [
-    'Open the kitchen and scroll to the emoji mixer.',
-    'Tap the first slot and choose an emoji from the collection.',
-    'Pick a second emoji for the second slot.',
-    'Your mashup cooks up in a couple of seconds.',
-    'Download or copy it, then share anywhere.',
-]
-
-HOW_TO_PHONE = [
-    'Install Gboard and set it as your default keyboard.',
-    'Open a compatible messaging app and tap the text box.',
-    'Tap the emoji icon on the keyboard and choose an emoji.',
-    'Gboard suggests combined stickers when a compatible pair is chosen.',
-    'Tap the sticker to send it instantly inside the chat.',
+    'Open the mixer on this page.',
+    'Choose an emoji in the first selection area.',
+    'Choose a second emoji.',
+    'Check whether a result is available for the selected pair.',
+    'If no result appears, change one emoji and try again.',
+    'Use the available copy or download control if it is supported by the current tool and works in your browser.',
 ]
 
 COMPARISON_ROWS = [
@@ -689,7 +672,6 @@ def home(request):
         'create_steps': CREATE_STEPS,
         'popular_combos': POPULAR_COMBOS,
         'how_to_web': HOW_TO_WEB,
-        'how_to_phone': HOW_TO_PHONE,
         'comparison_rows': COMPARISON_ROWS,
         'faq_json_ld': faq_json_ld,
         'combo_count_display': f'{COMBO_COUNT:,}',

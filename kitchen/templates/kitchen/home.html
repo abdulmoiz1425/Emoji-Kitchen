@@ -1,11 +1,11 @@
 {% extends 'kitchen/base.html' %}
 {% load static %}
 
-{% block title %}Emoji Kitchen – Mix Emojis, Play & Create Stickers{% endblock %}
-{% block meta_description %}Use Emoji Kitchen to mix emojis, create fun stickers, play with emoji combos, and share them on WhatsApp, iPhone, or anywhere online.{% endblock %}
+{% block title %}Emoji Kitchen - Mix Emojis into Sticker-Style Images{% endblock %}
+{% block meta_description %}Explore supported emoji pairs with Emoji Kitchen Hub. Browse emoji combinations, explore sticker-style mashups, and find standard emojis with the online keyboard.{% endblock %}
 
 {% block extra_head %}
-{% include "kitchen/_social_meta.html" with page_title="Emoji Kitchen – Mix Emojis, Play & Create Stickers" page_description="Use Emoji Kitchen to mix emojis, create fun stickers, play with emoji combos, and share them on WhatsApp, iPhone, or anywhere online." %}
+{% include "kitchen/_social_meta.html" with page_title="Emoji Kitchen - Mix Emojis into Sticker-Style Images" page_description="Explore supported emoji pairs with Emoji Kitchen Hub. Browse emoji combinations, explore sticker-style mashups, and find standard emojis with the online keyboard." %}
 <script type="application/ld+json">{{ faq_json_ld|safe }}</script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3200425003686406" crossorigin="anonymous"></script>
 {% endblock %}
@@ -37,11 +37,11 @@
       Emoji Kitchen – Mix Emojis,<br>Play &amp; Create <em class="text-gradient">Stickers</em>
     </h1>
 
-    <p class="hero__subtitle animate-up" style="--delay:.16s">
-      Do you ever need more than one emoji to show the right feeling? Emoji Kitchen helps you
-      mix two emojis into one custom sticker, giving your messages more personality without adding long text.
-      Our <a href="/emoji-generator/" style="text-decoration:underline;text-underline-offset:3px">emoji generator</a> is free and works right in your browser.
-    </p>
+    <div class="hero__intro animate-up" style="--delay:.16s">
+      <p class="hero__subtitle">Emoji Kitchen Hub brings together emoji-related tools to help you explore combinations, find standard emoji characters and browse themed emoji collections.</p>
+      <p class="hero__subtitle">Choose two emojis in the mixer to see whether a supported sticker-style result is available. You can also explore <a href="/emoji-combos/" style="text-decoration:underline;text-underline-offset:3px">ready-made emoji combinations</a> for messages, captions and profiles, or use the <a href="/emoji-keyboard/" style="text-decoration:underline;text-underline-offset:3px">online emoji keyboard</a> when you need standard emoji characters for text.</p>
+      <p class="hero__subtitle">The type of result matters: a sticker-style mashup is an image, not a new Unicode emoji character added to your device keyboard.</p>
+    </div>
 
     <div class="hero__demo animate-up" style="--delay:.24s">
       <div class="hero__demo-slots">
@@ -241,12 +241,12 @@
 <section class="section features-section">
   <div class="container">
     <div class="section-head section-head--center animate-up">
-      <span class="section-badge">✨ Why choose us</span>
-      <h2>Why Use Our Emoji Kitchen Tool?</h2>
-      <p>Our tool gives users a simple way to mix emojis without moving through several menus. Test combinations, view sticker results, and save your favourites from one browser page.</p>
+      <span class="section-badge">✨ What you can do</span>
+      <h2>Explore Emoji Tools for Different Tasks</h2>
+      <p>Emoji Kitchen Hub provides several ways to work with emojis, depending on what you want to create or communicate.</p>
     </div>
 
-    <div class="features-grid">
+    <div class="features-grid features-grid--four">
       {% for feature in features %}
       <article class="feature-card animate-up" style="--delay:{{ forloop.counter0 }}00ms">
         <div class="feature-card__icon-wrap">
@@ -266,14 +266,14 @@
     <div class="section-head section-head--center animate-up">
       <span class="section-badge">📖 Getting started</span>
       <h2>How to Use Emoji Kitchen</h2>
-      <p>You only need two emoji choices and a few seconds. Select a pair, check the result, then copy or share the sticker wherever you want to use it.</p>
+      <p>The browser mixer on this website and Google's Emoji Kitchen feature are separate products. They may serve related purposes, but their controls and available results can differ.</p>
     </div>
 
     <div class="how-to-grid">
       <div class="how-to-card animate-up">
         <div class="how-to-card__head">
           <div class="how-to-card__icon">🌐</div>
-          <h3>On the web</h3>
+          <h3>Use the Browser Mixer</h3>
         </div>
         <ol class="how-to-steps">
           {% for step in how_to_web %}
@@ -288,19 +288,13 @@
       <div class="how-to-card animate-up" style="--delay:.12s">
         <div class="how-to-card__head">
           <div class="how-to-card__icon">📱</div>
-          <h3>On Android &amp; Gboard</h3>
+          <h3>Use Google's Emoji Kitchen on Android</h3>
         </div>
-        <ol class="how-to-steps">
-          {% for step in how_to_phone %}
-          <li>
-            <span class="step-num">{{ forloop.counter }}</span>
-            <span>{{ step }}</span>
-          </li>
-          {% endfor %}
-        </ol>
-        <p class="how-to-card__note">
-          💡 Not every pair will produce a result. Try changing one emoji, using a common face, or selecting a simple symbol when a sticker does not appear.
-        </p>
+        <div class="how-to-card__text">
+          <p>Google's Emoji Kitchen is associated with supported Gboard experiences on Android. Open a compatible application, bring up Gboard and look for available emoji combination suggestions.</p>
+          <p>The exact experience can vary by device, application and software version. If the feature is unavailable, consult the relevant Gboard guide rather than assuming that Google's keyboard and this website's browser tool have identical controls.</p>
+          <p>If you need an ordinary emoji character inside a sentence, use the <a href="/emoji-keyboard/" style="text-decoration:underline;text-underline-offset:3px">online emoji keyboard</a> instead of a sticker-style image.</p>
+        </div>
       </div>
     </div>
   </div>
@@ -352,6 +346,21 @@
              width="180" height="180" loading="lazy" />
         <p class="share-showcase__caption">Your custom mashup, ready to send 💌</p>
       </div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ UNDERSTANDING MASHUPS ══ -->
+<section class="section limits-section" id="limitations">
+  <div class="container">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">ℹ️ Good to know</span>
+      <h2>Understanding Emoji Mashups</h2>
+    </div>
+    <div class="limits-text animate-up">
+      <p>The mixer works with supported emoji pairs, not every possible combination. The result is an image-style mashup rather than a new Unicode character.</p>
+      <p>Standard emojis may look different across devices because platforms use their own artwork. Copied images can also behave differently from plain text in different applications. If pasting an image does not work, try downloading it and attaching it through the destination application's image picker, where supported.</p>
+      <p>Emoji Kitchen Hub is an independent website and is not operated by Google. Google's Emoji Kitchen feature and this website's browser tool should not be treated as the same service.</p>
     </div>
   </div>
 </section>

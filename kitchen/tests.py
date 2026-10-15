@@ -766,13 +766,80 @@ class UnsupportedClaimsTests(PageTestCase):
         self.assertIn('A sticker-style image made from a supported emoji pair, rather than a new Unicode character.',
                       self.fetch('/'))
 
-    def test_saving_card_describes_what_the_code_really_does(self):
-        html = self.fetch('/')
-        self.assertIn('six most recent combinations in this browser', html)
-        js = (Path(settings.BASE_DIR) / 'kitchen/static/kitchen/js/main.js').read_text(encoding='utf-8')
-        self.assertIn('persistCombos(combos.slice(0, 6))', js)   # the claim above depends on this cap
+    def test_home_makes_no_promise_to_save_every_creation(self):
+        html = self.fetch('/').lower()
+        for phrase in ['save your favourites', 'save your favorites', 'keeps every creation']:
+            self.assertNotIn(phrase, html)
 
     def test_unicode_support_paragraphs_use_the_new_wording(self):
         self.assertIn('Unicode releases and device support do not always arrive at the same time', self.fetch('/emoji-keyboard/'))
         self.assertIn('Unicode emoji specifications are updated periodically', self.fetch('/emoji-combos/'))
+
+
+# ── Home page: content from the "Emoji Updates" document (Page 1) ─────────────
+
+class HomePageContentTests(PageTestCase):
+    def home(self):
+        return self.fetch('/')
+
+    def test_title_and_meta_description(self):
+        page = self.parse('/')
+        self.assertEqual(_clean(page.title), 'Emoji Kitchen - Mix Emojis into Sticker-Style Images')
+        self.assertEqual(page.meta['description'],
+                         'Explore supported emoji pairs with Emoji Kitchen Hub. Browse emoji combinations, '
+                         'explore sticker-style mashups, and find standard emojis with the online keyboard.')
+        self.assertEqual(page.meta['og:title'], 'Emoji Kitchen - Mix Emojis into Sticker-Style Images')
+        self.assertEqual(len(page.h1), 1)   # the H1 stays
+
+    def test_introduction_under_the_h1(self):
+        html = self.home()
+        for text in [
+            'Emoji Kitchen Hub brings together emoji-related tools to help you explore combinations, find standard emoji characters and browse themed emoji collections.',
+            'Choose two emojis in the mixer to see whether a supported sticker-style result is available.',
+            'The type of result matters: a sticker-style mashup is an image, not a new Unicode emoji character added to your device keyboard.',
+        ]:
+            self.assertIn(text, html)
+        self.assertEqual(html.count('class="hero__subtitle"'), 3)
+
+    def test_tool_explanations_replace_the_old_benefit_cards(self):
+        html = self.home()
+        self.assertIn('<h2>Explore Emoji Tools for Different Tasks</h2>', html)
+        for title in ['Explore Emoji Mashups', 'Copy Standard Emojis', 'Find Emoji Combos by Theme',
+                      'Learn How Emoji Features Work']:
+            self.assertIn(f'<h3>{title}</h3>', html)
+        self.assertEqual(html.count('class="feature-card animate-up"'), 4)
+        for old in ['Why Use Our Emoji Kitchen Tool?', 'Free Emoji Combiner', 'Fast Emoji Mixing',
+                    'Works in Your Browser', 'Creative Combinations']:
+            self.assertNotIn(old, html)
+
+    def test_how_to_section_uses_the_new_instructions(self):
+        html = self.home()
+        self.assertIn('<h2>How to Use Emoji Kitchen</h2>', html)
+        self.assertIn("The browser mixer on this website and Google's Emoji Kitchen feature are separate products.", html)
+        self.assertIn('<h3>Use the Browser Mixer</h3>', html)
+        self.assertIn("<h3>Use Google's Emoji Kitchen on Android</h3>", html)
+        self.assertEqual(len(views.HOW_TO_WEB), 6)
+        self.assertEqual(html.count('class="step-num"'), 6)
+        self.assertNotIn('On Android &amp; Gboard', html)
+        self.assertNotIn('how-to-card__note', html)
+
+    def test_understanding_mashups_section_sits_before_the_faqs(self):
+        html = self.home()
+        self.assertIn('<h2>Understanding Emoji Mashups</h2>', html)
+        self.assertIn('The mixer works with supported emoji pairs, not every possible combination.', html)
+        self.assertIn('Emoji Kitchen Hub is an independent website and is not operated by Google.', html)
+        self.assertLess(html.index('id="limitations"'), html.index('id="faq"'))
+        self.assertGreater(html.index('id="limitations"'), html.index('id="how-to"'))
+
+    def test_home_links_to_the_four_tools_from_its_body(self):
+        links = self.body_links('/')
+        for target in ['/emoji-maker/', '/emoji-generator/', '/emoji-keyboard/', '/emoji-combos/']:
+            self.assertIn(target, links, f'Home does not link to {target}')
+
+    def test_existing_sections_and_the_combo_count_are_kept(self):
+        html = self.home()
+        self.assertIn(f'{views.COMBO_COUNT:,}', html)       # the count comes from the data file, so it is accurate
+        for kept in ['What Is an Emoji Kitchen?', 'Share Emoji Kitchen Stickers with Friends', 'Emoji Kitchen FAQs',
+                     'id="kitchen"', 'class="explore"']:
+            self.assertIn(kept, html)
 
