@@ -114,8 +114,8 @@ FEATURES = [
     },
     {
         'icon': '💾',
-        'title': 'Save Your Favourites',
-        'description': 'Your personal My Combos gallery keeps every creation. Reload and share them again whenever the same mood, joke, or reaction comes up.',
+        'title': 'Recent Combos in Your Browser',
+        'description': 'The mixer keeps your six most recent combinations in this browser so you can reload them. They are stored on this device only and are not tied to an account.',
     },
 ]
 

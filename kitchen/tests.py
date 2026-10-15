@@ -744,3 +744,35 @@ class MixerMarkupTests(PageTestCase):
                      'offerAlternativesForPair', 'announceFirstEmoji']:
             self.assertIn(hook, js)
 
+
+# ── Claims that must not come back (unverified, outdated or contradictory) ────
+
+class UnsupportedClaimsTests(PageTestCase):
+    BANNED = [
+        'genuinely new character',     # a mashup is an image, not a new Unicode character
+        'keeps every creation',        # the mixer keeps only the six most recent, in the browser
+        'v17.0', 'v18.0',              # outdated Unicode release claims
+        'copied most often', 'most copied', 'most popular',   # no usage data backs these
+        'data-adtest', 'Ads are shown here',                   # ad test mode and placeholder
+    ]
+
+    def test_no_banned_claim_on_any_page(self):
+        for path in ALL_PAGES:
+            html = self.fetch(path)
+            for phrase in self.BANNED:
+                self.assertNotIn(phrase, html, f'"{phrase}" is back on {path}')
+
+    def test_home_describes_a_mashup_as_an_image(self):
+        self.assertIn('A sticker-style image made from a supported emoji pair, rather than a new Unicode character.',
+                      self.fetch('/'))
+
+    def test_saving_card_describes_what_the_code_really_does(self):
+        html = self.fetch('/')
+        self.assertIn('six most recent combinations in this browser', html)
+        js = (Path(settings.BASE_DIR) / 'kitchen/static/kitchen/js/main.js').read_text(encoding='utf-8')
+        self.assertIn('persistCombos(combos.slice(0, 6))', js)   # the claim above depends on this cap
+
+    def test_unicode_support_paragraphs_use_the_new_wording(self):
+        self.assertIn('Unicode releases and device support do not always arrive at the same time', self.fetch('/emoji-keyboard/'))
+        self.assertIn('Unicode emoji specifications are updated periodically', self.fetch('/emoji-combos/'))
+
