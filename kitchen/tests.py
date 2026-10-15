@@ -56,7 +56,7 @@ EXPECTED_H2 = [
     'Can You Use Emojis Without the Windows Key?',
     'Are PC Emojis the Same on Every Device?',
     'FAQs',
-    'Use the Right Emoji Method for Your PC',
+    'Choose the Right Emoji Method for Your PC',
 ]
 
 
@@ -197,11 +197,11 @@ class EmojiKeyboardForPcPageTests(PageTestCase):
 
     def test_seo_basics(self):
         page = self.parse(PC)
-        self.assertEqual(_clean(page.title), 'Emoji Keyboard for PC: Shortcuts & Windows 11 Guide')
+        self.assertEqual(_clean(page.title), 'Emoji Keyboard for PC - Windows Shortcuts and Help')
         self.assertEqual(
             page.meta['description'],
-            'Need an emoji keyboard for PC? Learn the Windows 11 and 10 shortcuts, '
-            'how to type emojis, and how to use a free online emoji keyboard.',
+            'Open the Windows emoji panel, search for a character and learn how to troubleshoot '
+            'common emoji keyboard problems.',
         )
         self.assertEqual(urlparse(page.canonical).path, PC)
         self.assertEqual(urlparse(page.meta['og:url']).path, PC)
@@ -938,4 +938,67 @@ class MakerAndGeneratorContentTests(PageTestCase):
             html = self.fetch(path)
             for part in ['id="kitchen"', 'id="btn-swap"', 'id="mixer-status"', 'class="explore"', 'id="btn-surprise"']:
                 self.assertIn(part, html, f'{part} missing on {path}')
+
+
+# ── Emoji Keyboard and Emoji Keyboard for PC: content from the "Emoji Updates" document ──
+
+class KeyboardPagesContentTests(PageTestCase):
+    def test_keyboard_page_title_and_meta(self):
+        page = self.parse('/emoji-keyboard/')
+        self.assertEqual(_clean(page.title), 'Emoji Keyboard Online - Search, Copy and Paste')
+        self.assertEqual(page.meta['description'], 'Find standard emojis by name or category, select characters and copy them '
+                         'for messages, documents, captions and profiles.')
+        self.assertEqual(page.meta['og:title'], 'Emoji Keyboard Online - Search, Copy and Paste')
+        self.assertEqual(len(page.h1), 1)
+
+    def test_keyboard_page_picker_introduction(self):
+        html = self.fetch('/emoji-keyboard/')
+        for text in [
+            'Use the search box when you know what you want to find.',
+            'Select one character for a quick reaction, or select several to create a text sequence.',
+            'If copying does not work, check whether the browser supports clipboard access in the current context',
+            'An online picker copies standard emoji characters or sequences. It does not create a sticker-style mashup.',
+        ]:
+            self.assertIn(text, html)
+        # the old explanation and the category bullet list are gone
+        self.assertNotIn('The fastest method is simple: search for an emoji', html)
+        self.assertNotIn('<li>Smileys and emotion</li>', html)
+        # the picker itself is untouched
+        for part in ['ekCopyTray', 'ek-grid', 'ekResetTray']:
+            self.assertIn(part, html)
+
+    def test_keyboard_page_platform_appearance_explanation(self):
+        html = self.fetch('/emoji-keyboard/')
+        self.assertIn('<h3>Why an Emoji May Look Different After Pasting</h3>', html)
+        self.assertIn('Preview an emoji in the destination application when appearance matters.', html)
+        self.assertEqual(html.count('Why an Emoji May Look Different After Pasting'), 1)   # replaced, not duplicated
+        self.assertNotIn('The Emoji Looks Different After Pasting', html)
+
+    def test_keyboard_page_links(self):
+        links = self.body_links('/emoji-keyboard/')
+        for target in ['/emoji-maker/', '/emoji-generator/', '/emoji-combos/', PC]:
+            self.assertIn(target, links, f'/emoji-keyboard/ does not link to {target}')
+
+    def test_pc_page_closing_section(self):
+        html = self.fetch(PC)
+        self.assertIn('<h2>Choose the Right Emoji Method for Your PC</h2>', html)
+        self.assertNotIn('Use the Right Emoji Method for Your PC', html)
+        for text in [
+            'Use the built-in Windows emoji panel when you want to insert a standard emoji directly into a text field.',
+            'For sticker-style mashups rather than standard text characters, use the Emoji Kitchen mixer.',
+            'Keyboard layouts, software versions and application behavior can affect the experience.',
+        ]:
+            self.assertIn(text, html)
+        for old in ['The three key points are easy to remember', 'Try the Windows shortcut first']:
+            self.assertNotIn(old, html)
+
+    def test_pc_page_keeps_its_detailed_instructions_and_single_keyboard_link(self):
+        html = self.fetch(PC)
+        for kept in ['How to Open the Emoji Keyboard for PC', 'What Is the Windows Emoji Keyboard Shortcut?',
+                     'Why Is My Emoji Keyboard Not Working?', 'ek-table']:
+            self.assertIn(kept, html)
+        self.assertEqual(self.body_links(PC)['/emoji-keyboard/'], ['emoji keyboard'])   # still one link per target
+
+    def test_pc_page_still_has_no_links_in_the_closing_sentence(self):
+        self.assertIn('<p>Merge two emojis into one unique image using Emoji Kitchen', self.fetch(PC))
 

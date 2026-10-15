@@ -1,11 +1,11 @@
 {% extends "kitchen/base.html" %}
 {% load static %}
 
-{% block title %}Emoji Keyboard Online – Copy and Paste Emojis{% endblock %}
-{% block meta_description %}Use our free Emoji Keyboard to search, select, copy, and paste emojis online. Browse popular categories and add emojis to any message instantly.{% endblock %}
+{% block title %}Emoji Keyboard Online - Search, Copy and Paste{% endblock %}
+{% block meta_description %}Find standard emojis by name or category, select characters and copy them for messages, documents, captions and profiles.{% endblock %}
 
 {% block extra_head %}
-{% include "kitchen/_social_meta.html" with page_title="Emoji Keyboard Online – Copy and Paste Emojis" page_description="Use our free Emoji Keyboard to search, select, copy, and paste emojis online. Browse popular categories and add emojis to any message instantly." %}
+{% include "kitchen/_social_meta.html" with page_title="Emoji Keyboard Online - Search, Copy and Paste" page_description="Find standard emojis by name or category, select characters and copy them for messages, documents, captions and profiles." %}
 <style>
 /* ── hero ── */
 .ek-hero{background:linear-gradient(135deg,#eef2ff 0%,#f0f4ff 50%,#e8f4fd 100%);padding:56px 0 40px;text-align:center}
@@ -129,21 +129,10 @@
 <div class="ek-article">
 
 <h2>Use the Online Emoji Picker</h2>
-<p>The fastest method is simple: search for an emoji, select it, then paste it where you need it. The browser tool is free to use and does not require an app download.</p>
-<p>Start with the search box when you already know the feeling, object, animal, or symbol you want. Try plain words such as "happy," "heart," "cat," "pizza," "check," or "warning." Results update as you type, helping you avoid long category lists.</p>
-<p>You can also browse by category when you do not know an emoji's official name. Common groups include:</p>
-<ul>
-  <li>Smileys and emotion</li>
-  <li>People and body</li>
-  <li>Animals and nature</li>
-  <li>Food and drink</li>
-  <li>Activities</li>
-  <li>Travel and places</li>
-  <li>Objects</li>
-  <li>Symbols</li>
-  <li>Flags</li>
-</ul>
-<p>Select one emoji for a quick reaction, or choose several to build a short sequence. After copying, place your cursor inside the destination field and use your device's normal paste command.</p>
+<p>Use the search box when you know what you want to find. Start with a familiar word such as "heart", "cat", "happy" or "pizza". If you are unsure of the name, browse the categories and compare the results visually.</p>
+<p>Select one character for a quick reaction, or select several to create a text sequence. Use the available copy control to copy your selection, then paste it into a text field in your chosen application.</p>
+<p>If copying does not work, check whether the browser supports clipboard access in the current context and try selecting the characters again.</p>
+<p>An online picker copies standard emoji characters or sequences. It does not create a sticker-style mashup. Use the <a href="/emoji-maker/" style="text-decoration:underline;text-underline-offset:3px">Emoji Maker</a> or <a href="/emoji-generator/" style="text-decoration:underline;text-underline-offset:3px">Generator</a> when you want to explore image-based combinations instead.</p>
 
 <h2>Browse Emoji Faces, Symbols, and Categories</h2>
 <p>Categories help you find the right character without guessing its name. They also make large emoji collections easier to scan.</p>
@@ -266,8 +255,9 @@
 <h3>The Emoji Button Is Missing</h3>
 <p>On Windows, click inside a text field before using <kbd>Windows + .</kbd>. On Mac, try <kbd>Fn / Globe + E</kbd> or open Edit &gt; Emoji &amp; Symbols. Some apps may capture or replace keyboard shortcuts. When the built-in option still fails, use this browser page as a copy-and-paste alternative.</p>
 
-<h3>The Emoji Looks Different After Pasting</h3>
-<p>This is normal. The underlying character remains the same while Apple, Google, Microsoft, Samsung, and individual apps show different artwork. Review sensitive or unclear symbols before sending them in formal messages.</p>
+<h3>Why an Emoji May Look Different After Pasting</h3>
+<p>A Unicode emoji character can be displayed with different artwork by Apple, Google, Microsoft, Samsung and other platforms. The underlying character may be the same even when its color, shape or expression changes.</p>
+<p>Some newer characters or joined sequences may not be supported on older devices. Preview an emoji in the destination application when appearance matters. If broad compatibility is important, choose a commonly supported character and verify how it appears on the target platform.</p>
 
 <h3>The Emoji Cannot Be Pasted Into One Field</h3>
 <p>Some fields accept only letters, numbers, or limited characters. Others remove unsupported text during submission. Test another field or app to confirm whether the problem comes from the destination rather than the copied emoji.</p>
