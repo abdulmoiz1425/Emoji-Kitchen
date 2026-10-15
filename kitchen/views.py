@@ -22,6 +22,29 @@ _PAIR_KEYS = list(EMOJI_COMBOS['pairs'].keys())
 COMBO_COUNT = len(_PAIR_KEYS)
 
 
+def _cp_to_emoji(codepoints):
+    return ''.join(chr(int(part, 16)) for part in codepoints.split('-'))
+
+
+def _count_partners():
+    """How many other emojis each emoji can be mixed with, keyed by the emoji character."""
+    counts = {}
+    for key in _PAIR_KEYS:
+        for cp in set(key.split(',')):   # a pair of an emoji with itself counts once
+            counts[cp] = counts.get(cp, 0) + 1
+    result = {}
+    for cp, n in counts.items():
+        try:
+            result[_cp_to_emoji(cp)] = n
+        except (ValueError, OverflowError):
+            continue
+    return result
+
+
+# emoji -> number of emojis it pairs with (built once at startup)
+SUPPORTED_EMOJI_COUNTS = _count_partners()
+
+
 # ── Static content ────────────────────────────────────────────────────────────
 
 FAQS = [
@@ -868,6 +891,16 @@ def get_combos_for_emoji(request):
     return JsonResponse({'combos': results})
 
 
+def get_supported_emojis(request):
+    """Every emoji that has at least one Kitchen pair, with how many partners it has.
+
+    The mixer uses this to tell visitors which emojis have no sticker pairs and to suggest
+    alternatives."""
+    response = JsonResponse({'emojis': SUPPORTED_EMOJI_COUNTS})
+    response['Cache-Control'] = 'public, max-age=3600'
+    return response
+
+
 def get_random_combo(request):
     """Return one random valid Emoji Kitchen combo pair with its image URL.
 
@@ -952,6 +985,27 @@ def _faq_json_ld(faqs):
         {'@context': 'https://schema.org', '@type': 'FAQPage', 'mainEntity': entities},
         ensure_ascii=False,
     ).replace('<', '\\u003c')
+
+
+def combo_image_url(emoji1, emoji2):
+    """Image URL for a supported pair, or None when the pair has no sticker."""
+    cp1 = _emoji_to_codepoints(emoji1)
+    cp2 = _emoji_to_codepoints(emoji2)
+    if not cp1 or not cp2:
+        return None
+    a, b = sorted([cp1, cp2])
+    entry = EMOJI_COMBOS['pairs'].get(f'{a},{b}')
+    if not entry:
+        return None
+    date_idx, swap = entry
+    date = EMOJI_COMBOS['dates'][date_idx]
+    left, right = (b, a) if swap else (a, b)
+    left_part = _codepoints_to_url_part(left)
+    right_part = _codepoints_to_url_part(right)
+    return (
+        f'https://www.gstatic.com/android/keyboard/emojikitchen/'
+        f'{date}/{left_part}/{left_part}_{right_part}.png'
+    )
 
 
 def _emoji_to_codepoints(emoji: str) -> str:

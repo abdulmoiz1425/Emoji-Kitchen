@@ -1,0 +1,29 @@
+<!-- ═════════════════════════════════════════ EXPLORE COMBINATIONS ══ -->
+{% if groups %}
+<div class="explore" id="explore">
+  <h3 class="explore__title">Explore Emoji Combinations</h3>
+  <p class="explore__hint">Real pairs the mixer supports. Choose one to load it into the tool above.</p>
+
+  <div class="explore__tabs" role="tablist" aria-label="Combination categories">
+    {% for group in groups %}
+    <button type="button" class="picker__tab explore-tab{% if forloop.first %} active{% endif %}" role="tab"
+            id="explore-tab-{{ group.slug }}" aria-controls="explore-panel-{{ group.slug }}"
+            aria-selected="{% if forloop.first %}true{% else %}false{% endif %}" data-target="explore-panel-{{ group.slug }}">{{ group.icon }} {{ group.label }}</button>
+    {% endfor %}
+  </div>
+
+  {% for group in groups %}
+  <div class="explore__grid" id="explore-panel-{{ group.slug }}" role="tabpanel"
+       aria-labelledby="explore-tab-{{ group.slug }}"{% if not forloop.first %} hidden{% endif %}>
+    {% for item in group.items %}
+    <button type="button" class="explore-item" data-emoji1="{{ item.emoji1 }}" data-emoji2="{{ item.emoji2 }}"
+            data-url="{{ item.url }}" aria-label="Load {{ item.emoji1 }} plus {{ item.emoji2 }} into the mixer">
+      <img src="{{ item.url }}" alt="{{ item.emoji1 }} + {{ item.emoji2 }} emoji mashup" loading="lazy" width="96" height="96"
+           onerror="this.closest('.explore-item').hidden=true" />
+      <span class="explore-item__label">{{ item.emoji1 }} + {{ item.emoji2 }}</span>
+    </button>
+    {% endfor %}
+  </div>
+  {% endfor %}
+</div>
+{% endif %}

@@ -1,3 +1,4 @@
+{% load mixer_tags %}
 <!-- ═══════════════════════════════════════════════════ EMOJI MIXER TOOL ══ -->
 <section class="section kitchen-section" id="kitchen">
   <div class="container">
@@ -40,17 +41,27 @@
 
         <!-- RESULT -->
         <div class="cook__result-col">
-          <div class="cook__chips" aria-hidden="true">
-            <div class="cook__slot">
+          <div class="cook__chips">
+            <div class="cook__slot" aria-hidden="true">
               <span class="cook__slot-lbl">First</span>
               <span class="cook__chip" id="chip1"></span>
             </div>
-            <span class="cook__plus">+</span>
-            <div class="cook__slot">
+            <div class="cook__mid">
+              <span class="cook__plus" aria-hidden="true">+</span>
+              <button type="button" class="cook__swap" id="btn-swap" disabled
+                      title="Choose two emojis to swap them" aria-label="Swap the first and second emoji">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 7h13M16 3l4 4-4 4"/><path d="M17 17H4M8 13l-4 4 4 4"/></svg>
+              </button>
+            </div>
+            <div class="cook__slot" aria-hidden="true">
               <span class="cook__slot-lbl">Second</span>
               <span class="cook__chip" id="chip2"></span>
             </div>
           </div>
+
+          <!-- Which pairs are supported, and what to try when one is not -->
+          <p class="cook__status" id="mixer-status" role="status" aria-live="polite" data-kind="info">Pick a first emoji. Emojis that have no sticker with it are greyed out in the second list.</p>
+          <div class="cook__alts" id="mixer-alts" hidden></div>
 
           <!-- Gallery: all combos for slot1 emoji (shown before slot2 is chosen) -->
           <div class="combo-gallery" id="combo-gallery" hidden aria-label="All combos for selected emoji">
@@ -104,6 +115,8 @@
 
       <button class="cook__shuffle" id="btn-surprise" title="Surprise me" aria-label="Surprise me with a random combo">🎲</button>
     </div>
+
+    {% explore_combinations %}
 
     <!-- My Combos -->
     <div class="my-combos" id="my-combos" hidden>

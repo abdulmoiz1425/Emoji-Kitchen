@@ -156,6 +156,7 @@ function clearAllCombos() {
 }
 
 function loadSavedCombo(combo) {
+  cookToken++; compatToken++;   // drop any lookup still in flight
   compatibleEmojisSet = null; // no compat filter when restoring a saved result
   // Restore emojis into both pickers
   [[1, combo.emoji1], [2, combo.emoji2]].forEach(([panel, emoji]) => {
@@ -176,6 +177,10 @@ function loadSavedCombo(combo) {
   // Scroll mixer into view and confirm
   document.getElementById('kitchen').scrollIntoView({ behavior: 'smooth', block: 'center' });
   window.showToast('Combo loaded into the mixer!', '🍳');
+  resultImg.alt = `${combo.emoji1} + ${combo.emoji2} emoji mashup`;
+  clearAlternatives();
+  setStatus(`${combo.emoji1} + ${combo.emoji2} is a supported pair.`, 'ok');
+  applyCompat(combo.emoji1);
 }
 
 function renderCombos() {
@@ -232,6 +237,11 @@ let activeTab2 = 'All Emojis';
 // Set of emoji2 values that have a valid combo with the current slot1 emoji.
 // null = no filter active (panel 2 shows all emojis enabled).
 let compatibleEmojisSet = null;
+// emoji -> number of partners, loaded once from /api/supported-emojis/ (null until it arrives)
+let supportedCounts = null;
+let cookToken = 0;    // bumped whenever a pending result lookup should be ignored
+let compatToken = 0;  // same, for the "which second emojis work" lookup
+const IDLE_STATUS = 'Pick a first emoji. Emojis that have no sticker with it are greyed out in the second list.';
 
 // ── DOM refs ──────────────────────────────────────────────────────────────
 const PANELS = {
@@ -263,6 +273,9 @@ const btnSurprise  = document.getElementById('btn-surprise');
 const btnReset     = document.getElementById('btn-reset');
 const btnCopy      = document.getElementById('btn-copy');
 const btnDownload  = document.getElementById('btn-download');
+const btnSwap      = document.getElementById('btn-swap');
+const statusEl     = document.getElementById('mixer-status');
+const altsEl       = document.getElementById('mixer-alts');
 
 // ── Tabs ──────────────────────────────────────────────────────────────────
 const ALL_TABS = ['All Emojis', 'Recent', ...Object.keys(EMOJI_DATA)];
@@ -376,6 +389,98 @@ function showGalleryView() {
 // ── Combo gallery cache ───────────────────────────────────────────────────
 const combosCache = {};
 
+// All partners of one emoji (cached). Throws if the request fails.
+async function getCombosFor(emoji) {
+  if (combosCache[emoji]) return combosCache[emoji];
+  const params = new URLSearchParams({ emoji });
+  const res = await fetch(`/api/combos-for/?${params}`);
+  if (!res.ok) throw new Error(`API ${res.status}`);
+  const data = await res.json();
+  combosCache[emoji] = data.combos || [];
+  return combosCache[emoji];
+}
+
+// ── Pair status + alternatives ────────────────────────────────────────────
+function setStatus(text, kind = 'info') {
+  statusEl.textContent = text;
+  statusEl.dataset.kind = kind;
+}
+
+function clearAlternatives() {
+  altsEl.hidden = true;
+  altsEl.innerHTML = '';
+}
+
+function showAlternatives(label, emojis, onPick) {
+  altsEl.innerHTML = '';
+  if (!emojis.length) { altsEl.hidden = true; return; }
+  const lbl = document.createElement('span');
+  lbl.className = 'cook__alts-lbl';
+  lbl.textContent = label;
+  const row = document.createElement('div');
+  row.className = 'cook__alts-row';
+  emojis.forEach(em => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'cook__alt';
+    btn.textContent = em;
+    btn.title = EMOJI_NAMES[em] || em;
+    btn.setAttribute('aria-label', `Use ${EMOJI_NAMES[em] || em}`);
+    btn.addEventListener('click', () => onPick(em));
+    row.appendChild(btn);
+  });
+  altsEl.append(lbl, row);
+  altsEl.hidden = false;
+}
+
+// Emojis from the same picker category that do have pairs, best connected first
+function supportedInCategory(emoji, limit = 8) {
+  if (!supportedCounts) return [];
+  return (EMOJI_DATA[categoryOf(emoji)] || [])
+    .filter(e => e !== emoji && supportedCounts[e])
+    .sort((a, b) => supportedCounts[b] - supportedCounts[a])
+    .slice(0, limit);
+}
+
+function announceFirstEmoji(combos) {
+  const e = slot1Emoji;
+  if (combos.length) {
+    const noun = combos.length === 1 ? 'emoji' : 'emojis';
+    setStatus(`${e} can be mixed with ${combos.length} ${noun}. Greyed-out emojis in the second list have no sticker with ${e}.`, 'ok');
+    clearAlternatives();
+  } else {
+    setStatus(`${e} has no sticker pairs yet. Try a different first emoji.`, 'warn');
+    showAlternatives('These work with other emojis', supportedInCategory(e), pick => selectEmoji(1, pick));
+  }
+}
+
+// The chosen pair has no sticker: offer emojis that do work with the first one
+async function offerAlternativesForPair(first, second) {
+  let partners = [];
+  try { partners = (await getCombosFor(first)).map(c => c.emoji2); } catch (err) { console.error(err); }
+  if (slot1Emoji !== first || slot2Emoji !== second) return;   // the selection moved on
+  if (partners.length) {
+    const sameKind = categoryOf(second);
+    partners.sort((a, b) => (categoryOf(a) === sameKind ? 0 : 1) - (categoryOf(b) === sameKind ? 0 : 1));
+    showAlternatives(`These work with ${first}`, partners.slice(0, 8), pick => selectEmoji(2, pick));
+  } else {
+    showAlternatives('Try a different first emoji', supportedInCategory(first), pick => selectEmoji(1, pick));
+  }
+}
+
+// Grey out the second-list emojis that have no sticker with `emoji` (without changing the right-hand view)
+async function applyCompat(emoji) {
+  const id = ++compatToken;
+  try {
+    const combos = await getCombosFor(emoji);
+    if (id !== compatToken || slot1Emoji !== emoji) return;
+    compatibleEmojisSet = new Set(combos.map(c => c.emoji2));
+    renderGrid(2, getCurrentList(2));
+  } catch (err) {
+    console.error('Failed to load compatible emojis:', err);
+  }
+}
+
 async function loadAllCombosFor(emoji) {
   console.log('Loading combos for', emoji);
 
@@ -390,15 +495,12 @@ async function loadAllCombosFor(emoji) {
   comboGalleryGrid.innerHTML = '';
 
   try {
-    const params = new URLSearchParams({ emoji });
-    const res = await fetch(`/api/combos-for/?${params}`);
-    if (!res.ok) throw new Error(`API ${res.status}`);
-    const data = await res.json();
-    combosCache[emoji] = data.combos || [];
-    console.log('Combos found', combosCache[emoji].length);
-    showCombosGallery(combosCache[emoji]);
+    const combos = await getCombosFor(emoji);
+    if (slot1Emoji !== emoji) return;   // another first emoji was picked while this loaded
+    showCombosGallery(combos);
   } catch (err) {
     console.error('Failed to load combos:', err);
+    if (slot1Emoji === emoji) setStatus(`Could not check which emojis work with ${emoji}. Please try again.`, 'error');
     // Stay in gallery view — show error inside gallery, not in result box
     galleryLoadingEl.style.display = 'none';
     comboGalleryGrid.innerHTML = '<p class="picker__empty">Could not load combos — try again.</p>';
@@ -414,6 +516,7 @@ function showCombosGallery(combos) {
   compatibleEmojisSet = new Set(combos.map(c => c.emoji2));
   // Re-render panel 2 with disabled state applied (keeps current tab / search)
   renderGrid(2, getCurrentList(2));
+  announceFirstEmoji(combos);
 
   if (combos.length === 0) {
     comboGalleryGrid.innerHTML = '<p class="picker__empty">No combos found for this emoji.</p>';
@@ -451,6 +554,7 @@ function setSlotEmoji(panel, emoji) {
   const { chip } = PANELS[panel];
   chip.textContent = emoji;
   chip.classList.toggle('cook__chip--filled', !!emoji);
+  if (btnSwap) btnSwap.disabled = !(slot1Emoji && slot2Emoji);
 }
 
 function selectEmoji(panel, emoji) {
@@ -468,6 +572,9 @@ function selectEmoji(panel, emoji) {
 
     // Clear compat filter so panel 2 shows all enabled while fetch is in-flight
     compatibleEmojisSet = null;
+    cookToken++; compatToken++;
+    clearAlternatives();
+    setStatus(`Checking which emojis work with ${emoji}…`, 'info');
     renderTabs(1);
     renderGrid(1, getCurrentList(1));
     renderTabs(2);
@@ -496,41 +603,51 @@ function selectEmoji(panel, emoji) {
 
 // ── Cook combo ────────────────────────────────────────────────────────────
 async function cookCombo() {
-  console.log('Cooking single combo', slot1Emoji, slot2Emoji);
+  const id = ++cookToken;
+  const first = slot1Emoji, second = slot2Emoji;
   showState('loading'); // also calls showResultBox() → hides gallery
   comboUrl = '';
   btnCopy.disabled = true;
   btnDownload.disabled = true;
+  clearAlternatives();
+  setStatus(`Checking ${first} + ${second}…`, 'info');
 
   try {
-    const params = new URLSearchParams({ emoji1: slot1Emoji, emoji2: slot2Emoji });
+    const params = new URLSearchParams({ emoji1: first, emoji2: second });
     const res = await fetch(`/api/combo/?${params}`);
     if (!res.ok) throw new Error('API error');
     const data = await res.json();
 
     const validUrl = await findValidImage(data.urls || []);
+    if (id !== cookToken) return;   // the selection changed while this was loading
     if (validUrl) {
       comboUrl = validUrl;
       showState('result');
       resultImg.src = validUrl;
+      resultImg.alt = `${first} + ${second} emoji mashup`;
       resultImg.style.display = '';
       resultBox.classList.add('has-result');
       btnCopy.disabled = false;
       btnDownload.disabled = false;
+      setStatus(`${first} + ${second} is a supported pair.`, 'ok');
       // Auto-save to My Combos
       const isNew = !getCombos().some(c =>
-        (c.emoji1 === slot1Emoji && c.emoji2 === slot2Emoji) ||
-        (c.emoji1 === slot2Emoji && c.emoji2 === slot1Emoji)
+        (c.emoji1 === first && c.emoji2 === second) ||
+        (c.emoji1 === second && c.emoji2 === first)
       );
-      saveCombo(slot1Emoji, slot2Emoji, validUrl);
+      saveCombo(first, second, validUrl);
       if (isNew) window.showToast('Saved to My Combos!', '⭐');
     } else {
       showState('error');
+      setStatus(`${first} + ${second} has no sticker.`, 'error');
+      offerAlternativesForPair(first, second);
       window.showToast("Combo not found — try another pair!", '😕', true);
     }
   } catch (err) {
+    if (id !== cookToken) return;
     console.error(err);
     showState('error');
+    setStatus(`Could not check ${first} + ${second}. Please try again.`, 'error');
     window.showToast("Something went wrong. Please try again.", '⚠️', true);
   }
 }
@@ -573,6 +690,8 @@ function showState(state) {
 // Retries up to MAX_RETRIES times if the image fails to load (e.g. CDN 404).
 async function handleSurprise(retriesLeft = 3) {
   showState('loading');
+  cookToken++;
+  clearAlternatives();
   btnSurprise.disabled = true;
 
   try {
@@ -603,6 +722,7 @@ async function handleSurprise(retriesLeft = 3) {
         {transform:'rotate(0)     scale(1)'},
       ], {duration:400, easing:'ease-out'});
     });
+    applyCompat(emoji1);
 
     // Show result directly — no extra API round-trip needed
     comboUrl = validUrl;
@@ -612,6 +732,9 @@ async function handleSurprise(retriesLeft = 3) {
     resultBox.classList.add('has-result');
     btnCopy.disabled = false;
     btnDownload.disabled = false;
+
+    resultImg.alt = `${emoji1} + ${emoji2} emoji mashup`;
+    setStatus(`${emoji1} + ${emoji2} is a supported pair.`, 'ok');
 
     // Save to My Combos
     const isNew = !getCombos().some(c =>
@@ -635,6 +758,9 @@ btnSurprise.addEventListener('click', () => handleSurprise());
 // ── Reset ─────────────────────────────────────────────────────────────────
 btnReset.addEventListener('click', () => {
   compatibleEmojisSet = null; // restore all panel-2 emojis to enabled
+  cookToken++; compatToken++;
+  clearAlternatives();
+  setStatus(IDLE_STATUS, 'info');
   [1, 2].forEach(panel => {
     setSlotEmoji(panel, '');
     renderGrid(panel, getCurrentList(panel));
@@ -710,6 +836,51 @@ document.getElementById('btn-clear-combos')?.addEventListener('click', () => {
     clearAllCombos();
     window.showToast('All combos cleared', '🗑️');
   }
+});
+
+// ── Swap the two emojis ───────────────────────────────────────────────────
+btnSwap.addEventListener('click', () => {
+  if (!slot1Emoji || !slot2Emoji) return;
+  const first = slot2Emoji, second = slot1Emoji;
+  compatToken++;               // forget the lookup made for the old first emoji
+  compatibleEmojisSet = null;
+  setSlotEmoji(1, first);
+  setSlotEmoji(2, second);
+  [[1, first], [2, second]].forEach(([panel, emoji]) => {
+    setActiveTab(panel, categoryOf(emoji));
+    PANELS[panel].search.value = '';
+    renderTabs(panel);
+    renderGrid(panel, getCurrentList(panel));
+    PANELS[panel].chip.animate([
+      { transform: 'scale(1.25)' }, { transform: 'scale(.92)' }, { transform: 'scale(1)' },
+    ], { duration: 260, easing: 'ease-out' });
+  });
+  applyCompat(first);          // grey out what does not pair with the new first emoji
+  cookCombo();                 // show the result for the swapped selection
+});
+
+// ── Which emojis have pairs at all (for suggestions) ──────────────────────
+fetch('/api/supported-emojis/')
+  .then(res => (res.ok ? res.json() : null))
+  .then(data => { if (data && data.emojis) supportedCounts = data.emojis; })
+  .catch(() => {});
+
+// ── Explore combinations ──────────────────────────────────────────────────
+document.querySelectorAll('.explore-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.explore-tab').forEach(t => {
+      const active = t === tab;
+      t.classList.toggle('active', active);
+      t.setAttribute('aria-selected', active ? 'true' : 'false');
+      const panel = document.getElementById(t.dataset.target);
+      if (panel) panel.hidden = !active;
+    });
+  });
+});
+document.querySelectorAll('.explore-item').forEach(item => {
+  item.addEventListener('click', () => {
+    loadSavedCombo({ emoji1: item.dataset.emoji1, emoji2: item.dataset.emoji2, url: item.dataset.url });
+  });
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────

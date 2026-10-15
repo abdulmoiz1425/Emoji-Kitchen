@@ -17,6 +17,8 @@ from django.urls import resolve, reverse
 from . import views
 from emoji_kitchen.envfile import load_env
 
+from . import explore
+
 from .models import BlogPost
 from .sitemaps import StaticViewSitemap
 
@@ -629,4 +631,116 @@ class ManagePyModeTests(SimpleTestCase):
                                 env=env, capture_output=True, text=True, timeout=60)
         self.assertNotEqual(result.returncode, 0)
         self.assertIn('DJANGO_SECRET_KEY must be set', result.stderr)
+
+
+# ── Mixer improvements: pair status, swap button, Explore Combinations ────────
+
+MIXER_PAGES = ['/', '/emoji-maker/', '/emoji-generator/']
+
+
+class SupportedEmojisApiTests(PageTestCase):
+    def test_lists_supported_emojis_with_partner_counts(self):
+        response = self.client.get('/api/supported-emojis/')
+        self.assertEqual(response.status_code, 200)
+        self.assertIn('max-age', response['Cache-Control'])
+        emojis = response.json()['emojis']
+        self.assertGreater(len(emojis), 300)
+        self.assertTrue(all(isinstance(n, int) and n >= 1 for n in emojis.values()))
+
+    def test_counts_match_the_combos_for_endpoint(self):
+        emojis = self.client.get('/api/supported-emojis/').json()['emojis']
+        for emoji in ['😀', '❤️', '🐱', '🔥', '🌈']:
+            combos = self.client.get('/api/combos-for/', {'emoji': emoji}).json()['combos']
+            self.assertEqual(emojis[emoji], len(combos), emoji)
+
+    def test_emojis_without_pairs_are_not_listed(self):
+        emojis = self.client.get('/api/supported-emojis/').json()['emojis']
+        picker_only = [e for e in ['🧸', '🐴', '🟤', '🌫️'] if not self.client.get(
+            '/api/combos-for/', {'emoji': e}).json()['combos']]
+        self.assertTrue(picker_only, 'expected at least one picker emoji with no pairs')
+        for emoji in picker_only:
+            self.assertNotIn(emoji, emojis)
+
+
+class ComboImageUrlTests(PageTestCase):
+    def test_matches_the_combo_api_in_either_order(self):
+        for first, second in [('😀', '😍'), ('😍', '😀'), ('🐱', '🔥')]:
+            api = self.client.get('/api/combo/', {'emoji1': first, 'emoji2': second}).json()['urls']
+            self.assertEqual([views.combo_image_url(first, second)], api)
+
+    def test_unsupported_pair_has_no_url(self):
+        self.assertIsNone(views.combo_image_url('😀', '🟤'))
+        self.assertIsNone(views.combo_image_url('', '😀'))
+
+
+class ExploreCombinationsTests(PageTestCase):
+    def test_every_curated_pair_exists_in_the_data(self):
+        for slug, label, _icon, pairs in explore.EXPLORE_CATEGORIES:
+            for first, second in pairs:
+                self.assertIsNotNone(views.combo_image_url(first, second), f'{label}: {first}+{second} is not in the data')
+
+    def test_five_categories_of_six_pairs(self):
+        groups = explore.explore_groups()
+        self.assertEqual([g['label'] for g in groups], ['Faces', 'Hearts', 'Animals', 'Food', 'Nature'])
+        self.assertTrue(all(len(g['items']) == 6 for g in groups))
+        urls = [i['url'] for g in groups for i in g['items']]
+        self.assertEqual(len(urls), len(set(urls)), 'the same sticker appears twice')
+
+    def test_section_is_on_the_three_mixer_pages_only(self):
+        for path in MIXER_PAGES:
+            html = self.fetch(path)
+            self.assertEqual(html.count('class="explore"'), 1, path)
+            self.assertEqual(html.count('class="picker__tab explore-tab'), 5, path)
+            self.assertEqual(html.count('class="explore-item"'), 30, path)
+        for path in [PC, '/emoji-keyboard/', '/emoji-combos/', '/blog/']:
+            self.assertNotIn('class="explore"', self.fetch(path), path)
+
+    def test_items_carry_what_the_mixer_needs_and_are_accessible(self):
+        html = self.fetch('/')
+        item = re.search(r'<button type="button" class="explore-item" data-emoji1="([^"]+)" data-emoji2="([^"]+)"'
+                         r'\s+data-url="([^"]+)" aria-label="([^"]+)">\s*<img src="([^"]+)" alt="([^"]+)" loading="lazy"'
+                         r' width="96" height="96"', html)
+        self.assertIsNotNone(item)
+        first, second, data_url, label, src, alt = item.groups()
+        self.assertEqual(data_url, src)
+        self.assertEqual(views.combo_image_url(first, second), data_url)
+        self.assertIn('emoji mashup', alt)
+        self.assertIn('into the mixer', label)
+
+    def test_tabs_and_panels_are_wired_together(self):
+        html = self.fetch('/emoji-maker/')
+        for slug in ['faces', 'hearts', 'animals', 'food', 'nature']:
+            self.assertIn(f'id="explore-tab-{slug}"', html)
+            self.assertIn(f'id="explore-panel-{slug}"', html)
+        # only the first panel is open
+        self.assertEqual(len(re.findall(r'class="explore__grid" id="explore-panel-[a-z]+" role="tabpanel"\s+aria-labelledby="[^"]+" hidden>', html)), 4)
+
+
+class MixerMarkupTests(PageTestCase):
+    def test_swap_button_sits_between_the_two_slots_and_starts_disabled(self):
+        for path in MIXER_PAGES:
+            html = self.fetch(path)
+            self.assertLess(html.index('id="chip1"'), html.index('id="btn-swap"'), path)
+            self.assertLess(html.index('id="btn-swap"'), html.index('id="chip2"'), path)
+            tag = re.search(r'<button type="button" class="cook__swap" id="btn-swap"([^>]*)>', html).group(1)
+            self.assertIn('disabled', tag)
+            self.assertIn('aria-label="Swap the first and second emoji"', tag)
+
+    def test_status_line_and_alternatives_area_exist_for_screen_readers(self):
+        for path in MIXER_PAGES:
+            html = self.fetch(path)
+            self.assertIn('id="mixer-status" role="status" aria-live="polite"', html, path)
+            self.assertRegex(html, r'id="mixer-alts" hidden>', path)
+
+    def test_slots_are_hidden_from_screen_readers_but_the_swap_button_is_not(self):
+        html = self.fetch('/')
+        chips = html[html.index('class="cook__chips"'):html.index('id="mixer-status"')]
+        self.assertNotIn('class="cook__chips" aria-hidden', chips)
+        self.assertEqual(chips.count('aria-hidden="true"'), 4)  # two slots, the plus sign, the swap icon
+
+    def test_script_has_swap_status_and_explore_hooks(self):
+        js = (Path(settings.BASE_DIR) / 'kitchen/static/kitchen/js/main.js').read_text(encoding='utf-8')
+        for hook in ["getElementById('btn-swap')", "'/api/supported-emojis/'", ".explore-item", ".explore-tab",
+                     'offerAlternativesForPair', 'announceFirstEmoji']:
+            self.assertIn(hook, js)
 
