@@ -21,3 +21,6 @@ media/
 
 git 
 kitchen/static/kitchen/img/
+
+# Blog post backups written by manage.py update_blog_posts
+backups/

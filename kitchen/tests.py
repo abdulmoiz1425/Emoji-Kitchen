@@ -1,4 +1,5 @@
 import json
+import io
 import os
 import re
 import subprocess
@@ -11,13 +12,15 @@ from unittest import mock
 from urllib.parse import urljoin, urlparse
 
 from django.conf import settings
+from django.core.management import CommandError, call_command
+from django.utils.html import escape as django_escape
 from django.test import SimpleTestCase, TestCase
 from django.urls import resolve, reverse
 
 from . import views
 from emoji_kitchen.envfile import load_env
 
-from . import explore
+from . import blog_content, blog_updates, explore
 
 from .models import BlogPost
 from .sitemaps import StaticViewSitemap
@@ -1258,4 +1261,245 @@ class RemainingUpdatesTests(PageTestCase):
         self.assertIn('<h1>From the Blog</h1>', html)                       # the H1 stays
         for post in POSTS:
             self.assertIn(f'href="{post}"', html)                           # the article cards stay
+
+
+# ── Blog posts: the update command ("Remaining Content Updates" document) ──────
+
+BLOG_SAMPLES = Path(__file__).resolve().parent / 'tests_data' / 'blog'
+OLD_TITLES = {   # the titles the live posts had before this update
+    'emoji-kitchen-gboard': 'How to Use Emoji Kitchen Gboard on Android, iPhone & Samsung',
+    'emoji-kitchen-samsung': 'How to Use Emoji Kitchen Samsung on Galaxy Phones',
+    'emoji-kitchen-iphone': 'How to Use Emoji Kitchen on iPhone with Gboard & WhatsApp',
+    'emoji-kitchen-whatsapp': 'How to Use Emoji Kitchen WhatsApp on iPhone & Android',
+}
+
+
+# how many of each post's original blocks the document tells us to replace (intro + named sections + one contents entry)
+EXPECTED_CHANGED_BLOCKS = {'emoji-kitchen-gboard': 10, 'emoji-kitchen-samsung': 9,
+                           'emoji-kitchen-iphone': 9, 'emoji-kitchen-whatsapp': 15}
+
+
+class BlogUpdateTestCase(TestCase):
+    """Four posts whose bodies are real copies of the live ones (pasted-document HTML)."""
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.addCleanup(lambda: __import__('shutil').rmtree(self.tmp, ignore_errors=True))
+        for slug, title in OLD_TITLES.items():
+            BlogPost.objects.create(
+                title=title, slug=slug, excerpt='old excerpt', seo_title='old seo title', seo_description='old description',
+                content=(BLOG_SAMPLES / f'{slug}.html').read_text(encoding='utf-8'), status=BlogPost.STATUS_PUBLISHED)
+
+    def run_command(self, *args):
+        out = io.StringIO()
+        call_command('update_blog_posts', *args, '--backup-dir', self.tmp, stdout=out)
+        return out.getvalue()
+
+    def post(self, slug):
+        return BlogPost.objects.get(slug=slug)
+
+    def fetch(self, path):
+        response = self.client.get(path)
+        self.assertEqual(response.status_code, 200, path)
+        return response.content.decode()
+
+    def parse(self, path):
+        parser = _PageParser()
+        parser.feed(self.fetch(path))
+        return parser
+
+    def headings(self, slug, level='h2'):
+        return [b.text for b in blog_updates.split_blocks(self.post(slug).content) if b.tag == level]
+
+
+class BlogUpdateHelpersTests(BlogUpdateTestCase):
+    def test_splitting_and_rejoining_keeps_all_the_text(self):
+        for slug in OLD_TITLES:
+            source = self.post(slug).content
+            blocks = blog_updates.split_blocks(source)
+            self.assertGreater(len(blocks), 50, slug)
+            self.assertEqual(blog_updates.plain(blog_updates.join_blocks(blocks)), blog_updates.plain(source), slug)
+
+    def test_text_outside_a_block_is_refused_not_dropped(self):
+        with self.assertRaises(blog_updates.BlockError):
+            blog_updates.split_blocks('<p>fine</p> stray words <p>fine</p>')
+
+
+class BlogUpdateCommandTests(BlogUpdateTestCase):
+    def test_dry_run_changes_nothing(self):
+        before = {s: (p.title, p.content) for s, p in ((s, self.post(s)) for s in OLD_TITLES)}
+        output = self.run_command()
+        self.assertIn('DRY RUN: nothing was changed', output)
+        self.assertEqual(before, {s: (self.post(s).title, self.post(s).content) for s in OLD_TITLES})
+        self.assertEqual(list(Path(self.tmp).glob('*.json')), [])            # not even a backup
+        for slug in OLD_TITLES:
+            self.assertIn(f'/blog/{slug}/', output)
+
+    def test_apply_updates_titles_excerpts_and_seo_fields_but_never_the_web_address(self):
+        self.run_command('--apply')
+        for slug, update in blog_content.POST_UPDATES.items():
+            post = self.post(slug)
+            for field, value in update['fields'].items():
+                self.assertEqual(getattr(post, field), value, f'{slug}.{field}')
+            self.assertEqual(post.get_absolute_url(), f'/blog/{slug}/')
+        self.assertEqual(BlogPost.objects.count(), 4)
+
+    def test_apply_writes_a_backup_with_the_old_text(self):
+        old = {s: self.post(s).content for s in OLD_TITLES}
+        self.run_command('--apply')
+        files = list(Path(self.tmp).glob('blog_posts_*.json'))
+        self.assertEqual(len(files), 1)
+        backup = json.loads(files[0].read_text(encoding='utf-8'))
+        for slug in OLD_TITLES:
+            self.assertEqual(backup[slug]['content'], old[slug])
+            self.assertEqual(backup[slug]['title'], OLD_TITLES[slug])
+
+    def test_restore_puts_everything_back(self):
+        old = {s: (self.post(s).title, self.post(s).excerpt, self.post(s).seo_title, self.post(s).content) for s in OLD_TITLES}
+        self.run_command('--apply')
+        self.assertNotEqual(self.post('emoji-kitchen-gboard').title, OLD_TITLES['emoji-kitchen-gboard'])
+        backup = next(Path(self.tmp).glob('blog_posts_*.json'))
+        call_command('update_blog_posts', '--restore', str(backup), stdout=io.StringIO())
+        for slug in OLD_TITLES:
+            post = self.post(slug)
+            self.assertEqual((post.title, post.excerpt, post.seo_title, post.content), old[slug], slug)
+
+    def test_running_it_twice_changes_nothing_the_second_time(self):
+        self.run_command('--apply')
+        after_first = {s: self.post(s).content for s in OLD_TITLES}
+        output = self.run_command()
+        self.assertIn('everything is already up to date', output)
+        self.assertNotIn('[will change]', output)
+        self.run_command('--apply')
+        self.assertEqual(after_first, {s: self.post(s).content for s in OLD_TITLES})
+
+    def test_one_unreadable_post_means_nothing_is_changed(self):
+        broken = self.post('emoji-kitchen-whatsapp')
+        broken.content = broken.content.replace('How to Use Emoji Kitchen for WhatsApp in a Browser', 'Something else entirely')
+        broken.save()
+        before = {s: self.post(s).content for s in OLD_TITLES}
+        with self.assertRaises(CommandError) as ctx:
+            self.run_command('--apply')
+        self.assertIn('Nothing was changed', str(ctx.exception))
+        self.assertEqual(before, {s: self.post(s).content for s in OLD_TITLES})
+        self.assertEqual(self.post('emoji-kitchen-gboard').title, OLD_TITLES['emoji-kitchen-gboard'])
+        self.assertEqual(list(Path(self.tmp).glob('*.json')), [])
+
+    def test_a_missing_post_means_nothing_is_changed(self):
+        self.post('emoji-kitchen-samsung').delete()
+        with self.assertRaises(CommandError):
+            self.run_command('--apply')
+        self.assertEqual(self.post('emoji-kitchen-gboard').title, OLD_TITLES['emoji-kitchen-gboard'])
+
+    def test_a_single_post_can_be_selected(self):
+        self.run_command('--apply', '--post', 'emoji-kitchen-iphone')
+        self.assertEqual(self.post('emoji-kitchen-iphone').title, 'How to Use Emoji Kitchen on iPhone')
+        self.assertEqual(self.post('emoji-kitchen-gboard').title, OLD_TITLES['emoji-kitchen-gboard'])
+
+    def test_reading_time_is_recalculated(self):
+        BlogPost.objects.filter(slug='emoji-kitchen-gboard').update(reading_time=99)
+        self.run_command('--apply')
+        self.assertLess(self.post('emoji-kitchen-gboard').reading_time, 99)
+
+
+class BlogUpdateContentTests(BlogUpdateTestCase):
+    def setUp(self):
+        super().setUp()
+        self.old = {s: blog_updates.split_blocks(self.post(s).content) for s in OLD_TITLES}
+        self.run_command('--apply')
+
+    def test_only_the_named_sections_changed_everything_else_is_byte_for_byte_identical(self):
+        for slug, old_blocks in self.old.items():
+            old_html = {b.html for b in old_blocks}
+            new_blocks = blog_updates.split_blocks(self.post(slug).content)
+            new_html = {n.html for n in new_blocks}
+            changed = sum(1 for b in old_blocks if b.html not in new_html)
+            self.assertEqual(changed, EXPECTED_CHANGED_BLOCKS[slug], f'{slug}: {changed} old blocks changed')
+            untouched = len(old_blocks) - changed
+            self.assertEqual(sum(1 for b in new_blocks if b.html in old_html), untouched, slug)   # nothing else was rewritten
+            self.assertGreaterEqual(len(blog_updates.plain(self.post(slug).content).split()), 1300, slug)   # still full articles
+
+    def test_new_and_old_headings(self):
+        expected_new = {
+            'emoji-kitchen-gboard': ['Using Emoji Kitchen on Other Devices', 'Try Emoji Kitchen on Your Android Device'],
+            'emoji-kitchen-samsung': ['Choosing the Right Emoji Workflow on Samsung'],
+            'emoji-kitchen-iphone': ['Using Emoji Kitchen on iPhone'],
+            'emoji-kitchen-whatsapp': ['What Is Emoji Kitchen in WhatsApp?', 'How to Share a Browser-Created Mashup in WhatsApp',
+                                       'Choose a Sharing Method That Works'],
+        }
+        expected_gone = {
+            'emoji-kitchen-gboard': ['Gboard Emoji Kitchen on iPhone and Other Devices', 'Make Your Next Gboard Emoji Mashup'],
+            'emoji-kitchen-samsung': ['Conclusion'],
+            'emoji-kitchen-iphone': ['Make Your Next Emoji Mix on iPhone'],
+            'emoji-kitchen-whatsapp': ['What Is Emoji Kitchen on WhatsApp?', 'How to Use Emoji Kitchen for WhatsApp in a Browser',
+                                       'Create Your Next WhatsApp Sticker'],
+        }
+        for slug in OLD_TITLES:
+            heads = self.headings(slug)
+            for new in expected_new[slug]:
+                self.assertEqual(heads.count(new), 1, f'{slug}: {new}')
+            for gone in expected_gone[slug]:
+                self.assertNotIn(gone, heads, f'{slug}: {gone}')
+
+    def test_every_post_has_one_quick_answer_with_the_documents_text(self):
+        quick = {
+            'emoji-kitchen-gboard': 'Open a compatible application on an Android device and make sure Gboard is the active keyboard.',
+            'emoji-kitchen-samsung': "If you want to use Google's Emoji Kitchen on a supported Samsung Galaxy phone",
+            'emoji-kitchen-iphone': 'Open the browser-based mixer, select two supported emojis and check whether a result appears.',
+            'emoji-kitchen-whatsapp': 'On a supported Android setup, Gboard may provide Emoji Kitchen suggestions',
+        }
+        for slug, text in quick.items():
+            blocks = blog_updates.split_blocks(self.post(slug).content)
+            answers = [b for b in blocks if blog_updates.norm(b.text).startswith('quick answer')]
+            self.assertEqual(len(answers), 1, slug)
+            self.assertIn(text, answers[0].text, slug)
+
+    def test_iphone_keyword_list_is_gone_and_its_replacement_is_there(self):
+        text = blog_updates.plain(self.post('emoji-kitchen-iphone').content)
+        self.assertNotIn('kitchen emoji iPhone', text)
+        self.assertNotIn('emoji iPhone kitchen', text)
+        self.assertIn('The main question is how to create and use an image-based mashup on an Apple device.', text)
+
+    def test_iphone_table_of_contents_matches_its_headings(self):
+        blocks = blog_updates.split_blocks(self.post('emoji-kitchen-iphone').content)
+        toc = next(b for i, b in enumerate(blocks) if blocks[i - 1].text == 'Table of Contents')
+        self.assertIn('Using Emoji Kitchen on iPhone', toc.text)
+        self.assertNotIn('Make Your Next Emoji Mix on iPhone', toc.text)
+
+    def test_the_whatsapp_independence_note_is_kept(self):
+        text = blog_updates.plain(self.post('emoji-kitchen-whatsapp').content)
+        self.assertIn('Editorial note: Emoji Kitchen Hub is an independent tool website', text)
+
+    def test_no_editor_instruction_reaches_a_post(self):
+        for slug in OLD_TITLES:
+            text = blog_updates.plain(self.post(slug).content)
+            for note in ['should not be described', 'Do not describe', 'PASTE-READY', 'REPLACE WITH']:
+                self.assertNotIn(note, text, f'{slug}: {note}')
+        whatsapp = blog_updates.plain(self.post('emoji-kitchen-whatsapp').content)
+        self.assertIn('WhatsApp does not create the mashup itself.', whatsapp)
+        self.assertIn('they are not the same product.', blog_updates.plain(self.post('emoji-kitchen-samsung').content))
+
+    def test_samsung_replaces_the_first_two_paragraphs_and_keeps_the_third(self):
+        text = blog_updates.plain(self.post('emoji-kitchen-samsung').content)
+        self.assertNotIn('but it does not come from Samsung Keyboard', text)
+        self.assertNotIn('This distinction matters because Samsung also offers', text)
+        self.assertIn('Google still identifies Emoji Kitchen as a Gboard feature.', text)
+
+    def test_links_added_to_the_posts_work(self):
+        for slug in OLD_TITLES:
+            for target in re.findall(r'<a href="(/[^"]*)"', self.post(slug).content):
+                self.assertEqual(self.client.get(target).status_code, 200, f'{slug} links to {target}')
+
+    def test_published_pages_show_the_new_titles_meta_and_excerpts(self):
+        index = self.fetch('/blog/')
+        for slug, update in blog_content.POST_UPDATES.items():
+            fields = update['fields']
+            page = self.parse(f'/blog/{slug}/')
+            self.assertEqual([_clean(h) for h in page.h1], [fields['title']], slug)
+            self.assertEqual(_clean(page.title), fields['seo_title'], slug)             # no "— Emoji Kitchen" suffix any more
+            self.assertEqual(page.meta['description'], fields['seo_description'], slug)
+            self.assertIn(django_escape(fields['title']), index, slug)
+            self.assertIn(django_escape(fields['excerpt']), index, slug)
+            self.assertLessEqual(len(fields['seo_title']), 70)
+            self.assertLessEqual(len(fields['seo_description']), 160)
 
