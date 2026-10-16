@@ -1198,3 +1198,64 @@ class LegalAndSupportPagesTests(PageTestCase):
             self.assertIn('mailto:abdulmannanfiv@gmail.com', html, path)
             self.assertIn('mailto:mannanmaan1425@gmail.com', html, path)
 
+
+# ── "Remaining Content Updates" document: Home, Emoji Maker, Generator, Blog index ──
+
+class RemainingUpdatesTests(PageTestCase):
+    def test_home_results_claim_matches_how_fast_the_tool_really_is(self):
+        html = self.fetch('/')
+        self.assertIn('Free · No sign-up · Results in seconds', html)
+        self.assertNotIn('Instant results', html)
+
+    def test_home_keeps_the_verified_counter_and_png_claim(self):
+        html = self.fetch('/')
+        self.assertIn(f'{views.COMBO_COUNT:,}', html)          # 60,553 unique pairs in the data file
+        self.assertIn('Transparent files', html)               # the sticker PNGs really have a transparent background
+
+    def test_home_what_is_section_replaces_the_two_repeated_paragraphs(self):
+        html = self.fetch('/')
+        self.assertIn("Emoji Kitchen Hub is an independent website that helps visitors explore supported emoji combinations "
+                      "through a browser-based tool. It is separate from Google's Emoji Kitchen feature available through "
+                      "supported Google products.", html)
+        self.assertIn('Use the mixer to explore sticker-style mashups, or choose the keyboard', html)
+        self.assertIn('<h2>What Is an Emoji Kitchen?</h2>', html)            # the heading stays
+        self.assertIn('Google first introduced the feature through Gboard on Android.', html)   # the useful explanation stays
+        for old in ['Emoji Kitchen Hub is an unofficial fan-made tool. It is not run by Google, and it is not the Emoji Kitchen feature',
+                    'This site is an unofficial fan-made tool for mixing compatible emojis']:
+            self.assertNotIn(old, html)
+        links = self.body_links('/')
+        for target in ['/emoji-keyboard/', '/emoji-combos/', '/blog/', PC]:
+            self.assertIn(target, links)
+
+    def test_maker_closing_section(self):
+        html = self.fetch('/emoji-maker/')
+        self.assertIn('<h2>Make Your Next Emoji Mashup</h2>', html)
+        self.assertIn('It does not create a new Unicode character or provide a full image-editing workflow.', html)
+        self.assertIn('<a href="/emoji-combos/" class="btn btn--primary" style="margin-top:8px">Explore Emoji Combos</a>', html)
+        for old in ['Make Your Next Custom Emoji', 'save the combinations you want to use again', 'Make My Emoji']:
+            self.assertNotIn(old, html)
+
+    def test_no_page_promises_that_results_can_be_saved_for_later(self):
+        for path in ['/emoji-maker/', '/emoji-generator/', '/']:
+            html = self.fetch(path)
+            for promise in ['save the results that fit your style', 'save the combinations you want to use again',
+                            'save your favourites', 'keeps every creation']:
+                self.assertNotIn(promise, html, f'"{promise}" is on {path}')
+        self.assertIn('copy or download the results that fit your style', self.fetch('/emoji-generator/'))
+
+    def test_my_combos_wording_stays_accurate(self):
+        html = self.fetch('/emoji-maker/')
+        self.assertIn('Click any combo to reload it in the mixer', html)
+        for overclaim in ['permanent', 'forever', 'every previous', 'synced', 'on all your devices']:
+            self.assertNotIn(overclaim, html.split('id="my-combos"')[1].split('</div>')[0], overclaim)
+
+    def test_blog_index_introduction(self):
+        html = self.fetch('/blog/')
+        self.assertIn('Explore practical guides to emoji tools, keyboards, sticker-style mashups and common sharing problems.', html)
+        self.assertIn('without reading unrelated tutorials.', html)
+        self.assertNotIn('Tips, tricks, and fun discoveries', html)
+        self.assertEqual(len(self.parse('/blog/').h1), 1)
+        self.assertIn('<h1>From the Blog</h1>', html)                       # the H1 stays
+        for post in POSTS:
+            self.assertIn(f'href="{post}"', html)                           # the article cards stay
+
