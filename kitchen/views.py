@@ -237,12 +237,12 @@ EMOJI_GENERATOR_FAQS = [
         'answer': 'No. The tool combines two emojis at a time.',
     },
     {
-        'question': 'Are the results new Unicode emojis?',
-        'answer': 'No. The result is a sticker-style image rather than a new character added to a standard emoji keyboard.',
+        'question': 'Which emoji pairs should I try first?',
+        'answer': 'Open Explore Combinations in the mixer to load ready-made pairs for reactions, hearts, animals, food and nature, then change one emoji to make it your own.',
     },
     {
-        'question': 'Why is no result appearing?',
-        'answer': 'The selected pair may be unsupported, or the tool may not have loaded correctly. Try a different pair and report repeated failures.',
+        'question': 'Where can I use a generated emoji mix?',
+        'answer': 'Use it wherever an image or sticker is accepted, such as a chat, group message or social post. Some applications handle pasted images differently, so download the result if pasting does not work.',
     },
 ]
 
