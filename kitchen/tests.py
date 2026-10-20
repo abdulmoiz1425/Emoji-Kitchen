@@ -839,9 +839,8 @@ class HomePageContentTests(PageTestCase):
         for target in ['/emoji-maker/', '/emoji-generator/', '/emoji-keyboard/', '/emoji-combos/']:
             self.assertIn(target, links, f'Home does not link to {target}')
 
-    def test_existing_sections_and_the_combo_count_are_kept(self):
+    def test_existing_sections_are_kept(self):
         html = self.home()
-        self.assertIn(f'{views.COMBO_COUNT:,}', html)       # the count comes from the data file, so it is accurate
         for kept in ['What Is an Emoji Kitchen?', 'Share Emoji Kitchen Stickers with Friends', 'Emoji Kitchen FAQs',
                      'id="kitchen"', 'class="explore"']:
             self.assertIn(kept, html)
@@ -1230,10 +1229,13 @@ class RemainingUpdatesTests(PageTestCase):
         self.assertIn('Free · No sign-up · Results in seconds', html)
         self.assertNotIn('Instant results', html)
 
-    def test_home_keeps_the_verified_counter_and_png_claim(self):
+    def test_home_strip_shows_labels_only_without_the_four_big_words(self):
         html = self.fetch('/')
-        self.assertIn(f'{views.COMBO_COUNT:,}', html)          # 60,553 unique pairs in the data file
-        self.assertIn('Transparent files', html)               # the sticker PNGs really have a transparent background
+        self.assertNotIn('stat__value', html)
+        for word in ['60,553', '>Free<', '>Zero<', '>PNG<']:
+            self.assertNotIn(word, html)
+        for label in ['Emoji combos', 'Always &amp; forever', 'Sign-up needed', 'Transparent files']:
+            self.assertIn(f'<span class="stat__label">{label}</span>', html)
 
     def test_home_what_is_section_replaces_the_two_repeated_paragraphs(self):
         html = self.fetch('/')
