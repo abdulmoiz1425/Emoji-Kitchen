@@ -790,7 +790,7 @@ class HomePageContentTests(PageTestCase):
         self.assertEqual(_clean(page.title), 'Emoji Kitchen - Mix Emojis into Sticker-Style Images')
         self.assertEqual(page.meta['description'],
                          'Explore supported emoji pairs with Emoji Kitchen Hub. Browse emoji combinations, '
-                         'explore sticker-style mashups, and find standard emojis with the online keyboard.')
+                         'sticker-style mashups and standard emojis with the online keyboard.')
         self.assertEqual(page.meta['og:title'], 'Emoji Kitchen - Mix Emojis into Sticker-Style Images')
         self.assertEqual(len(page.h1), 1)   # the H1 stays
 
@@ -1553,4 +1553,36 @@ class ImageSeoTests(TestCase):
     def test_emoji_names(self):
         self.assertEqual(explore.emoji_name('\u2764\ufe0f'), 'red heart')
         self.assertEqual(explore.emoji_name('\U0001F602'), 'face with tears of joy')
+
+
+class SearchSnippetTests(PageTestCase):
+    """Titles and descriptions across the whole site stay within search-result limits and are unique."""
+
+    def test_every_page_has_a_unique_title_and_description_of_a_sensible_length(self):
+        titles, descriptions = {}, {}
+        for path in [p for p in ALL_PAGES if p not in POSTS]:
+            page = self.parse(path)
+            title, description = _clean(page.title), page.meta['description']
+            self.assertTrue(20 <= len(title) <= 60, f'{path} title is {len(title)} characters: {title}')
+            self.assertTrue(80 <= len(description) <= 160, f'{path} description is {len(description)} characters')
+            self.assertEqual(page.meta['og:title'] if 'og:title' in page.meta else title, title, path)
+            self.assertNotIn(title, titles, f'{path} repeats the title of {titles.get(title)}')
+            self.assertNotIn(description, descriptions, f'{path} repeats the description of {descriptions.get(description)}')
+            titles[title], descriptions[description] = path, path
+
+    def test_legal_pages_say_what_they_cover_and_no_longer_use_the_placeholder(self):
+        for path in LEGAL:
+            description = self.parse(path).meta['description']
+            self.assertNotIn(' page for Emoji Kitchen Hub', description, path)
+            self.assertNotIn('\u2014', _clean(self.parse(path).title), path)
+
+    def test_article_titles_and_descriptions_from_the_update_script(self):
+        seen = set()
+        for slug, update in blog_content.POST_UPDATES.items():
+            fields = update['fields']
+            title = fields.get('seo_title') or fields['title']
+            self.assertTrue(20 <= len(title) <= 60, f'{slug}: {len(title)} characters')
+            self.assertTrue(80 <= len(fields['seo_description']) <= 160, slug)
+            self.assertNotIn((title, fields['seo_description']), seen)
+            seen.add((title, fields['seo_description']))
 
