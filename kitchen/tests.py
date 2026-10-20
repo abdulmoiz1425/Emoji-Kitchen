@@ -933,9 +933,9 @@ class MakerAndGeneratorContentTests(PageTestCase):
 
     def test_every_idea_pair_on_the_generator_page_is_a_real_supported_pair(self):
         html = self.fetch('/emoji-generator/')
-        ideas = html[html.index('Emoji Mix Ideas to Try'):html.index('How to Choose a Useful Pair')]
+        ideas = html[html.index('<h2>Emoji Mix Ideas to Try</h2>'):html.index('<h2>How to Choose a Useful Pair</h2>')]
         pairs = re.findall(r'(\S+) \+ (\S+?)(?=[ ,.<])', re.sub(r'<[^>]+>', ' ', ideas).replace('  ', ' '))
-        self.assertGreaterEqual(len(pairs), 12)
+        self.assertEqual(len(pairs), 13)
         for first, second in pairs:
             self.assertTrue(views.combo_image_url(first, second), f'{first} + {second} is not supported')
 
