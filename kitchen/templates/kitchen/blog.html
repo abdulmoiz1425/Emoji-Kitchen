@@ -24,7 +24,7 @@
     <a href="{{ featured_post.get_absolute_url }}" class="blog-featured animate-up">
       <div class="blog-featured__cover">
         {% if featured_post.featured_image|image_is_usable %}
-        <img src="{{ featured_post.featured_image.url }}" alt="{{ featured_post.title }}" loading="lazy">
+        <img src="{{ featured_post.featured_image.url }}" alt="Cover image for the guide: {{ featured_post.title }}" title="{{ featured_post.title }}" loading="lazy">
         {% else %}
         <span class="blog-featured__cover-emoji">📝</span>
         {% endif %}
@@ -53,7 +53,7 @@
       <article class="blog-card animate-up" style="--delay:{{ forloop.counter0 }}00ms">
         <a href="{{ post.get_absolute_url }}" class="blog-card__cover">
           {% if post.featured_image|image_is_usable %}
-          <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" loading="lazy">
+          <img src="{{ post.featured_image.url }}" alt="Cover image for the guide: {{ post.title }}" title="{{ post.title }}" loading="lazy">
           {% else %}
           <span class="blog-card__cover-emoji">📝</span>
           {% endif %}

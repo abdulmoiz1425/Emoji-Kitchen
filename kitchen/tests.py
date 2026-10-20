@@ -701,10 +701,10 @@ class ExploreCombinationsTests(PageTestCase):
     def test_items_carry_what_the_mixer_needs_and_are_accessible(self):
         html = self.fetch('/')
         item = re.search(r'<button type="button" class="explore-item" data-emoji1="([^"]+)" data-emoji2="([^"]+)"'
-                         r'\s+data-url="([^"]+)" aria-label="([^"]+)">\s*<img src="([^"]+)" alt="([^"]+)" loading="lazy"'
+                         r'\s+data-url="([^"]+)" aria-label="([^"]+)">\s*<img src="([^"]+)" alt="([^"]+)"\s+title="([^"]+)" loading="lazy"'
                          r' width="96" height="96"', html)
         self.assertIsNotNone(item)
-        first, second, data_url, label, src, alt = item.groups()
+        first, second, data_url, label, src, alt, title = item.groups()
         self.assertEqual(data_url, src)
         self.assertEqual(views.combo_image_url(first, second), data_url)
         self.assertIn('emoji mashup', alt)
@@ -1502,4 +1502,35 @@ class BlogUpdateContentTests(BlogUpdateTestCase):
             self.assertIn(django_escape(fields['excerpt']), index, slug)
             self.assertLessEqual(len(fields['seo_title']), 70)
             self.assertLessEqual(len(fields['seo_description']), 160)
+
+
+class ImageSeoTests(TestCase):
+    """Every image on a public page needs its own alt text and title."""
+
+    PAGES = ['/', '/emoji-maker/', '/emoji-generator/', '/blog/']
+
+    def imgs(self, path):
+        html = self.client.get(path).content.decode()
+        return [dict(re.findall(r'([\w-]+)="([^"]*)"', tag)) for tag in re.findall(r'<img\b[^>]*>', html)]
+
+    def test_every_image_has_alt_and_title(self):
+        for path in self.PAGES:
+            for img in self.imgs(path):
+                self.assertTrue(img.get('alt', '').strip(), f'{path}: no alt on {img}')
+                self.assertTrue(img.get('title', '').strip(), f'{path}: no title on {img}')
+
+    def test_explore_thumbnails_use_words_not_only_symbols(self):
+        for img in self.imgs('/'):
+            if img.get('width') == '96':
+                self.assertTrue(re.fullmatch(r'[A-Z][a-z -]+ and [a-z -]+ emoji mashup sticker', img['alt']), img['alt'])
+                self.assertNotRegex(img['alt'], r'[^\x00-\x7f]')
+
+    def test_alt_text_is_not_repeated_for_different_images_on_one_page(self):
+        for path in self.PAGES:
+            alts = [i['alt'] for i in self.imgs(path) if i.get('src')]
+            self.assertEqual(len(alts), len(set(alts)), path)
+
+    def test_emoji_names(self):
+        self.assertEqual(explore.emoji_name('\u2764\ufe0f'), 'red heart')
+        self.assertEqual(explore.emoji_name('\U0001F602'), 'face with tears of joy')
 

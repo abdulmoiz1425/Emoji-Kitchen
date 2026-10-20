@@ -18,7 +18,8 @@
     {% for item in group.items %}
     <button type="button" class="explore-item" data-emoji1="{{ item.emoji1 }}" data-emoji2="{{ item.emoji2 }}"
             data-url="{{ item.url }}" aria-label="Load {{ item.emoji1 }} plus {{ item.emoji2 }} into the mixer">
-      <img src="{{ item.url }}" alt="{{ item.emoji1 }} + {{ item.emoji2 }} emoji mashup" loading="lazy" width="96" height="96"
+      <img src="{{ item.url }}" alt="{{ item.name1|capfirst }} and {{ item.name2 }} emoji mashup sticker"
+           title="{{ item.name1|capfirst }} + {{ item.name2 }} emoji mashup" loading="lazy" width="96" height="96"
            onerror="this.closest('.explore-item').hidden=true" />
       <span class="explore-item__label">{{ item.emoji1 }} + {{ item.emoji2 }}</span>
     </button>

@@ -177,7 +177,8 @@ function loadSavedCombo(combo) {
   // Scroll mixer into view and confirm
   document.getElementById('kitchen').scrollIntoView({ behavior: 'smooth', block: 'center' });
   window.showToast('Combo loaded into the mixer!', '🍳');
-  resultImg.alt = `${combo.emoji1} + ${combo.emoji2} emoji mashup`;
+  resultImg.alt = `${combo.emoji1} and ${combo.emoji2} emoji mashup`;
+  resultImg.title = `${combo.emoji1} + ${combo.emoji2} emoji mashup`;
   clearAlternatives();
   setStatus(`${combo.emoji1} + ${combo.emoji2} is a supported pair.`, 'ok');
   applyCompat(combo.emoji1);
@@ -201,7 +202,7 @@ function renderCombos() {
     card.innerHTML = `
       <button class="combo-card__del" aria-label="Remove combo" title="Remove">×</button>
       <div class="combo-card__img">
-        <img src="${combo.url}" alt="${combo.emoji1}+${combo.emoji2} mashup"
+        <img src="${combo.url}" alt="${combo.emoji1} and ${combo.emoji2} emoji mashup" title="${combo.emoji1} + ${combo.emoji2} emoji mashup"
              onerror="this.parentElement.innerHTML='<span style=font-size:1.8rem>😢</span>'" />
       </div>
       <div class="combo-card__sources">
@@ -532,7 +533,8 @@ function showCombosGallery(combos) {
 
     const img = document.createElement('img');
     img.src = url;
-    img.alt = `${slot1Emoji}+${emoji2}`;
+    img.alt = `${slot1Emoji} and ${emoji2} emoji mashup`;
+    img.title = `${slot1Emoji} + ${emoji2} emoji mashup`;
     img.loading = 'lazy';
     img.onerror = () => { card.style.display = 'none'; };
 
@@ -624,7 +626,8 @@ async function cookCombo() {
       comboUrl = validUrl;
       showState('result');
       resultImg.src = validUrl;
-      resultImg.alt = `${first} + ${second} emoji mashup`;
+      resultImg.alt = `${first} and ${second} emoji mashup`;
+      resultImg.title = `${first} + ${second} emoji mashup`;
       resultImg.style.display = '';
       resultBox.classList.add('has-result');
       btnCopy.disabled = false;
@@ -733,7 +736,8 @@ async function handleSurprise(retriesLeft = 3) {
     btnCopy.disabled = false;
     btnDownload.disabled = false;
 
-    resultImg.alt = `${emoji1} + ${emoji2} emoji mashup`;
+    resultImg.alt = `${emoji1} and ${emoji2} emoji mashup`;
+    resultImg.title = `${emoji1} + ${emoji2} emoji mashup`;
     setStatus(`${emoji1} + ${emoji2} is a supported pair.`, 'ok');
 
     // Save to My Combos
@@ -767,6 +771,8 @@ btnReset.addEventListener('click', () => {
   });
   comboUrl = '';
   resultImg.src = '';
+  resultImg.alt = 'Emoji mashup result';
+  resultImg.title = 'Your emoji mashup';
   btnCopy.disabled = true; btnDownload.disabled = true;
   showState('idle');
 });
