@@ -8,6 +8,8 @@
 {% block canonical_href %}{{ canonical_url }}{% endblock %}
 
 {% block extra_head %}
+<script type="application/ld+json">{{ article_json_ld|safe }}</script>
+{% if post_faqs %}<script type="application/ld+json">{{ post_faqs|faq_schema|safe }}</script>{% endif %}
 {% if post.seo_keywords %}
 <meta name="keywords" content="{{ post.seo_keywords }}" />
 {% endif %}

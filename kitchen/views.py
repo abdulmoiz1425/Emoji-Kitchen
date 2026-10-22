@@ -8,7 +8,7 @@ from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse, Http404
 
 from .models import BlogPost
-from .seo import absolute_media_url, clean_canonical
+from .seo import absolute_media_url, article_json_ld, clean_canonical, faq_json_ld, faq_pairs_from_html
 
 
 # ── Emoji combo lookup ──────────────────────────────────────────────────────────
@@ -773,16 +773,21 @@ def blog_detail(request, slug):
             .select_related('category')[:3]
         )
 
+    canonical_url = clean_canonical(
+        request,
+        post.canonical_url,
+        post.get_absolute_url(),
+        current_slug=post.slug,
+    )
+    share_image = absolute_media_url(request, post.og_image_display)
     context = {
         'post': post,
         'related_posts': related_posts,
-        'canonical_url': clean_canonical(
-            request,
-            post.canonical_url,
-            post.get_absolute_url(),
-            current_slug=post.slug,
-        ),
-        'share_image': absolute_media_url(request, post.og_image_display),
+        'canonical_url': canonical_url,
+        'share_image': share_image,
+        'article_json_ld': article_json_ld(
+            post, canonical_url, f'{request.scheme}://{request.get_host()}/', share_image),
+        'post_faqs': [{'question': q, 'answer': a} for q, a in faq_pairs_from_html(post.content)],
     }
     return render(request, 'kitchen/blog_detail.html', context)
 
@@ -950,18 +955,7 @@ def proxy_image(request):
 
 def _faq_json_ld(faqs):
     """FAQPage structured data for a list of {'question', 'answer'} dicts."""
-    entities = [
-        {
-            '@type': 'Question',
-            'name': item['question'],
-            'acceptedAnswer': {'@type': 'Answer', 'text': item['answer']},
-        }
-        for item in faqs
-    ]
-    return json.dumps(
-        {'@context': 'https://schema.org', '@type': 'FAQPage', 'mainEntity': entities},
-        ensure_ascii=False,
-    ).replace('<', '\\u003c')
+    return faq_json_ld(faqs)
 
 
 def combo_image_url(emoji1, emoji2):

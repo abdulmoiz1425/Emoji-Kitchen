@@ -3,6 +3,8 @@
 Blog rows (iPhone, Samsung, Gboard, WhatsApp) live in the production database,
 not in this repo. These helpers stop bad stored values from being rendered.
 """
+import html as html_lib
+import json
 import re
 from pathlib import Path
 from urllib.parse import urlparse
@@ -66,6 +68,11 @@ def clean_canonical(request, explicit_url='', fallback_path='/', current_slug=No
         if match.kwargs.get('slug') != current_slug:
             return fallback
 
+    # The old top-level article addresses (/emoji-kitchen-iphone/) now redirect to /blog/<slug>/,
+    # so a stored canonical that points at one is a redirect target, not the page itself.
+    if (match.url_name or '').startswith('legacy_'):
+        return fallback
+
     return f'{request.scheme}://{request.get_host()}{path}'
 
 
@@ -125,3 +132,68 @@ def clean_post_html(html):
         return tag
 
     return _IMG_TAG.sub(replacer, html)
+
+
+# ── Structured data ──────────────────────────────────────────────────────────
+
+def json_ld(data):
+    """JSON for a <script type="application/ld+json"> tag; '<' is escaped so the tag cannot be closed early."""
+    return json.dumps(data, ensure_ascii=False).replace('<', '\\u003c')
+
+
+def faq_json_ld(faqs):
+    """FAQPage data for a list of {'question', 'answer'} dicts (the questions shown on the page)."""
+    entities = [
+        {'@type': 'Question', 'name': item['question'],
+         'acceptedAnswer': {'@type': 'Answer', 'text': item['answer']}}
+        for item in faqs
+    ]
+    return json_ld({'@context': 'https://schema.org', '@type': 'FAQPage', 'mainEntity': entities})
+
+
+_H2 = re.compile(r'<h2\b[^>]*>(.*?)</h2>', re.IGNORECASE | re.DOTALL)
+_H3 = re.compile(r'<h3\b[^>]*>(.*?)</h3>', re.IGNORECASE | re.DOTALL)
+_TAG = re.compile(r'<[^>]+>')
+
+
+def _plain(fragment):
+    return re.sub(r'\s+', ' ', html_lib.unescape(_TAG.sub(' ', fragment))).strip()
+
+
+def faq_pairs_from_html(content):
+    """(question, answer) pairs from a post's visible FAQ section: the <h3>s under the <h2> that ends in FAQ(s)."""
+    content = content or ''
+    for heading in _H2.finditer(content):
+        if not re.search(r'\bFAQs?\b', _plain(heading.group(1)), re.IGNORECASE):
+            continue
+        following = _H2.search(content, heading.end())
+        section = content[heading.end():following.start() if following else len(content)]
+        questions = list(_H3.finditer(section))
+        pairs = []
+        for i, question in enumerate(questions):
+            end = questions[i + 1].start() if i + 1 < len(questions) else len(section)
+            q, a = _plain(question.group(1)), _plain(section[question.end():end])
+            if q and a:
+                pairs.append((q, a))
+        return pairs
+    return []
+
+
+def article_json_ld(post, page_url, site_url, image_url=''):
+    """BlogPosting data built only from fields the page already shows."""
+    data = {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        'headline': post.title[:110],
+        'description': post.meta_description,
+        'datePublished': post.publish_date.isoformat(),
+        'dateModified': (post.updated_at or post.publish_date).isoformat(),
+        'author': {'@type': 'Organization', 'name': post.author},
+        'publisher': {'@type': 'Organization', 'name': 'Emoji Kitchen Hub', 'url': site_url},
+        'mainEntityOfPage': {'@type': 'WebPage', '@id': page_url},
+        'inLanguage': 'en',
+    }
+    if image_url:
+        data['image'] = [image_url]
+    return json_ld(data)
+

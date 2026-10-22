@@ -1716,3 +1716,97 @@ class SearchSnippetTests(PageTestCase):
             self.assertNotIn((title, fields['seo_description']), seen)
             seen.add((title, fields['seo_description']))
 
+
+# ── Structured data, canonical and share cards ───────────────────────────────
+
+def _ld_blocks(html):
+    return [json.loads(x) for x in re.findall(r'<script type="application/ld\+json">(.*?)</script>', html, re.S)]
+
+
+class SiteWideSeoTests(PageTestCase):
+    FAQ_PAGES = HUBS[:1] + ['/emoji-maker/', '/emoji-generator/', '/emoji-keyboard/', '/emoji-combos/', PC] + COMBOS
+
+    def test_every_json_ld_block_on_every_page_is_valid_json(self):
+        for path in [p for p in ALL_PAGES if p not in POSTS]:
+            self.assertGreaterEqual(len(_ld_blocks(self.fetch(path))), 1, path)
+
+    def test_faq_markup_matches_the_questions_shown_and_is_not_duplicated(self):
+        for path in self.FAQ_PAGES:
+            html = self.fetch(path)
+            faq_blocks = [b for b in _ld_blocks(html) if b.get('@type') == 'FAQPage']
+            self.assertEqual(len(faq_blocks), 1, path)
+            shown = len(re.findall(r'<details class="faq-item[ "]', html))
+            self.assertGreater(shown, 0, path)
+            self.assertEqual(len(faq_blocks[0]['mainEntity']), shown, path)
+            for entity in faq_blocks[0]['mainEntity']:
+                self.assertIn(django_escape(entity['name']), html, path)
+
+    def test_pages_without_faqs_have_no_faq_markup(self):
+        for path in ['/blog/', '/privacy/', '/terms/', '/contact/', '/about-us/']:
+            self.assertFalse([b for b in _ld_blocks(self.fetch(path)) if b.get('@type') == 'FAQPage'], path)
+
+    def test_combo_category_pages_have_share_image_and_twitter_card(self):
+        for path in COMBOS:
+            page = self.parse(path)
+            self.assertTrue(page.meta.get('og:image', '').endswith('og-emoji-kitchen-hub.png'), path)
+            self.assertEqual(page.meta.get('twitter:card'), 'summary_large_image', path)
+            self.assertEqual(page.meta['og:title'], _clean(page.title), path)
+
+
+class ArticleSeoTests(BlogUpdateTestCase):
+    def ld(self, slug):
+        return _ld_blocks(self.fetch(f'/blog/{slug}/'))
+
+    def test_old_address_stored_as_canonical_is_ignored(self):
+        post = self.post('emoji-kitchen-iphone')
+        for stored in ['https://emojikitchenhub.com/emoji-kitchen-iphone/', '/emoji-kitchen-iphone/', 'emoji-kitchen-iphone']:
+            post.canonical_url = stored
+            post.save()
+            self.assertEqual(urlparse(self.parse('/blog/emoji-kitchen-iphone/').canonical).path, '/blog/emoji-kitchen-iphone/', stored)
+
+    def test_a_correct_stored_canonical_is_kept(self):
+        post = self.post('emoji-kitchen-gboard')
+        post.canonical_url = 'https://emojikitchenhub.com/blog/emoji-kitchen-gboard/'
+        post.save()
+        self.assertEqual(urlparse(self.parse('/blog/emoji-kitchen-gboard/').canonical).path, '/blog/emoji-kitchen-gboard/')
+
+    def test_each_article_has_blogposting_markup_built_from_what_the_page_shows(self):
+        for slug in OLD_TITLES:
+            post = self.post(slug)
+            page = self.parse(f'/blog/{slug}/')
+            articles = [b for b in self.ld(slug) if b.get('@type') == 'BlogPosting']
+            self.assertEqual(len(articles), 1, slug)
+            data = articles[0]
+            self.assertEqual(data['headline'], post.title)
+            self.assertEqual(data['mainEntityOfPage']['@id'], page.canonical)
+            self.assertEqual(data['datePublished'], post.publish_date.isoformat())
+            self.assertEqual(data['publisher']['name'], 'Emoji Kitchen Hub')
+            for invented in ['aggregateRating', 'review', 'reviewRating']:
+                self.assertNotIn(invented, data)
+
+    def test_faq_markup_comes_from_the_questions_in_the_article(self):
+        expected = {'emoji-kitchen-gboard': 9, 'emoji-kitchen-samsung': 9, 'emoji-kitchen-iphone': 9, 'emoji-kitchen-whatsapp': 7}
+        for slug, count in expected.items():
+            html = self.fetch(f'/blog/{slug}/')
+            faq = [b for b in _ld_blocks(html) if b.get('@type') == 'FAQPage']
+            self.assertEqual(len(faq), 1, slug)
+            self.assertEqual(len(faq[0]['mainEntity']), count, slug)
+            for entity in faq[0]['mainEntity']:
+                self.assertTrue(entity['acceptedAnswer']['text'].strip(), slug)
+                self.assertIn(blog_updates.plain(entity['name']), blog_updates.plain(self.post(slug).content), slug)
+
+    def test_a_post_without_an_faq_section_gets_no_faq_markup(self):
+        post = self.post('emoji-kitchen-gboard')
+        post.content = '<h2>Intro</h2><p>No questions here.</p>'
+        post.save()
+        self.assertFalse([b for b in self.ld('emoji-kitchen-gboard') if b.get('@type') == 'FAQPage'])
+        self.assertEqual(len([b for b in self.ld('emoji-kitchen-gboard') if b.get('@type') == 'BlogPosting']), 1)
+
+    def test_markup_cannot_break_out_of_the_script_tag(self):
+        post = self.post('emoji-kitchen-gboard')
+        post.title = 'Tricky </script><b>title</b>'
+        post.save()
+        html = self.fetch('/blog/emoji-kitchen-gboard/')
+        self.assertNotIn('</script><b>', html)
+        self.assertEqual([b for b in _ld_blocks(html) if b.get('@type') == 'BlogPosting'][0]['headline'], post.title)
+
