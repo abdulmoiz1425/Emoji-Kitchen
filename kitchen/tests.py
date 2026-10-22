@@ -707,7 +707,7 @@ class ExploreCombinationsTests(PageTestCase):
         first, second, data_url, label, src, alt, title = item.groups()
         self.assertEqual(data_url, src)
         self.assertEqual(views.combo_image_url(first, second), data_url)
-        self.assertIn('emoji mashup', alt)
+        self.assertTrue(alt.strip() and title.strip())
         self.assertIn('into the mixer', label)
 
     def test_tabs_and_panels_are_wired_together(self):
@@ -1541,11 +1541,39 @@ class ImageSeoTests(TestCase):
                 self.assertTrue(img.get('alt', '').strip(), f'{path}: no alt on {img}')
                 self.assertTrue(img.get('title', '').strip(), f'{path}: no title on {img}')
 
-    def test_explore_thumbnails_use_words_not_only_symbols(self):
-        for img in self.imgs('/'):
-            if img.get('width') == '96':
-                self.assertTrue(re.fullmatch(r'[A-Z][a-z -]+ and [a-z -]+ emoji mashup sticker', img['alt']), img['alt'])
-                self.assertNotRegex(img['alt'], r'[^\x00-\x7f]')
+    def test_explore_thumbnails_use_the_seo_teams_text_exactly(self):
+        by_src = {i['src']: i for i in self.imgs('/') if i.get('width') == '96'}
+        self.assertEqual(len(by_src), 30)
+        for pair, (title, alt) in explore.IMAGE_TEXT.items():
+            img = by_src[views.combo_image_url(*pair)]
+            self.assertEqual(img['title'], title, pair)
+            if alt:
+                self.assertEqual(img['alt'], alt, pair)
+        sample = by_src[views.combo_image_url('\U0001F602', '\U0001F480')]
+        self.assertEqual(sample['title'], 'Laughing Face and Skull Emoji Mashup')
+        self.assertEqual(sample['alt'], 'Light gray skull emoji with closed laughing eyes and large blue tears of joy.')
+
+    def test_pairs_without_usable_file_text_keep_generated_wording(self):
+        by_src = {i['src']: i for i in self.imgs('/') if i.get('width') == '96'}
+        cupcake = by_src[views.combo_image_url('\U0001F9C1', '\U0001F308')]      # no entry in the file
+        self.assertEqual(cupcake['alt'], 'Cupcake and rainbow emoji mashup sticker')
+        droplet = by_src[views.combo_image_url('\U0001F525', '\U0001F4A7')]      # the file's alt repeats another entry
+        self.assertEqual(droplet['title'], 'Fire and Water Droplet Emoji Mashup')
+        self.assertEqual(droplet['alt'], 'Fire and droplet emoji mashup sticker')
+
+    def test_alt_text_is_plain_readable_and_not_too_long(self):
+        for path in self.PAGES:
+            for img in self.imgs(path):
+                self.assertLessEqual(len(img['alt']), 125, img['alt'])
+                self.assertNotRegex(img['alt'], r'[^\x00-\x7f]') if img.get('width') == '96' else None
+
+    def test_home_static_images_use_the_seo_teams_text(self):
+        alts = {i['alt']: i['title'] for i in self.imgs('/')}
+        self.assertEqual(alts['Orange cat emoji with flaming ears, fire-shaped forehead, and fiery eyes.'], 'Cat and Fire Emoji Mashup')
+        self.assertEqual(alts['Cute dog face with floppy brown ears, a heart-shaped outline, and a playful expression.'],
+                         'Dog and Heart Emoji Mashup')
+        self.assertEqual(alts['Cat and fire emoji mashup displayed inside a chat bubble as a messaging sticker.'],
+                         'Cat and Fire Emoji in Chat Bubble')
 
     def test_alt_text_is_not_repeated_for_different_images_on_one_page(self):
         for path in self.PAGES:
