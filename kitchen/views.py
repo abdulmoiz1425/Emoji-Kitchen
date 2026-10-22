@@ -255,24 +255,32 @@ EMOJI_GENERATOR_FAQS = [
 
 EMOJI_MAKER_FAQS = [
     {
-        'question': 'Does this tool create a new Unicode emoji?',
-        'answer': 'No. It creates a sticker-style image from supported emoji designs, not a new Unicode character.',
+        'question': 'What does an emoji maker do?',
+        'answer': 'An emoji maker creates emoji-based images. This one combines two compatible emojis into a sticker-style result when the pair is supported.',
+    },
+    {
+        'question': 'Can I make my own emoji for free?',
+        'answer': 'Yes. You can mix supported pairs for free in your browser, with no sign-up. The result is a sticker-style image, not a new keyboard emoji.',
+    },
+    {
+        'question': 'Does this tool use AI?',
+        'answer': 'No. The tool combines existing emoji designs. It does not generate artwork from text prompts.',
+    },
+    {
+        'question': 'Can I edit individual facial features?',
+        'answer': 'No. You cannot change eyes, mouths or other details. You can only choose which two emojis to combine.',
     },
     {
         'question': 'Can I make an emoji from a photo?',
         'answer': 'No. This tool combines existing emoji designs. It does not convert photos into emojis.',
     },
     {
-        'question': 'Does every emoji pair work?',
-        'answer': 'No. Only supported pairs produce a result.',
+        'question': 'Why does a combination fail?',
+        'answer': 'Only supported pairs produce a result. If a pair is unavailable, change one emoji. If supported pairs also fail to load, refresh the page and try again.',
     },
     {
-        'question': 'Can I use the result in any application?',
-        'answer': 'Not necessarily. Applications handle copied images and stickers differently. If pasting does not work, try downloading the result if that option is available.',
-    },
-    {
-        'question': 'What should I use for standard emoji characters?',
-        'answer': 'Use the online emoji keyboard to select and copy standard emoji characters for text.',
+        'question': 'Can I use the result in messages?',
+        'answer': 'Often, yes. Copy the image and paste it into an app that accepts images, or download it and attach it. Applications handle pasted images and stickers differently.',
     },
 ]
 

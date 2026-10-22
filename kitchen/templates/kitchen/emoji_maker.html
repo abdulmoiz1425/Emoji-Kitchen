@@ -1,11 +1,11 @@
 {% extends 'kitchen/base.html' %}
 {% load static %}
 
-{% block title %}Emoji Maker - Make a Sticker from Two Emojis{% endblock %}
-{% block meta_description %}Make a sticker-style emoji from two existing emojis. See what this online emoji maker can and cannot do, and when to use the emoji keyboard instead.{% endblock %}
+{% block title %}Emoji Maker – Create Custom Emoji Stickers Online{% endblock %}
+{% block meta_description %}Make custom emoji-style stickers by combining two compatible emojis. Preview your mashup, then copy or download the result using our online emoji maker.{% endblock %}
 
 {% block extra_head %}
-{% include "kitchen/_social_meta.html" with page_title="Emoji Maker - Make a Sticker from Two Emojis" page_description="Make a sticker-style emoji from two existing emojis. See what this online emoji maker can and cannot do, and when to use the emoji keyboard instead." %}
+{% include "kitchen/_social_meta.html" with page_title="Emoji Maker – Create Custom Emoji Stickers Online" page_description="Make custom emoji-style stickers by combining two compatible emojis. Preview your mashup, then copy or download the result using our online emoji maker." %}
 {% endblock %}
 
 {% block content %}
@@ -15,53 +15,77 @@
   <div class="container container--narrow">
     <div class="section-head section-head--center animate-up">
       <span class="section-badge">🪄 Emoji Maker</span>
-      <h1>Emoji Maker: Make Your Own Emoji Free Online</h1>
-      <p>Use this online emoji maker to explore combinations of familiar emojis and create a sticker-style result when a supported pair is available. Choose a first emoji, add a second emoji and check the preview. If the pair has no result, try another combination.</p>
-      <p>This tool combines existing emoji designs. It does not create a new Unicode character for your keyboard. If you need a regular emoji character for text, use the <a href="/emoji-keyboard/" style="text-decoration:underline;text-underline-offset:3px">online emoji keyboard</a>.</p>
+      <h1>Emoji Maker – Create Custom Emoji Stickers Online</h1>
+      <p>Want to make an emoji-style reaction that feels more personal than a standard keyboard symbol? This online emoji maker lets you combine two compatible emojis into a sticker-style image.</p>
+      <p>Choose a face, animal, heart, food item, or another symbol, then add a second emoji to change the mood or meaning. When a supported combination is available, you can preview the result and use the available copy or download controls.</p>
+      <p>This tool is designed for quick emoji mashups. It does not draw entirely new characters, edit uploaded photos, or create new Unicode keyboard emojis.</p>
     </div>
   </div>
 </section>
 
 <!-- ═══════════════════════════════════════════════════ EMOJI MIXER TOOL ══ -->
-{% include 'kitchen/_mixer.html' with mixer_badge="🛠️ The tool" mixer_title="Make Your Own Emoji Now" mixer_desc="Choose two emojis below to create your custom emoji mashup. Copy or download the result in seconds." %}
+{% include 'kitchen/_mixer.html' with mixer_badge="🛠️ The tool" mixer_title="Make Your Own Emoji" mixer_desc="Choose two emojis in the mixer to explore supported combinations." %}
 
 <!-- ══════════════════════════════════════════════════════ ARTICLE BODY ══ -->
 <section class="section" style="padding-top:0">
   <div class="container container--narrow">
     <div class="blog-detail__content">
 
-      <h2>What This Emoji Maker Creates</h2>
-      <p>Emoji maker can refer to several kinds of tools. Some create illustrations, some modify photos, and others combine existing emoji designs. <a href="/">Emoji Kitchen Hub</a> focuses on exploring supported two-emoji combinations that produce sticker-style images.</p>
-      <p>A standard emoji is a Unicode character or supported sequence that can be used as text. A sticker-style mashup is an image. It does not become a new character in your device's emoji keyboard.</p>
+      <h2>What Is an Emoji Maker?</h2>
+      <p>An emoji maker is a tool for creating emoji-based designs, reactions, or images. Different tools offer different capabilities. Some provide avatar builders, photo editing, or AI-generated artwork, while others combine existing emoji designs.</p>
+      <p><a href="/">Emoji Kitchen Hub</a> focuses on combining two compatible emojis into a sticker-style result.</p>
 
-      <h2>How to Use the Emoji Maker</h2>
+      <h2>How to Make Your Own Emoji</h2>
       <ol>
-        <li>Choose the first emoji that represents the main idea or feeling.</li>
-        <li>Select a second emoji to add a subject, mood or contrast.</li>
-        <li>Check whether the selected pair produces a preview.</li>
-        <li>If no result is available, change one emoji and try again.</li>
-        <li>Use the available copy or download option if the current tool supports it.</li>
+        <li><strong>Choose a Main Idea.</strong> Start with the feeling, subject or joke you want to express, then pick the emoji that represents it best. A face sets the mood, while an animal, food item or object sets the topic.</li>
+        <li><strong>Add Another Emoji.</strong> Select a second emoji in the other picker. Emojis that have no sticker with your first choice are greyed out in the second list, which helps you avoid dead ends.</li>
+        <li><strong>Check the Result.</strong> The preview shows the mashup when the pair is supported. If nothing appears, change one emoji and try again.</li>
+        <li><strong>Copy or Download.</strong> Use Copy to place the image on your clipboard, or Download to save it as an image file. Some apps do not accept pasted images, so keep the download as a backup.</li>
       </ol>
-      <p>For example, a face paired with a heart may suggest affection, while an animal paired with a dramatic symbol may create a playful reaction. These are pairing ideas, not guarantees that a particular output exists.</p>
 
-      <h2>What This Tool Can and Cannot Do</h2>
-      <p>The tool is intended for exploring supported combinations of existing emoji designs. Do not treat it as a full image editor.</p>
-      <p>It does not offer photo-to-emoji conversion, manual drawing, custom face editing or prompt-based image generation.</p>
-      <p>If you need a standard character for text, use the <a href="/emoji-keyboard/">online emoji keyboard</a>. If you want ready-made text sequences for a profile or caption, browse <a href="/emoji-combos/">Emoji Combos</a>. For tips on choosing a pair, see the <a href="/emoji-generator/">Emoji Generator</a>.</p>
+      <h2>Choose Emoji Pairs That Express an Idea</h2>
+      <h3>Express a Feeling</h3>
+      <p>Pair a warm face with a gentle symbol to say something kind. Try 🥰 + 🌸 for affection or 💙 + 🌊 for a calm mood.</p>
+      <h3>Make a Playful Reaction</h3>
+      <p>Contrast works well for humour. A dramatic face next to an unexpected object makes a quick reaction, such as 😱 + 👻 or 🐙 + 🍕.</p>
+      <h3>Create a Themed Sticker</h3>
+      <p>Stay with one theme when you want a sticker that looks planned. 🌋 + 🔥 keeps a fiery theme, and 🍒 + 🌸 keeps a soft, floral one. These pairs are supported, but other pairs may work as well.</p>
 
-      <h2>Why Some Emoji Pairs Do Not Produce a Result</h2>
-      <p>The available combinations depend on the tool's supported data. A blank preview or a "No combo found" message does not mean every possible combination should work.</p>
-      <p>Try changing one emoji. If known-supported pairs also fail repeatedly, the issue may be with loading or tool functionality rather than the selected pair.</p>
+      <h2>Emoji Maker vs. Standard Emoji vs. AI Image Generator</h2>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr><th>Option</th><th>What it creates</th><th>Best for</th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Standard emoji keyboard</td><td>Regular Unicode characters that behave like text</td><td>Messages, documents and captions</td></tr>
+            <tr><td>Emoji Kitchen Hub</td><td>Sticker-style mashups from supported emoji pairs</td><td>Quick reactions and shareable images</td></tr>
+            <tr><td>Avatar editors</td><td>Customisable characters, with options that vary by tool</td><td>Personal avatars and profile pictures</td></tr>
+            <tr><td>AI image generators</td><td>Artwork produced from prompts or other inputs</td><td>Original illustrations</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p>This website does not offer avatar editing or AI image generation. It only combines supported emojis.</p>
 
-      <h2>Standard Emoji vs. Sticker-Style Mashup</h2>
-      <ul>
-        <li><strong>Standard emoji:</strong> a Unicode character or supported sequence used as text.</li>
-        <li><strong>Emoji combo:</strong> separate emoji characters placed together.</li>
-        <li><strong>Sticker-style mashup:</strong> an image combining supported emoji designs.</li>
-        <li><strong>AI-generated image:</strong> artwork created from a prompt by a suitable image-generation system.</li>
-      </ul>
-      <p>These formats have different purposes. Choose the format that fits your intended message or application.</p>
-      <p>Need standard characters instead of stickers? See our <a href="/emoji-keyboard-for-pc/" style="color:var(--accent-dk);text-decoration:none">emoji keyboard for PC</a> guide.</p>
+      <h2>Can You Make an Emoji From a Photo?</h2>
+      <p>No. The current tool is designed for mixing existing emojis. It does not convert uploaded photographs into emoji artwork.</p>
+
+      <h2>Can You Create a New Keyboard Emoji?</h2>
+      <p>No. The tool creates sticker-style results and does not register new Unicode characters. If you need a standard character for text, use the <a href="/emoji-keyboard/">online emoji keyboard</a>, or see our <a href="/emoji-keyboard-for-pc/" style="color:var(--accent-dk);text-decoration:none">emoji keyboard for PC</a> guide.</p>
+
+      <h2>Copying and Sharing Your Emoji</h2>
+      <p>When a result appears, the Copy button places the image on your clipboard so you can paste it into an app that accepts images. The Download button saves it as an image file.</p>
+      <p>Some messaging applications do not accept pasted images. If pasting does not work, download the result and attach it through the app's image or sticker option, where supported. The exact steps depend on the application.</p>
+
+      <h2>Troubleshooting</h2>
+      <h3>Unsupported Combinations</h3>
+      <p>Only supported pairs produce a result. If you see "No combo found", change one of the emojis. Pairs shown in Explore Combinations are always supported.</p>
+      <h3>Loading Problems</h3>
+      <p>If the preview does not load, refresh the page and check your internet connection. Sticker images come from an external server, so a slow connection can delay them.</p>
+      <h3>Copying Failures</h3>
+      <p>Some browsers and apps limit image copying. Try another browser or use Download instead.</p>
+      <h3>Download Problems</h3>
+      <p>If nothing downloads, check that your browser is allowed to download files from this site, then try again. A different browser can also help.</p>
 
     </div>
   </div>
@@ -72,7 +96,7 @@
   <div class="container">
     <div class="section-head section-head--center animate-up">
       <span class="section-badge">❓ Help &amp; support</span>
-      <h2>Frequently Asked Questions</h2>
+      <h2>Emoji Maker FAQs</h2>
       <p>Common questions about what this tool does and does not do.</p>
     </div>
 
@@ -98,11 +122,10 @@
 <section class="section" style="padding-top:0">
   <div class="container container--narrow">
     <div class="section-head section-head--center animate-up">
-      <h2>Make Your Next Emoji Mashup</h2>
-      <p>Start with the emoji combination you want to express and choose two supported emojis in the mixer above. Review the available result and try a different pair when the combination is unavailable.</p>
-      <p>The tool creates sticker-style images from supported emoji designs. It does not create a new Unicode character or provide a full image-editing workflow.</p>
-      <p>If you need standard emoji characters for a message, use the <a href="/emoji-keyboard/" style="text-decoration:underline;text-underline-offset:3px">online emoji keyboard</a>. If you want ready-made text combinations for captions, bios or profiles, explore the <a href="/emoji-combos/" style="text-decoration:underline;text-underline-offset:3px">Emoji Combos</a> collection.</p>
-      <a href="{% url 'emoji_combos' %}" class="btn btn--primary" style="margin-top:8px">Explore Emoji Combos</a>
+      <h2>Create Your Next Emoji Mashup</h2>
+      <p>Choose two emojis, explore the supported combinations, and copy or download a result that matches your message.</p>
+      <p>Need ready-made sets instead? Browse <a href="/emoji-combos/" style="text-decoration:underline;text-underline-offset:3px">Emoji Combos</a>, or try the <a href="/emoji-generator/" style="text-decoration:underline;text-underline-offset:3px">Emoji Generator</a> for pairing ideas.</p>
+      <a href="#kitchen" class="btn btn--primary" style="margin-top:8px">Make My Emoji Mashup</a>
     </div>
   </div>
 </section>
