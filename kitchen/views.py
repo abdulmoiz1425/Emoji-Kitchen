@@ -233,23 +233,35 @@ EMOJI_COMBOS_PAGE_FAQS = [
 EMOJI_GENERATOR_FAQS = [
     {
         'question': 'Is this emoji generator free?',
-        'answer': 'Yes. The tool is free to use in your browser.',
+        'answer': 'Yes. You can use the generator in your browser at no cost, and no account is needed.',
     },
     {
-        'question': 'Do I need to install an app?',
-        'answer': 'No. The tool runs in your browser. If it does not load, refresh the page and try a supported browser.',
+        'question': 'Do I need to install an application?',
+        'answer': 'No. The generator runs in your browser. If it does not load, refresh the page or try a different browser.',
     },
     {
-        'question': 'Can I combine three emojis at once?',
+        'question': 'Can the generator combine any two emojis?',
+        'answer': 'No. It works only with supported pairs, so some selections will not produce a mashup. Emojis that are greyed out in the second picker have no sticker with your first choice.',
+    },
+    {
+        'question': 'Does it create new Unicode emojis?',
+        'answer': 'No. The result is an image-style mashup, not a character that you can add to your keyboard. For typing, use the online emoji keyboard.',
+    },
+    {
+        'question': 'Can I use the generator on a phone?',
+        'answer': 'Yes. It works in mobile browsers. If a copied image does not paste into an app, download it and attach the file instead.',
+    },
+    {
+        'question': 'Can I generate an emoji from a text prompt?',
+        'answer': 'No. You choose two emojis instead of typing a description, and the tool is not an AI image generator.',
+    },
+    {
+        'question': 'Why does the result look different after sharing?',
+        'answer': 'Apps can resize, compress or convert images, and some show stickers on different backgrounds, so the picture can look slightly different after it is sent.',
+    },
+    {
+        'question': 'Can I combine more than two emojis?',
         'answer': 'No. The tool combines two emojis at a time.',
-    },
-    {
-        'question': 'Which emoji pairs should I try first?',
-        'answer': 'Open Explore Combinations in the mixer to load ready-made pairs for reactions, hearts, animals, food and nature, then change one emoji to make it your own.',
-    },
-    {
-        'question': 'Where can I use a generated emoji mix?',
-        'answer': 'Use it wherever an image or sticker is accepted, such as a chat, group message or social post. Some applications handle pasted images differently, so download the result if pasting does not work.',
     },
 ]
 
