@@ -1325,9 +1325,10 @@ class LegalAndSupportPagesTests(PageTestCase):
 # ── "Remaining Content Updates" document: Home, Emoji Maker, Generator, Blog index ──
 
 class RemainingUpdatesTests(PageTestCase):
-    def test_home_results_claim_matches_how_fast_the_tool_really_is(self):
+    def test_home_has_no_speed_badge_or_instant_claim(self):
         html = self.fetch('/')
-        self.assertIn('Free · No sign-up · Results in seconds', html)
+        self.assertNotIn('Free · No sign-up · Results in seconds', html)       # the badge line was removed on request
+        self.assertNotIn('hero__badge', html)
         self.assertNotIn('Instant results', html)
 
     def test_home_strip_shows_labels_only_without_the_four_big_words(self):
