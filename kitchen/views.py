@@ -49,63 +49,69 @@ SUPPORTED_EMOJI_COUNTS = _count_partners()
 
 FAQS = [
     {
-        'question': 'Is the tool free to use?',
-        'answer': 'Yes. This unofficial browser tool lets you make emoji mashups without a paid plan. It is not run by Google.',
+        'question': 'Is Emoji Kitchen Hub free?',
+        'answer': 'Yes. The tool is free to use in your browser, and no sign-up is needed.',
     },
     {
-        'question': 'Is the tool an app?',
-        'answer': 'No. Emoji Kitchen Hub is a website, not an app, and it is not run by Google. Google’s own Emoji Kitchen feature is separate and can be used through Gboard on Android or Google Search.',
+        'question': 'Do I need to install an app?',
+        'answer': 'No. Emoji Kitchen Hub is a website that runs in your browser.',
     },
     {
-        'question': 'Can I use the tool on iPhone?',
-        'answer': 'Yes. iPhone users can search for the tool in a browser and use the Google Search mixer when it appears.',
+        'question': 'Can I combine any two emojis?',
+        'answer': 'No. Only supported pairs produce a result, and the tool combines two emojis at a time. If a combination is not available, try changing one of the emojis.',
     },
     {
-        'question': 'Can I use the tool on a PC?',
-        'answer': 'Yes. Open Google Search on your computer, search for the tool, then mix supported emojis in the on-screen mixer.',
+        'question': 'Are the results real Unicode emojis?',
+        'answer': 'No. The results are sticker-style images, not new Unicode characters. For standard emoji characters that you can type as text, use the online emoji keyboard.',
     },
     {
-        'question': 'Can I combine three emojis?',
-        'answer': 'The tool mainly mixes two emojis at one time. To use three ideas, make one sticker first, then use a separate image editor for extra changes.',
+        'question': 'Can I use the tool on my phone?',
+        'answer': 'Yes. The mixer works in a mobile browser. Copying an image can vary by browser and app, so use the Download button if pasting does not work.',
     },
     {
-        'question': 'Why is the tool not working?',
-        'answer': 'The selected emojis may not support a mix, or your keyboard, browser, or messaging app may need an update. Try another pair or use Google Search.',
+        'question': 'Can I download my emoji mashup?',
+        'answer': 'Yes. When a supported result appears, use the Download button to save it as an image (PNG) file.',
     },
     {
-        'question': 'Are the results real emojis?',
-        'answer': 'No. The results are sticker-style pictures, not new Unicode emojis. They may be sent as images rather than standard keyboard characters.',
+        'question': 'Can I save favourite combinations?',
+        'answer': 'Combinations you create appear in My Combos, which keeps up to six recent ones in your browser. They are stored on your device, so they may disappear if you clear your browser data.',
     },
     {
-        'question': 'Does Emoji Kitchen use AI?',
-        'answer': 'Google presents the feature as a set of designed sticker combinations. It does not work like a text-to-image generator that makes a new picture from a written prompt.',
-    },
-    {
-        'question': 'Can I share the stickers in messages?',
-        'answer': 'Yes. You can copy, download, or send the sticker through apps that support pictures or Gboard sticker sharing.',
+        'question': 'Is Emoji Kitchen Hub operated by Google?',
+        'answer': "No. Emoji Kitchen Hub is an independent website and is not operated by Google. Google's Emoji Kitchen feature, available through supported Google products such as Gboard, is a separate service.",
     },
 ]
 
 FEATURES = [
     {
-        'icon': '🪄',
-        'title': 'Explore Emoji Mashups',
-        'description': 'Choose two emojis in the mixer and check whether a supported sticker-style result is available. If the pair does not produce a result, try a different combination. For a closer look at the tool, see the <a href="/emoji-maker/" style="text-decoration:underline;text-underline-offset:3px">Emoji Maker</a> or the <a href="/emoji-generator/" style="text-decoration:underline;text-underline-offset:3px">Emoji Generator</a>.',
+        'icon': '🌐',
+        'title': 'Simple Browser-Based Tool',
+        'description': 'Open the mixer in your browser with no app to install. The same mixer also appears on the <a href="/emoji-maker/" style="text-decoration:underline;text-underline-offset:3px">Emoji Maker</a> and <a href="/emoji-generator/" style="text-decoration:underline;text-underline-offset:3px">Emoji Generator</a> pages, each with its own guide.',
     },
     {
-        'icon': '⌨️',
-        'title': 'Copy Standard Emojis',
-        'description': 'Use the <a href="/emoji-keyboard/" style="text-decoration:underline;text-underline-offset:3px">online emoji keyboard</a> when you need ordinary emoji characters for messages, documents, captions or profiles. These characters can be used as text, unlike a sticker-style image.',
+        'icon': '⚡',
+        'title': 'Quick Results',
+        'description': 'When a pair is supported, the result usually appears within a few seconds. If nothing appears, try a different pair.',
     },
     {
-        'icon': '🎭',
-        'title': 'Find Emoji Combos by Theme',
-        'description': 'Browse <a href="/emoji-combos/" style="text-decoration:underline;text-underline-offset:3px">themed combinations</a> for different moods and visual styles. The collections help you narrow your choices instead of searching through unrelated examples.',
+        'icon': '📋',
+        'title': 'Copy and Download Options',
+        'description': 'Copy the result to paste into apps that accept images, or download it as an image file. If pasting does not work in an app, download the image and attach it instead.',
     },
     {
-        'icon': '📖',
-        'title': 'Learn How Emoji Features Work',
-        'description': 'Read the <a href="/blog/" style="text-decoration:underline;text-underline-offset:3px">relevant guide</a> when you need help with a keyboard, device or sharing workflow. Instructions can differ between browsers, operating systems and applications, so choose the guide that matches your situation.',
+        'icon': '🔍',
+        'title': 'Explore Different Combinations',
+        'description': 'Browse the Explore Combinations section or press the 🎲 button for a random pair. For ready-made text sets, see the <a href="/emoji-combos/" style="text-decoration:underline;text-underline-offset:3px">emoji combos</a> collections.',
+    },
+    {
+        'icon': '🎨',
+        'title': 'No Separate Design Software',
+        'description': 'Create a sticker-style image from two emojis without opening an editor. The tool combines existing emoji designs and does not edit photos or draw new artwork.',
+    },
+    {
+        'icon': '⭐',
+        'title': 'Save Favourite Combinations',
+        'description': 'Combinations you create are listed under My Combos, which keeps up to six recent ones in your browser. They are stored on your device, so they can disappear if you clear browser data or switch devices.',
     },
 ]
 
@@ -114,19 +120,19 @@ CREATE_STEPS = [
         'num': '1',
         'icon': '😀',
         'title': 'Choose Your First Emoji',
-        'description': 'Pick the emoji that should lead the design. A face shows the main emotion, while an animal, food item, heart, or object sets the main theme. Start with what you want friends to notice first.',
+        'description': 'Pick an emoji that expresses the main idea.',
     },
     {
         'num': '2',
         'icon': '🔥',
-        'title': 'Choose Your Second Emoji',
-        'description': 'Select a second emoji that adds contrast, humour, warmth, or detail. Pair a smiling face with a heart, mix an animal with food, or combine two random icons to see what kind of sticker appears.',
+        'title': 'Add a Second Emoji',
+        'description': 'Choose another emoji to add emotion, humour, or contrast.',
     },
     {
         'num': '3',
         'icon': '⬇️',
-        'title': 'Copy or Download',
-        'description': 'When the result appears, use the copy or download button. Copying works well for a message you want to send right now. Downloading saves the picture so you can use it later in chats, posts, or other media.',
+        'title': 'Preview and Share',
+        'description': 'Check the generated image. If the result looks right, copy or download it using the available controls.',
     },
 ]
 
@@ -161,11 +167,12 @@ POPULAR_COMBOS = [
     {
         'icon': '🎲',
         'title': 'Random Combinations',
-        'description': 'Pick any first emoji, then choose a second one without thinking too much. Odd pairs often produce the funniest and most unexpected creations — great for quick, surprising replies.',
+        'description': 'Press the 🎲 Surprise me button in the mixer to load a random supported pair. Like the result? Copy or download it, or press the button again for a new surprise. Random results are also saved to My Combos in your browser.',
         'bg': '#E8F5E9',
         'border': '#A5D6A7',
         'examples': ['🎲', '🦄', '🍄', '🚀'],
-        'url': '/emoji-combos/',
+        'url': '#kitchen',
+        'cta': 'Try the 🎲 button →',
     },
 ]
 
