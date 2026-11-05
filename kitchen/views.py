@@ -228,6 +228,10 @@ EMOJI_COMBOS_PAGE_FAQS = [
         'question': 'What is the difference between an emoji combo and Emoji Kitchen?',
         'answer': 'An emoji combo uses separate text characters. Emoji Kitchen blends supported emojis into one sticker-style image.',
     },
+    {
+        'question': 'When should I use an emoji combo instead of one emoji?',
+        'answer': 'Use a short combo when one character does not carry the mood you want—for example a soft reply, a bio accent, or a caption decoration. Keep the set short enough to read on a phone.',
+    },
 ]
 
 EMOJI_GENERATOR_FAQS = [
@@ -337,6 +341,10 @@ CUTE_EMOJI_COMBOS_FAQS = [
     {
         'question': 'How many emojis should a combination contain?',
         'answer': 'Two to four emojis work well for most messages and bios. Longer sequences can suit decorative profile layouts, borders, captions, or wallpapers where more visual decoration is expected.',
+    },
+    {
+        'question': 'When do cute emoji combos work best?',
+        'answer': 'They suit friendly messages, thank-you notes, birthday captions, and approachable bios. Prefer two or three symbols in tight spaces, and preview the paste before posting.',
     },
 ]
 
@@ -462,6 +470,10 @@ PINK_EMOJI_COMBOS_FAQS = [
         'question': 'Are copyable combinations the same as one merged emoji?',
         'answer': 'No. A copyable set contains separate characters you can paste as text. A merged Emoji Kitchen result is a sticker image designed from two selected emojis.',
     },
+    {
+        'question': 'When should I use pink emoji combos?',
+        'answer': 'Pink sets fit aesthetic bios, soft captions, and colour-matched profile accents. Shorter sequences read better in usernames; preview colours because platforms draw pink symbols differently.',
+    },
 ]
 
 
@@ -505,6 +517,10 @@ FUNNY_EMOJI_COMBOS_FAQS = [
     {
         'question': 'How many emojis should a funny combination have?',
         'answer': 'Two to four emojis work best. One leads the joke, the others support or extend it. Longer sequences can wrap or look crowded in a bio or caption field.',
+    },
+    {
+        'question': 'When should I use a funny emoji combo?',
+        'answer': 'Funny sets work well in casual chats and light captions where a quick reaction is enough. Keep replies short in busy threads, and check that the joke fits the audience.',
     },
 ]
 
@@ -550,6 +566,10 @@ AESTHETIC_EMOJI_COMBOS_FAQS = [
         'question': 'What makes an emoji combination look aesthetic?',
         'answer': 'A strong set feels intentional. Choose one mood, pick a focal emoji such as a bow, moon or flower, add two supporting characters that match by colour or meaning, and keep the overall palette controlled.',
     },
+    {
+        'question': 'When should I use aesthetic emoji combos?',
+        'answer': 'Use them when you want a bio or caption to feel visually consistent. Stay with one mood or palette, keep sets short in names, and drop symbols that crowd a narrow phone layout.',
+    },
 ]
 
 
@@ -593,6 +613,10 @@ LOVE_EMOJI_COMBOS_FAQS = [
     {
         'question': 'Can I add words to an emoji combination?',
         'answer': 'Yes. Short phrases such as "love you," "miss you," or "my person" placed next to the emojis can make the meaning clearer without making the message too long.',
+    },
+    {
+        'question': 'When should I send a love emoji combo?',
+        'answer': 'Use one when a single heart feels too generic for the moment. Match the intensity to the relationship, keep bios short, and preview the sequence in the same app you will send from.',
     },
 ]
 
