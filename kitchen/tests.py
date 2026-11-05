@@ -1878,3 +1878,37 @@ class BlogCrawlLinksSeedTests(TestCase):
         call_command('seed_blog_crawl_links', '--apply', stdout=io.StringIO())
         for slug in ['emoji-kitchen-gboard', 'emoji-kitchen-samsung', 'emoji-kitchen-whatsapp']:
             self.assertEqual(BlogPost.objects.get(slug=slug).content.count(self.RELATED_MARKER), 1)
+
+
+# ── iPhone blog rewrite seed ──────────────────────────────────────────────────
+
+class IphoneBlogSeedTests(TestCase):
+    def setUp(self):
+        BlogPost.objects.create(
+            title='Old iPhone Title',
+            slug='emoji-kitchen-iphone',
+            excerpt='old',
+            content='<p>Old stuffed content with emoji kitchen emoji kitchen emoji kitchen.</p>',
+            status=BlogPost.STATUS_PUBLISHED,
+            seo_title='Old',
+            seo_description='d' * 90,
+        )
+
+    def test_dry_run_leaves_content(self):
+        call_command('seed_iphone_blog_post', stdout=io.StringIO())
+        post = BlogPost.objects.get(slug='emoji-kitchen-iphone')
+        self.assertIn('Old stuffed content', post.content)
+
+    def test_apply_rewrites_existing_slug_without_duplicate(self):
+        call_command('seed_iphone_blog_post', '--apply', stdout=io.StringIO())
+        self.assertEqual(BlogPost.objects.filter(slug='emoji-kitchen-iphone').count(), 1)
+        post = BlogPost.objects.get(slug='emoji-kitchen-iphone')
+        self.assertIn('unofficial, fan-made', post.content)
+        self.assertIn('/emoji-combos/love/', post.content)
+        self.assertIn('/emoji-keyboard/', post.content)
+        self.assertNotIn('Old stuffed content', post.content)
+        # density guard: phrase should stay rare in the new body
+        plain = re.sub(r'<[^>]+>', ' ', post.content)
+        words = re.findall(r"[A-Za-z0-9']+", plain)
+        phrase = len(re.findall(r'emoji kitchen', plain, re.I))
+        self.assertLess(phrase / max(len(words), 1), 0.02)
