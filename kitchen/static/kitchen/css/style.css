@@ -1911,3 +1911,27 @@ strong{font-weight:700}
 .limits-text p{font-size:1rem;color:var(--t5);line-height:1.75;margin:0 0 1rem}
 .limits-section .section-head{margin-bottom:28px}
 .section-head p + p{margin-top:12px}   /* two-paragraph introductions (Emoji Maker, Emoji Generator) */
+
+/* ════════════════════════════════════════════════════════════════════
+   SITE-WIDE UNOFFICIAL NOTICE
+════════════════════════════════════════════════════════════════════ */
+.site-notice{
+  background:var(--accent-xlt);
+  border-bottom:1px solid var(--border);
+  padding:10px 0;
+}
+.site-notice__inner{
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+}
+.site-notice p{
+  margin:0;
+  font-size:.875rem;
+  line-height:1.5;
+  color:var(--t5);
+}
+.site-notice strong{color:var(--t7);font-weight:700}
+@media(max-width:600px){
+  .site-notice p{font-size:.8125rem}
+}

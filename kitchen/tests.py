@@ -506,6 +506,21 @@ class HomeAdTests(PageTestCase):
         self.assertLess(home.index('class="hero__ad"'), home.index('class="stats-bar"'))
 
 
+# ── Site-wide unofficial / not-affiliated notice ──────────────────────────────
+
+class SiteNoticeTests(PageTestCase):
+    NOTICE_PHRASE = 'Emoji Kitchen Hub is not affiliated with, endorsed by, or run by Google'
+
+    def test_notice_appears_on_every_public_page(self):
+        for path in ALL_PAGES:
+            html = self.fetch(path)
+            self.assertIn(self.NOTICE_PHRASE, html, path)
+            self.assertIn('class="site-notice"', html, path)
+            # Notice sits after the header and before the main footer.
+            self.assertLess(html.index('id="site-header"'), html.index('class="site-notice"'), path)
+            self.assertLess(html.index('class="site-notice"'), html.index('class="site-footer"'), path)
+
+
 # ── Existing behaviour that must not regress ──────────────────────────────────
 
 class RegressionTests(PageTestCase):
