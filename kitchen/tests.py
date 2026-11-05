@@ -1377,11 +1377,13 @@ class RemainingUpdatesTests(PageTestCase):
 
     def test_blog_index_introduction(self):
         html = self.fetch('/blog/')
-        self.assertIn('Explore practical guides to emoji tools, keyboards, sticker-style mashups and common sharing problems.', html)
-        self.assertIn('without reading unrelated tutorials.', html)
+        self.assertIn('These guides explain practical ways to mix sticker-style mashups', html)
+        self.assertIn('unofficial, fan-made website', html)
+        self.assertNotIn('Explore practical guides to emoji tools, keyboards, sticker-style mashups and common sharing problems.', html)
         self.assertNotIn('Tips, tricks, and fun discoveries', html)
+        self.assertNotIn('From the Blog', html)
         self.assertEqual(len(self.parse('/blog/').h1), 1)
-        self.assertIn('<h1>From the Blog</h1>', html)                       # the H1 stays
+        self.assertIn('<h1>Emoji Kitchen Guides</h1>', html)
         for post in POSTS:
             self.assertIn(f'href="{post}"', html)                           # the article cards stay
 

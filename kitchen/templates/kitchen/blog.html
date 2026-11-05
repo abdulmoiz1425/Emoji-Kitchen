@@ -16,8 +16,28 @@
   <div class="container">
     <div class="section-head section-head--center animate-up">
       <span class="section-badge">📝 Fresh reads</span>
-      <h1>From the Blog</h1>
-      <p>Explore practical guides to emoji tools, keyboards, sticker-style mashups and common sharing problems. Choose the guide that matches your device or application to find relevant instructions, understand tool limitations and troubleshoot issues without reading unrelated tutorials.</p>
+      <h1>Emoji Kitchen Guides</h1>
+      <p>These guides explain practical ways to mix sticker-style mashups, use keyboards, and share results across popular apps. Pick the article that matches your phone, chat app, or task so you can follow steps that apply to your setup instead of scrolling through unrelated tips.</p>
+    </div>
+
+    <div class="blog-intro animate-up">
+      <p>Emoji Kitchen Hub is an unofficial, fan-made website. It is not run by Google and is not affiliated with Google, Gboard, or Android. Google’s own mashup feature (when it appears in a keyboard or Search) is a separate product. Pair availability, menus, and save options can differ between that experience and the browser mixer on this site.</p>
+
+      <h2>What you will find here</h2>
+      <p>Each article is written for a United States audience and focuses on a single workflow: getting mashups through Gboard on Android, understanding how Samsung phones handle multiple keyboards, using mashups on iPhone, or sharing image-based stickers in WhatsApp. Newer guides cover saving and downloading results when copy-and-paste is unreliable.</p>
+      <p>The browser tools on this site—including the homepage mixer, Emoji Maker, and Emoji Generator—let you preview supported pairs and download an image when a result is available. Mashups are sticker-style images, not new Unicode characters. If you need a regular character inside a sentence, use the <a href="{% url 'emoji_keyboard' %}">online emoji keyboard</a> or your system keyboard instead.</p>
+
+      <h2>How to choose a guide</h2>
+      <p>Start with your device. Android users who rely on Gboard should open the Gboard guide for suggestion trays, missing stickers, and app compatibility checks. Galaxy owners should also read the Samsung guide so they can tell Samsung Keyboard features apart from Gboard. iPhone readers can follow the iPhone guide for Search-based workflows and sharing patterns that differ from Android. When the goal is attaching an image in a chat, the WhatsApp guide walks through paste failures and gallery attach steps.</p>
+      <p>If you already have a mashup on screen and only need a durable file, use the save-and-download guide. It explains why these results behave like images, when clipboard copy fails on mobile browsers, and how to keep files organized on phone or desktop.</p>
+
+      <h2>Tools and collections alongside the guides</h2>
+      <p>Guides answer “how.” The rest of the site helps you explore. The <a href="{% url 'home' %}">homepage mixer</a> is the fastest place to try two compatible emoji. Themed <a href="{% url 'emoji_combos' %}">combo pages</a> group text-style reaction sets for love, cute, funny, aesthetic, and pink captions when you want characters rather than stickers. The <a href="{% url 'emoji_keyboard_for_pc' %}">PC emoji keyboard</a> page covers Windows shortcuts and browser alternatives for desktop typing.</p>
+      <p>None of these pages invent usage statistics or guarantee that every pair exists everywhere. Supported artwork sets change, and chat apps resize or crop attached images differently. When something fails, the troubleshooting sections in each guide list the usual checks: keyboard updates, app permissions, download folders, and attaching a file instead of pasting.</p>
+
+      <h2>About this independent site</h2>
+      <p>We publish clear, practical instructions and keep an honest line between this fan-made hub and Google’s products. Trademarks belong to their owners. For positioning details, see the <a href="{% url 'about' %}">About</a> and <a href="{% url 'disclaimer' %}">Disclaimer</a> pages; for privacy and cookies, see the matching legal pages. <a href="{% url 'contact' %}">Contact us</a> if a step looks outdated or a link is broken—include the page URL and what you expected to happen.</p>
+      <p>Browse the featured article below, then open the card that matches your device or sharing goal. Come back when you switch phones or apps; the same mashup idea often needs a different save path on the next platform.</p>
     </div>
 
     {% if featured_post %}

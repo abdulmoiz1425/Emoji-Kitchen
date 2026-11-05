@@ -5,14 +5,66 @@ from .models import BlogPost
 
 
 class StaticViewSitemap(Sitemap):
-    priority = 0.8
     changefreq = 'weekly'
 
+    # home highest; main tools next; combo category pages; blog index; legal lowest
+    PRIORITIES = {
+        'home': 1.0,
+        'emoji_maker': 0.9,
+        'emoji_generator': 0.9,
+        'emoji_combos': 0.9,
+        'emoji_keyboard': 0.9,
+        'emoji_keyboard_for_pc': 0.9,
+        'emoji_combos_love': 0.7,
+        'emoji_combos_cute': 0.7,
+        'emoji_combos_aesthetic': 0.7,
+        'emoji_combos_funny': 0.7,
+        'emoji_combos_pink': 0.7,
+        'blog': 0.8,
+        'privacy': 0.3,
+        'terms': 0.3,
+        'contact': 0.3,
+        'disclaimer': 0.3,
+        'about': 0.3,
+        'cookie_policy': 0.3,
+    }
+
     def items(self):
-        return ['home', 'emoji_maker', 'emoji_generator', 'emoji_combos', 'emoji_combos_love', 'emoji_combos_cute', 'emoji_combos_aesthetic', 'emoji_combos_funny', 'emoji_combos_pink', 'emoji_keyboard', 'emoji_keyboard_for_pc', 'blog', 'privacy', 'terms', 'contact', 'disclaimer', 'about', 'cookie_policy']
+        return [
+            'home',
+            'emoji_maker',
+            'emoji_generator',
+            'emoji_combos',
+            'emoji_combos_love',
+            'emoji_combos_cute',
+            'emoji_combos_aesthetic',
+            'emoji_combos_funny',
+            'emoji_combos_pink',
+            'emoji_keyboard',
+            'emoji_keyboard_for_pc',
+            'blog',
+            'privacy',
+            'terms',
+            'contact',
+            'disclaimer',
+            'about',
+            'cookie_policy',
+        ]
 
     def location(self, item):
         return reverse(item)
+
+    def priority(self, item):
+        return self.PRIORITIES.get(item, 0.5)
+
+    def changefreq(self, item):
+        if item in {'privacy', 'terms', 'contact', 'disclaimer', 'about', 'cookie_policy'}:
+            return 'yearly'
+        if item == 'blog':
+            return 'weekly'
+        if item == 'home':
+            return 'daily'
+        return 'weekly'
 
 
 class BlogPostSitemap(Sitemap):
