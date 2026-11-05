@@ -33,6 +33,12 @@ urlpatterns = [
     path('about-us/', views.about, name='about'),
     path('cookie-policy/', views.cookie_policy, name='cookie_policy'),
     path('blog/', views.blog, name='blog'),
+    # Exact legacy blog path must come before blog/<slug>/ or it 404s as a missing post.
+    path(
+        'blog/free-emoji-generator/',
+        RedirectView.as_view(url='/emoji-generator/', permanent=True, query_string=False),
+        name='legacy_free_emoji_generator',
+    ),
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
     path('api/combo/', views.get_combo, name='get_combo'),
     path('api/combos-for/', views.get_combos_for_emoji, name='get_combos_for_emoji'),

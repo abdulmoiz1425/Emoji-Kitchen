@@ -528,6 +528,16 @@ class RegressionTests(PageTestCase):
         for path in ALL_PAGES + ['/robots.txt', '/ads.txt', '/sitemap.xml']:
             self.assertEqual(self.client.get(path).status_code, 200, path)
 
+    def test_free_emoji_generator_blog_url_redirects_to_generator(self):
+        response = self.client.get('/blog/free-emoji-generator/')
+        self.assertEqual(response.status_code, 301)
+        self.assertEqual(response['Location'], '/emoji-generator/')
+
+    def test_homepage_share_showcase_uses_live_gstatic_mashup(self):
+        html = self.fetch('/')
+        self.assertNotIn('kitchen/img/mashups/cherry-blossom-smiling-hearts-emoji-mashup.png', html)
+        self.assertIn('u1f338_u1f970.png', html)
+
     def test_legacy_blog_urls_still_redirect(self):
         for slug in POST_SLUGS:
             response = self.client.get(f'/{slug}/')
