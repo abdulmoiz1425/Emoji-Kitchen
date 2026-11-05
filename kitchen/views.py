@@ -2,7 +2,6 @@ import json
 import os
 import random as _random
 
-import requests
 from django.contrib.sitemaps.views import sitemap as django_sitemap
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse, Http404
@@ -945,34 +944,6 @@ def get_random_combo(request):
     return JsonResponse({'error': 'Could not find a valid combo'}, status=500)
 
 
-def download_combo(request):
-    url = request.GET.get('url', '')
-    if not url.startswith('https://www.gstatic.com/android/keyboard/emojikitchen/'):
-        return HttpResponse('Invalid URL', status=400)
-    try:
-        resp = requests.get(url, timeout=10)
-        if resp.status_code == 200:
-            response = HttpResponse(resp.content, content_type='image/png')
-            response['Content-Disposition'] = 'attachment; filename="emoji_mashup.png"'
-            return response
-        return HttpResponse('Image not found', status=404)
-    except requests.RequestException:
-        return HttpResponse('Error fetching image', status=500)
-
-
-def proxy_image(request):
-    url = request.GET.get('url', '')
-    if not url.startswith('https://www.gstatic.com/android/keyboard/emojikitchen/'):
-        return HttpResponse('Invalid URL', status=400)
-    try:
-        resp = requests.get(url, timeout=10)
-        if resp.status_code == 200:
-            response = HttpResponse(resp.content, content_type='image/png')
-            response['Access-Control-Allow-Origin'] = '*'
-            return response
-        return HttpResponse('Image not found', status=404)
-    except requests.RequestException:
-        return HttpResponse('Error fetching image', status=500)
 
 
 # ── Helpers ───────────────────────────────────────────────────────────────────

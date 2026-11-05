@@ -44,8 +44,6 @@ urlpatterns = [
     path('api/combos-for/', views.get_combos_for_emoji, name='get_combos_for_emoji'),
     path('api/supported-emojis/', views.get_supported_emojis, name='get_supported_emojis'),
     path('api/random-combo/', views.get_random_combo, name='get_random_combo'),
-    path('api/download/', views.download_combo, name='download_combo'),
-    path('api/proxy/', views.proxy_image, name='proxy_image'),
 ]
 
 urlpatterns += [

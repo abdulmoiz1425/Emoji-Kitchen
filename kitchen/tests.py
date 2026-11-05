@@ -553,10 +553,15 @@ class RegressionTests(PageTestCase):
         self.assertEqual(self.client.get('/api/combo/', {'emoji1': '😀'}).status_code, 400)
         self.assertEqual(self.client.get('/api/random-combo/').status_code, 200)
 
-    def test_download_and_proxy_reject_foreign_urls(self):
+    def test_download_and_proxy_endpoints_are_removed(self):
         for path in ['/api/download/', '/api/proxy/']:
-            self.assertEqual(self.client.get(path, {'url': 'https://example.com/x.png'}).status_code, 400)
-            self.assertEqual(self.client.get(path).status_code, 400)
+            self.assertEqual(self.client.get(path).status_code, 404, path)
+
+    def test_mixer_script_fetches_gstatic_directly(self):
+        js = (Path(settings.BASE_DIR) / 'kitchen/static/kitchen/js/main.js').read_text(encoding='utf-8')
+        self.assertNotIn('/api/download/', js)
+        self.assertNotIn('/api/proxy/', js)
+        self.assertIn("fetch(comboUrl, { mode: 'cors' })", js)
 
     def test_legal_pages_show_both_contact_emails_once_each(self):
         emails = ['abdulmannanfiv@gmail.com', 'mannanmaan1425@gmail.com']

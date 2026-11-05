@@ -778,15 +778,26 @@ btnReset.addEventListener('click', () => {
 });
 
 // ── Download ──────────────────────────────────────────────────────────────
-btnDownload.addEventListener('click', () => {
+btnDownload.addEventListener('click', async () => {
   if (!comboUrl) return;
-  const link = document.createElement('a');
-  link.href     = `/api/download/?url=${encodeURIComponent(comboUrl)}`;
-  link.download = 'emoji_mashup.png';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  window.showToast('Downloading your mashup!', '⬇️');
+  try {
+    const res = await fetch(comboUrl, { mode: 'cors' });
+    if (!res.ok) throw new Error('Image fetch failed');
+    const blob = await res.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = 'emoji_mashup.png';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(objectUrl);
+    window.showToast('Downloading your mashup!', '⬇️');
+  } catch (err) {
+    console.error('Download failed, opening image:', err);
+    window.open(comboUrl, '_blank', 'noopener');
+    window.showToast('Opened the image — long-press or save it from there', '⬇️', true);
+  }
 });
 
 // ── Copy mashup image ────────────────────────────────────────────────────
@@ -797,7 +808,7 @@ btnCopy.addEventListener('click', async () => {
     try {
       await navigator.clipboard.write([
         new ClipboardItem({
-          'image/png': fetch(`/api/proxy/?url=${encodeURIComponent(comboUrl)}`).then(res => {
+          'image/png': fetch(comboUrl, { mode: 'cors' }).then(res => {
             if (!res.ok) throw new Error('Image fetch failed');
             return res.blob();
           }),
