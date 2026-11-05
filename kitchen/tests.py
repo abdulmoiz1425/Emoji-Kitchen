@@ -1406,7 +1406,8 @@ class RemainingUpdatesTests(PageTestCase):
 
     def test_my_combos_wording_stays_accurate(self):
         html = self.fetch('/emoji-maker/')
-        self.assertIn('Click any combo to reload it in the mixer', html)
+        self.assertIn('Saved favourites and recent mixes', html)
+        self.assertIn('id="btn-share"', html)
         for overclaim in ['permanent', 'forever', 'every previous', 'synced', 'on all your devices']:
             self.assertNotIn(overclaim, html.split('id="my-combos"')[1].split('</div>')[0], overclaim)
 
@@ -1917,3 +1918,16 @@ class IphoneBlogSeedTests(TestCase):
         words = re.findall(r"[A-Za-z0-9']+", plain)
         phrase = len(re.findall(r'emoji kitchen', plain, re.I))
         self.assertLess(phrase / max(len(words), 1), 0.02)
+
+
+# ── Mixer shareable combo links (P10 MVP) ─────────────────────────────────────
+
+class MixerShareLinkTests(PageTestCase):
+    def test_mixer_exposes_share_control_and_query_loader(self):
+        html = self.fetch('/emoji-maker/')
+        self.assertIn('id="btn-share"', html)
+        js = (Path(settings.BASE_DIR) / 'kitchen/static/kitchen/js/main.js').read_text(encoding='utf-8')
+        self.assertIn('function shareUrlFor', js)
+        self.assertIn("searchParams.set('emoji1'", js)
+        self.assertIn('loadComboFromQuery', js)
+        self.assertIn('Shareable combo link copied', js)

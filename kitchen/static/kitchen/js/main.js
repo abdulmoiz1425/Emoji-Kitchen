@@ -174,6 +174,8 @@ function loadSavedCombo(combo) {
   resultBox.classList.add('has-result');
   btnCopy.disabled = false;
   btnDownload.disabled = false;
+  if (btnShare) btnShare.disabled = false;
+  syncShareUrl(combo.emoji1, combo.emoji2);
   // Scroll mixer into view and confirm
   document.getElementById('kitchen').scrollIntoView({ behavior: 'smooth', block: 'center' });
   window.showToast('Combo loaded into the mixer!', '🍳');
@@ -273,6 +275,7 @@ const comboGalleryGrid = document.getElementById('combo-gallery-grid');
 const btnSurprise  = document.getElementById('btn-surprise');
 const btnReset     = document.getElementById('btn-reset');
 const btnCopy      = document.getElementById('btn-copy');
+const btnShare    = document.getElementById('btn-share');
 const btnDownload  = document.getElementById('btn-download');
 const btnSwap      = document.getElementById('btn-swap');
 const statusEl     = document.getElementById('mixer-status');
@@ -603,6 +606,52 @@ function selectEmoji(panel, emoji) {
   if (slot1Emoji && slot2Emoji) cookCombo();
 }
 
+
+// ── Shareable combo links (?emoji1=&emoji2=) ───────────────────────────────
+function shareUrlFor(emoji1, emoji2) {
+  const url = new URL(window.location.href);
+  url.searchParams.set('emoji1', emoji1);
+  url.searchParams.set('emoji2', emoji2);
+  url.hash = 'kitchen';
+  return url.toString();
+}
+
+function syncShareUrl(emoji1, emoji2) {
+  if (!emoji1 || !emoji2) return;
+  const next = shareUrlFor(emoji1, emoji2);
+  if (next !== window.location.href) {
+    history.replaceState(null, '', next);
+  }
+}
+
+function clearShareUrl() {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has('emoji1') && !url.searchParams.has('emoji2')) return;
+  url.searchParams.delete('emoji1');
+  url.searchParams.delete('emoji2');
+  history.replaceState(null, '', url.pathname + url.search + (url.hash || ''));
+}
+
+async function loadComboFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  const e1 = params.get('emoji1');
+  const e2 = params.get('emoji2');
+  if (!e1 || !e2) return;
+  // Wait for emoji lists so categoryOf/renderGrid work.
+  try {
+    [[1, e1], [2, e2]].forEach(([panel, emoji]) => {
+      setActiveTab(panel, categoryOf(emoji));
+      setSlotEmoji(panel, emoji);
+      PANELS[panel].search.value = '';
+      renderTabs(panel);
+      renderGrid(panel, getCurrentList(panel));
+    });
+    await cookCombo();
+  } catch (err) {
+    console.error('Could not load shared combo:', err);
+  }
+}
+
 // ── Cook combo ────────────────────────────────────────────────────────────
 async function cookCombo() {
   const id = ++cookToken;
@@ -611,6 +660,7 @@ async function cookCombo() {
   comboUrl = '';
   btnCopy.disabled = true;
   btnDownload.disabled = true;
+  if (btnShare) btnShare.disabled = true;
   clearAlternatives();
   setStatus(`Checking ${first} + ${second}…`, 'info');
 
@@ -632,8 +682,10 @@ async function cookCombo() {
       resultBox.classList.add('has-result');
       btnCopy.disabled = false;
       btnDownload.disabled = false;
+      if (btnShare) btnShare.disabled = false;
       setStatus(`${first} + ${second} is a supported pair.`, 'ok');
-      // Auto-save to My Combos
+      syncShareUrl(first, second);
+      // Auto-save to My Combos (favourites / recent history in localStorage)
       const isNew = !getCombos().some(c =>
         (c.emoji1 === first && c.emoji2 === second) ||
         (c.emoji1 === second && c.emoji2 === first)
@@ -735,6 +787,8 @@ async function handleSurprise(retriesLeft = 3) {
     resultBox.classList.add('has-result');
     btnCopy.disabled = false;
     btnDownload.disabled = false;
+    if (btnShare) btnShare.disabled = false;
+    syncShareUrl(emoji1, emoji2);
 
     resultImg.alt = `${emoji1} and ${emoji2} emoji mashup`;
     resultImg.title = `${emoji1} + ${emoji2} emoji mashup`;
@@ -773,7 +827,8 @@ btnReset.addEventListener('click', () => {
   resultImg.src = '';
   resultImg.alt = 'Emoji mashup result';
   resultImg.title = 'Your emoji mashup';
-  btnCopy.disabled = true; btnDownload.disabled = true;
+  btnCopy.disabled = true; btnDownload.disabled = true; if (btnShare) btnShare.disabled = true;
+  clearShareUrl();
   showState('idle');
 });
 
@@ -906,4 +961,26 @@ document.querySelectorAll('.explore-item').forEach(item => {
   renderGrid(panel, getCurrentList(panel));
 });
 showState('idle');
+
+// ── Share button ───────────────────────────────────────────────────────────
+if (btnShare) {
+  btnShare.addEventListener('click', async () => {
+    if (!slot1Emoji || !slot2Emoji || !comboUrl) return;
+    const link = shareUrlFor(slot1Emoji, slot2Emoji);
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(link);
+      } else {
+        fallbackCopy(link);
+        return;
+      }
+      window.showToast('Shareable combo link copied!', '🔗');
+    } catch (err) {
+      console.error(err);
+      fallbackCopy(link);
+    }
+  });
+}
+
 renderCombos(); // restore saved combos from localStorage
+loadComboFromQuery();
