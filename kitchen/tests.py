@@ -812,13 +812,13 @@ class HomePageContentTests(PageTestCase):
 
     def test_title_and_meta_description(self):
         page = self.parse('/')
-        self.assertEqual(_clean(page.title), 'Emoji Kitchen – Mix Emojis & Create Custom Stickers')
+        self.assertEqual(_clean(page.title), 'Emoji Kitchen Mixer – Mix Two Emojis Free')
         self.assertEqual(page.meta['description'],
-                         'Mix two compatible emojis to create fun sticker-style mashups. Explore emoji combinations, '
-                         'copy or download results, and find new ideas for your chats.')
-        self.assertEqual(page.meta['og:title'], 'Emoji Kitchen – Mix Emojis & Create Custom Stickers')
+                         'Free emoji kitchen mixer: combine two compatible emojis into one sticker-style mashup. '
+                         'Preview, copy, or download results in your browser — no sign-up.')
+        self.assertEqual(page.meta['og:title'], 'Emoji Kitchen Mixer – Mix Two Emojis Free')
         self.assertEqual(len(page.h1), 1)
-        self.assertEqual(_clean(page.h1[0]), 'Emoji Kitchen – Mix Emojis and Create Custom Stickers')
+        self.assertEqual(_clean(page.h1[0]), 'Emoji Kitchen Mixer – Mix Two Emojis into Custom Stickers')
 
     def test_introduction_under_the_h1(self):
         html = self.home()
@@ -949,9 +949,9 @@ class MakerAndGeneratorContentTests(PageTestCase):
 
     def test_titles_and_meta(self):
         maker, generator = self.parse('/emoji-maker/'), self.parse('/emoji-generator/')
-        self.assertEqual(_clean(maker.title), 'Emoji Maker – Create Custom Emoji Stickers Online')
-        self.assertEqual(maker.meta['description'], 'Make custom emoji-style stickers by combining two compatible emojis. '
-                         'Preview your mashup, then copy or download the result using our online emoji maker.')
+        self.assertEqual(_clean(maker.title), 'Emoji Maker & Builder – Custom Stickers Online')
+        self.assertEqual(maker.meta['description'], 'Use this free emoji maker and emoji builder to combine two compatible emojis into a sticker-style mashup. '
+                         'Preview, copy, or download — no sign-up.')
         self.assertEqual(_clean(generator.title), 'Emoji Generator – Create Emoji Mashups Online')
         self.assertEqual(generator.meta['description'], 'Explore emoji combinations with our free online emoji generator. '
                          'Choose two compatible emojis, preview the mashup, and copy or download the result.')
@@ -964,9 +964,9 @@ class MakerAndGeneratorContentTests(PageTestCase):
 
     def test_h1s_and_introductions(self):
         maker, generator = self.fetch('/emoji-maker/'), self.fetch('/emoji-generator/')
-        self.assertIn('<h1>Emoji Maker – Create Custom Emoji Stickers Online</h1>', maker)
+        self.assertIn('<h1>Emoji Maker &amp; Builder – Create Custom Stickers Online</h1>', maker)
         self.assertIn('<h1>Emoji Generator – Create Emoji Mashups Online</h1>', generator)
-        self.assertIn('This online emoji maker lets you combine two compatible emojis into a sticker-style image.', maker)
+        self.assertIn('This online emoji maker and emoji builder lets you combine two compatible emojis into a sticker-style image.', maker)
         self.assertIn('It does not draw entirely new characters, edit uploaded photos, or create new Unicode keyboard emojis.', maker)
         self.assertIn('This online emoji generator lets you explore supported combinations and create sticker-style mashups directly in your browser.', generator)
         self.assertIn('It is not an unrestricted AI image generator and cannot create every possible pairing.', generator)
@@ -1160,8 +1160,8 @@ class KeyboardPagesContentTests(PageTestCase):
 
 COMBO_PAGE_TEXT = {
     # path: (title, meta description, first sentence of the new introduction)
-    '/emoji-combos/': ('Emoji Combos to Copy and Paste - Ideas for Every Mood',
-                       'Browse emoji combos for cute, aesthetic, funny, love and color themes. Choose a sequence for a bio, caption or message.',
+    '/emoji-combos/': ('Emoji Combos to Copy & Paste (Cute, Love, Funny)',
+                       'Copy and paste emoji combos for cute, love, funny, pink and aesthetic vibes. Short sequences for bios, captions, chats and profiles — ready to use.',
                        'Emoji combos are groups of two or more emoji characters used together to express a mood, topic or visual style.'),
     '/emoji-combos/love/': ('Love Emoji Combos to Copy and Paste',
                             'Browse romantic, affectionate and soft love emoji combos for messages, captions and bios.',
