@@ -1,7 +1,8 @@
 """Content for the save/download stickers blog post seed command.
 
-HTML lives in tests_data/blog/ alongside the other post fixtures. The management
-command creates or updates the BlogPost row; nothing is written unless --apply.
+HTML and the featured cover live in tests_data/blog/ alongside the other post
+fixtures. The management command creates or updates the BlogPost row; nothing
+is written unless --apply.
 """
 from pathlib import Path
 
@@ -28,8 +29,15 @@ FIELDS = {
     ),
 }
 
-CONTENT_PATH = Path(__file__).resolve().parent / 'tests_data' / 'blog' / f'{SLUG}.html'
+_DATA_DIR = Path(__file__).resolve().parent / 'tests_data' / 'blog'
+CONTENT_PATH = _DATA_DIR / f'{SLUG}.html'
+COVER_FILENAME = f'{SLUG}-cover.png'
+COVER_PATH = _DATA_DIR / COVER_FILENAME
 
 
 def content_html():
     return CONTENT_PATH.read_text(encoding='utf-8')
+
+
+def cover_bytes():
+    return COVER_PATH.read_bytes()
