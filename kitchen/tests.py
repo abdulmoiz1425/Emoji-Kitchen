@@ -909,6 +909,11 @@ class HomePageContentTests(PageTestCase):
         self.assertIn('>Start Mixing Emojis</a>', html)
         self.assertGreater(html.index('Ready to Create Your Emoji Mashup?'), html.index('id="faq"'))
 
+    def test_home_body_links_love_funny_pink_and_keyboard(self):
+        links = self.body_links('/')
+        for target in ['/emoji-combos/love/', '/emoji-combos/funny/', '/emoji-combos/pink/', '/emoji-keyboard/']:
+            self.assertIn(target, links, f'home missing body link to {target}')
+
     def test_home_links_to_the_four_tools_from_its_body(self):
         links = self.body_links('/')
         for target in ['/emoji-maker/', '/emoji-generator/', '/emoji-keyboard/', '/emoji-combos/']:
@@ -1838,3 +1843,38 @@ class ArticleSeoTests(BlogUpdateTestCase):
         self.assertNotIn('</script><b>', html)
         self.assertEqual([b for b in _ld_blocks(html) if b.get('@type') == 'BlogPosting'][0]['headline'], post.title)
 
+
+
+# ── Blog crawl-target internal links seed ─────────────────────────────────────
+
+class BlogCrawlLinksSeedTests(TestCase):
+    RELATED_MARKER = '/emoji-combos/love/'
+
+    def setUp(self):
+        for slug in ['emoji-kitchen-gboard', 'emoji-kitchen-samsung', 'emoji-kitchen-whatsapp']:
+            BlogPost.objects.create(
+                title=slug,
+                slug=slug,
+                excerpt='x',
+                content='<p>Base article without crawl links.</p>',
+                status=BlogPost.STATUS_PUBLISHED,
+                seo_title=slug,
+                seo_description='d' * 90,
+            )
+
+    def test_dry_run_does_not_write(self):
+        call_command('seed_blog_crawl_links', stdout=io.StringIO())
+        for post in BlogPost.objects.filter(slug__startswith='emoji-kitchen-'):
+            self.assertNotIn(self.RELATED_MARKER, post.content)
+
+    def test_apply_appends_once_and_is_idempotent(self):
+        call_command('seed_blog_crawl_links', '--apply', stdout=io.StringIO())
+        for slug in ['emoji-kitchen-gboard', 'emoji-kitchen-samsung', 'emoji-kitchen-whatsapp']:
+            content = BlogPost.objects.get(slug=slug).content
+            self.assertIn(self.RELATED_MARKER, content)
+            self.assertIn('/emoji-combos/funny/', content)
+            self.assertIn('/emoji-combos/pink/', content)
+            self.assertIn('/emoji-keyboard/', content)
+        call_command('seed_blog_crawl_links', '--apply', stdout=io.StringIO())
+        for slug in ['emoji-kitchen-gboard', 'emoji-kitchen-samsung', 'emoji-kitchen-whatsapp']:
+            self.assertEqual(BlogPost.objects.get(slug=slug).content.count(self.RELATED_MARKER), 1)
