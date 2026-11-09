@@ -1,0 +1,19 @@
+{% extends 'kitchen/base.html' %}
+
+{% block title %}Server error — Emoji Kitchen{% endblock %}
+{% block meta_description %}Something went wrong on Emoji Kitchen Hub.{% endblock %}
+{% block meta_robots %}<meta name="robots" content="noindex" />{% endblock %}
+{% block canonical %}{% endblock %}
+
+{% block content %}
+<section class="section">
+  <div class="container container--narrow">
+    <div class="section-head animate-up">
+      <span class="section-badge">500</span>
+      <h1>Something went wrong</h1>
+      <p>Please try again in a moment.</p>
+    </div>
+    <p class="animate-up" style="--delay:.08s"><a href="{% url 'home' %}">Back to the homepage</a></p>
+  </div>
+</section>
+{% endblock %}

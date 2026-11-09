@@ -7,7 +7,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}Emoji Kitchen — Mix Two Emojis into One{% endblock %}</title>
   <meta name="description" content="{% block meta_description %}Emoji Kitchen helps you mix two emojis into one custom sticker. Choose two icons, view the result, then copy or download your favourite mashup — free, fast, no sign-up.{% endblock %}" />
-  <link rel="canonical" href="{% block canonical_href %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}" />
+  {% block meta_robots %}{% endblock %}
+  {% block canonical %}<link rel="canonical" href="{% block canonical_href %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endblock %}" />{% endblock %}
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",

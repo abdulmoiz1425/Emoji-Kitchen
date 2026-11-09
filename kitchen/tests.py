@@ -14,7 +14,7 @@ from urllib.parse import urljoin, urlparse
 from django.conf import settings
 from django.core.management import CommandError, call_command
 from django.utils.html import escape as django_escape
-from django.test import SimpleTestCase, TestCase
+from django.test import SimpleTestCase, TestCase, override_settings
 from django.urls import resolve, reverse
 
 from . import views
@@ -1790,6 +1790,27 @@ class SiteWideSeoTests(PageTestCase):
             self.assertTrue(page.meta.get('og:image', '').endswith('og-emoji-kitchen-hub.png'), path)
             self.assertEqual(page.meta.get('twitter:card'), 'summary_large_image', path)
             self.assertEqual(page.meta['og:title'], _clean(page.title), path)
+
+
+class ErrorPageSeoTests(TestCase):
+    """404/500 pages must be noindex and must not self-canonicalise."""
+
+    @override_settings(DEBUG=False, ALLOWED_HOSTS=['testserver', 'localhost', '127.0.0.1'])
+    def test_404_page_is_noindex_without_canonical(self):
+        response = self.client.get('/does-not-exist-for-seo-404/')
+        self.assertEqual(response.status_code, 404)
+        html = response.content.decode()
+        self.assertIn('<meta name="robots" content="noindex"', html)
+        self.assertNotIn('rel="canonical"', html)
+
+    def test_500_template_is_noindex_without_canonical(self):
+        from django.template.loader import render_to_string
+        from django.test import RequestFactory
+
+        request = RequestFactory().get('/')
+        html = render_to_string('500.html', request=request)
+        self.assertIn('<meta name="robots" content="noindex"', html)
+        self.assertNotIn('rel="canonical"', html)
 
 
 class ArticleSeoTests(BlogUpdateTestCase):
