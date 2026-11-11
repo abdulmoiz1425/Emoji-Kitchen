@@ -12,6 +12,7 @@ from django.db import transaction
 from django.utils import timezone
 from django.utils.html import strip_tags
 
+from kitchen.blog_seed_utils import CRAWL_LINKS_HTML
 from kitchen.models import BlogPost
 
 SLUGS = (
@@ -20,14 +21,7 @@ SLUGS = (
     'emoji-kitchen-whatsapp',
 )
 
-RELATED_HTML = (
-    '<p><span style="font-size:13pt"><span style="font-family:Arial,sans-serif">'
-    '<span style="color:#000000">Looking for ready-made text sets instead of '
-    'sticker mashups? Browse <a href="/emoji-combos/love/">love emoji combos</a>, '
-    '<a href="/emoji-combos/funny/">funny emoji combos</a>, and '
-    '<a href="/emoji-combos/pink/">pink emoji combos</a>, or copy single characters '
-    'from the <a href="/emoji-keyboard/">online emoji keyboard</a>.</span></span></span></p>'
-)
+RELATED_HTML = CRAWL_LINKS_HTML
 
 MARKER = '/emoji-combos/love/'
 

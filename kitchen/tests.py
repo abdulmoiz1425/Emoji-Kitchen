@@ -2362,3 +2362,166 @@ class DiscordBlogSeedTests(TestCase):
             BlogPost.objects.get(slug='emoji-kitchen-not-working').content,
         )
         self.assertFalse(BlogPost.objects.filter(slug='emoji-kitchen-on-pc').exists())
+
+
+
+# ── Blog seed inbound-suffix helpers ──────────────────────────────────────────
+
+class BlogSeedUtilsTests(SimpleTestCase):
+    def test_split_and_desired_content_ignore_and_preserve_suffixes(self):
+        from kitchen.blog_seed_discord import INBOUND_HTML as discord_html
+        from kitchen.blog_seed_not_working import INBOUND_HTML as not_working_html
+        from kitchen.blog_seed_on_pc import INBOUND_HTML as on_pc_html
+        from kitchen.blog_seed_utils import desired_seed_content, split_allowed_inbound_suffix
+
+        fixture = '<p>Fixture body of the post.</p>\n'
+        current = (
+            fixture.rstrip()
+            + '\n' + not_working_html + '\n'
+            + '\n' + on_pc_html + '\n'
+            + '\n' + discord_html + '\n'
+        )
+        core, suffix = split_allowed_inbound_suffix(current)
+        self.assertEqual(core.rstrip(), fixture.rstrip())
+        self.assertIn('/blog/emoji-kitchen-not-working/', suffix)
+        self.assertIn('/blog/emoji-kitchen-on-pc/', suffix)
+        self.assertIn('/blog/emoji-kitchen-discord/', suffix)
+        # No-op when the body already matches the fixture.
+        self.assertEqual(desired_seed_content(fixture, current), current)
+        # A real body change keeps the inbound paragraphs.
+        rewritten = desired_seed_content('<p>New fixture body.</p>\n', current)
+        new_core, new_suffix = split_allowed_inbound_suffix(rewritten)
+        self.assertEqual(new_core.rstrip(), '<p>New fixture body.</p>')
+        self.assertIn('/blog/emoji-kitchen-not-working/', new_suffix)
+        self.assertIn('/blog/emoji-kitchen-on-pc/', new_suffix)
+        self.assertIn('/blog/emoji-kitchen-discord/', new_suffix)
+        self.assertNotIn('Fixture body of the post.', rewritten)
+
+
+# ── Cross-seed inbound links must survive a second apply ──────────────────────
+
+class BlogSeedChainIdempotentTests(TestCase):
+    """QA scenario: later seeds append inbound links to earlier posts.
+
+    A second --apply (or running an older seed alone) must not treat those
+    suffixes as fixture drift, rewrite the body, or bump updated_at.
+    """
+
+    REALISTIC_ORDER = (
+        'seed_save_download_blog_post',
+        'seed_not_working_blog_post',
+        'seed_on_pc_blog_post',
+        'seed_discord_blog_post',
+    )
+    ALL_SEEDS = REALISTIC_ORDER + (
+        'seed_iphone_blog_post',
+        'seed_blog_crawl_links',
+    )
+    OLDER_SEEDS = (
+        'seed_save_download_blog_post',
+        'seed_not_working_blog_post',
+        'seed_on_pc_blog_post',
+    )
+    STUB_SLUGS = (
+        'emoji-kitchen-gboard',
+        'emoji-kitchen-samsung',
+        'emoji-kitchen-whatsapp',
+        'emoji-kitchen-iphone',
+    )
+    CONTENT_DRIFT = re.compile(r'content:\s+\d+\s+->\s+\d+\s+words')
+    INBOUND_MARKERS = (
+        '/blog/emoji-kitchen-not-working/',
+        '/blog/emoji-kitchen-on-pc/',
+        '/blog/emoji-kitchen-discord/',
+    )
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.addCleanup(lambda: __import__('shutil').rmtree(self.tmp, ignore_errors=True))
+        self._media = override_settings(MEDIA_ROOT=self.tmp)
+        self._media.enable()
+        self.addCleanup(self._media.disable)
+        for slug in self.STUB_SLUGS:
+            BlogPost.objects.create(
+                title=slug,
+                slug=slug,
+                excerpt='x',
+                content='<p>Base article used for inbound and crawl-link seeds.</p>',
+                status=BlogPost.STATUS_PUBLISHED,
+                seo_title=slug,
+                seo_description='d' * 90,
+            )
+
+    def _run(self, command, apply=True):
+        out = io.StringIO()
+        args = (command, '--apply') if apply else (command,)
+        call_command(*args, stdout=out)
+        return out.getvalue()
+
+    def _run_all(self, commands, apply=True):
+        return ''.join(self._run(name, apply=apply) for name in commands)
+
+    def _snapshot(self):
+        data = {}
+        for post in BlogPost.objects.all().order_by('slug'):
+            data[post.slug] = {
+                'pk': post.pk,
+                'content': post.content,
+                'updated_at': post.updated_at,
+                'reading_time': post.reading_time,
+                'title': post.title,
+            }
+        return data
+
+    def test_full_chain_second_apply_and_older_seeds_alone_change_nothing(self):
+        self._run_all(self.ALL_SEEDS, apply=True)
+
+        save = BlogPost.objects.get(slug='how-to-save-download-emoji-kitchen-stickers')
+        for marker in self.INBOUND_MARKERS:
+            self.assertIn(marker, save.content)
+        not_working = BlogPost.objects.get(slug='emoji-kitchen-not-working')
+        self.assertIn('/blog/emoji-kitchen-on-pc/', not_working.content)
+        self.assertIn('/blog/emoji-kitchen-discord/', not_working.content)
+        on_pc = BlogPost.objects.get(slug='emoji-kitchen-on-pc')
+        self.assertIn('/blog/emoji-kitchen-discord/', on_pc.content)
+
+        after_first = self._snapshot()
+
+        dry_output = self._run_all(self.ALL_SEEDS, apply=False)
+        self.assertIsNone(self.CONTENT_DRIFT.search(dry_output))
+        self.assertEqual(self._snapshot(), after_first)
+
+        self._run_all(self.ALL_SEEDS, apply=True)
+        self.assertEqual(self._snapshot(), after_first)
+
+        for command in self.OLDER_SEEDS:
+            self._run(command, apply=True)
+            self.assertEqual(
+                self._snapshot(),
+                after_first,
+                msg=f'{command} alone changed a post after the full apply',
+            )
+
+    def test_real_body_change_is_corrected_and_inbound_paragraphs_are_kept(self):
+        from kitchen.blog_seed_save_download import content_html
+        from kitchen.blog_seed_utils import split_allowed_inbound_suffix
+
+        self._run_all(self.REALISTIC_ORDER, apply=True)
+        post = BlogPost.objects.get(slug='how-to-save-download-emoji-kitchen-stickers')
+        core, suffix = split_allowed_inbound_suffix(post.content)
+        self.assertTrue(suffix.strip())
+        for marker in self.INBOUND_MARKERS:
+            self.assertIn(marker, suffix)
+
+        post.content = core.rstrip() + '\n<p>tampered body that is not in the fixture.</p>\n' + suffix
+        post.save()
+        self.assertIn('tampered body that is not in the fixture.', post.content)
+
+        self._run('seed_save_download_blog_post', apply=True)
+        again = BlogPost.objects.get(slug='how-to-save-download-emoji-kitchen-stickers')
+        new_core, new_suffix = split_allowed_inbound_suffix(again.content)
+        self.assertEqual(new_core.rstrip(), content_html().rstrip())
+        self.assertNotIn('tampered body that is not in the fixture.', again.content)
+        for marker in self.INBOUND_MARKERS:
+            self.assertIn(marker, again.content)
+        self.assertEqual(new_suffix.strip(), suffix.strip())

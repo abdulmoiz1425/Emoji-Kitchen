@@ -7,6 +7,8 @@ Safe by default: nothing is saved unless --apply is given. Running twice with
 --apply is idempotent for the seeded fields and the featured cover, and it
 does not call post.save() when nothing changed, so updated_at stays put
 (no duplicate posts).
+Known inbound-link paragraphs appended by other seeds are ignored when
+comparing content and are preserved if the fixture body is rewritten.
 """
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandError
@@ -22,6 +24,7 @@ from kitchen.blog_seed_save_download import (
     content_html,
     cover_bytes,
 )
+from kitchen.blog_seed_utils import desired_seed_content
 from kitchen.models import BlogPost
 
 UPDATE_FIELDS = (
@@ -76,12 +79,12 @@ class Command(BaseCommand):
         if not COVER_PATH.is_file():
             raise CommandError(f'Cover image missing: {COVER_PATH}')
 
-        content = content_html()
+        fixture = content_html()
+        existing = BlogPost.objects.filter(slug=SLUG).first()
+        content = desired_seed_content(fixture, existing.content if existing else '')
         desired = {**FIELDS, 'content': content, 'status': BlogPost.STATUS_PUBLISHED}
         desired['reading_time'] = _reading_time(content)
         image_bytes = cover_bytes()
-
-        existing = BlogPost.objects.filter(slug=SLUG).first()
         self.stdout.write(self.style.MIGRATE_HEADING(f'\n{SLUG}'))
         self.stdout.write(f'  web address: /blog/{SLUG}/')
         self.stdout.write(f'  cover source: {COVER_PATH.name} ({len(image_bytes)} bytes)')
