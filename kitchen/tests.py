@@ -1895,16 +1895,24 @@ class BlogCrawlLinksSeedTests(TestCase):
             self.assertNotIn(self.RELATED_MARKER, post.content)
 
     def test_apply_appends_once_and_is_idempotent(self):
+        slugs = ['emoji-kitchen-gboard', 'emoji-kitchen-samsung', 'emoji-kitchen-whatsapp']
         call_command('seed_blog_crawl_links', '--apply', stdout=io.StringIO())
-        for slug in ['emoji-kitchen-gboard', 'emoji-kitchen-samsung', 'emoji-kitchen-whatsapp']:
-            content = BlogPost.objects.get(slug=slug).content
-            self.assertIn(self.RELATED_MARKER, content)
-            self.assertIn('/emoji-combos/funny/', content)
-            self.assertIn('/emoji-combos/pink/', content)
-            self.assertIn('/emoji-keyboard/', content)
+        first_content = {}
+        first_updated = {}
+        for slug in slugs:
+            post = BlogPost.objects.get(slug=slug)
+            self.assertIn(self.RELATED_MARKER, post.content)
+            self.assertIn('/emoji-combos/funny/', post.content)
+            self.assertIn('/emoji-combos/pink/', post.content)
+            self.assertIn('/emoji-keyboard/', post.content)
+            first_content[slug] = post.content
+            first_updated[slug] = post.updated_at
         call_command('seed_blog_crawl_links', '--apply', stdout=io.StringIO())
-        for slug in ['emoji-kitchen-gboard', 'emoji-kitchen-samsung', 'emoji-kitchen-whatsapp']:
-            self.assertEqual(BlogPost.objects.get(slug=slug).content.count(self.RELATED_MARKER), 1)
+        for slug in slugs:
+            post = BlogPost.objects.get(slug=slug)
+            self.assertEqual(post.content.count(self.RELATED_MARKER), 1)
+            self.assertEqual(post.content, first_content[slug])
+            self.assertEqual(post.updated_at, first_updated[slug])
 
 
 # ── iPhone blog rewrite seed ──────────────────────────────────────────────────
@@ -1939,6 +1947,17 @@ class IphoneBlogSeedTests(TestCase):
         words = re.findall(r"[A-Za-z0-9']+", plain)
         phrase = len(re.findall(r'emoji kitchen', plain, re.I))
         self.assertLess(phrase / max(len(words), 1), 0.02)
+
+    def test_second_apply_leaves_updated_at_and_content_unchanged(self):
+        call_command('seed_iphone_blog_post', '--apply', stdout=io.StringIO())
+        first = BlogPost.objects.get(slug='emoji-kitchen-iphone')
+        first_content = first.content
+        first_updated = first.updated_at
+        call_command('seed_iphone_blog_post', '--apply', stdout=io.StringIO())
+        self.assertEqual(BlogPost.objects.filter(slug='emoji-kitchen-iphone').count(), 1)
+        again = BlogPost.objects.get(slug='emoji-kitchen-iphone')
+        self.assertEqual(again.content, first_content)
+        self.assertEqual(again.updated_at, first_updated)
 
 
 # ── Mixer shareable combo links (P10 MVP) ─────────────────────────────────────
@@ -2025,25 +2044,34 @@ class NotWorkingBlogSeedTests(TestCase):
         first = BlogPost.objects.get(slug=self.SLUG)
         first_pk = first.pk
         first_content = first.content
+        first_updated = first.updated_at
         first_cover = first.featured_image.read()
         first.featured_image.close()
+        inbound_content = {}
+        inbound_updated = {}
         for slug in self.INBOUND:
-            content = BlogPost.objects.get(slug=slug).content
-            self.assertIn(self.MARKER, content)
-            self.assertIn('Emoji Kitchen not working fixes', content)
+            related = BlogPost.objects.get(slug=slug)
+            self.assertIn(self.MARKER, related.content)
+            self.assertIn('Emoji Kitchen not working fixes', related.content)
+            inbound_content[slug] = related.content
+            inbound_updated[slug] = related.updated_at
 
         call_command('seed_not_working_blog_post', '--apply', stdout=io.StringIO())
         self.assertEqual(BlogPost.objects.filter(slug=self.SLUG).count(), 1)
         again = BlogPost.objects.get(slug=self.SLUG)
         self.assertEqual(again.pk, first_pk)
         self.assertEqual(again.content, first_content)
+        self.assertEqual(again.updated_at, first_updated)
         again.featured_image.open('rb')
         try:
             self.assertEqual(again.featured_image.read(), first_cover)
         finally:
             again.featured_image.close()
         for slug in self.INBOUND:
-            self.assertEqual(BlogPost.objects.get(slug=slug).content.count(self.MARKER), 1)
+            related = BlogPost.objects.get(slug=slug)
+            self.assertEqual(related.content.count(self.MARKER), 1)
+            self.assertEqual(related.content, inbound_content[slug])
+            self.assertEqual(related.updated_at, inbound_updated[slug])
 
     def test_missing_related_posts_do_not_abort_seed(self):
         BlogPost.objects.filter(slug='emoji-kitchen-samsung').delete()
@@ -2132,25 +2160,34 @@ class OnPcBlogSeedTests(TestCase):
         first = BlogPost.objects.get(slug=self.SLUG)
         first_pk = first.pk
         first_content = first.content
+        first_updated = first.updated_at
         first_cover = first.featured_image.read()
         first.featured_image.close()
+        inbound_content = {}
+        inbound_updated = {}
         for slug in self.INBOUND:
-            content = BlogPost.objects.get(slug=slug).content
-            self.assertIn(self.MARKER, content)
-            self.assertIn('use Emoji Kitchen on PC, Mac, and Chromebook', content)
+            related = BlogPost.objects.get(slug=slug)
+            self.assertIn(self.MARKER, related.content)
+            self.assertIn('use Emoji Kitchen on PC, Mac, and Chromebook', related.content)
+            inbound_content[slug] = related.content
+            inbound_updated[slug] = related.updated_at
 
         call_command('seed_on_pc_blog_post', '--apply', stdout=io.StringIO())
         self.assertEqual(BlogPost.objects.filter(slug=self.SLUG).count(), 1)
         again = BlogPost.objects.get(slug=self.SLUG)
         self.assertEqual(again.pk, first_pk)
         self.assertEqual(again.content, first_content)
+        self.assertEqual(again.updated_at, first_updated)
         again.featured_image.open('rb')
         try:
             self.assertEqual(again.featured_image.read(), first_cover)
         finally:
             again.featured_image.close()
         for slug in self.INBOUND:
-            self.assertEqual(BlogPost.objects.get(slug=slug).content.count(self.MARKER), 1)
+            related = BlogPost.objects.get(slug=slug)
+            self.assertEqual(related.content.count(self.MARKER), 1)
+            self.assertEqual(related.content, inbound_content[slug])
+            self.assertEqual(related.updated_at, inbound_updated[slug])
 
     def test_missing_related_posts_do_not_abort_seed(self):
         BlogPost.objects.filter(slug='emoji-kitchen-gboard').delete()
@@ -2165,6 +2202,56 @@ class OnPcBlogSeedTests(TestCase):
             BlogPost.objects.get(slug='emoji-kitchen-not-working').content,
         )
         self.assertFalse(BlogPost.objects.filter(slug='emoji-kitchen-gboard').exists())
+
+
+# ── Save/download stickers blog seed ──────────────────────────────────────────
+
+class SaveDownloadBlogSeedTests(TestCase):
+    SLUG = 'how-to-save-download-emoji-kitchen-stickers'
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.addCleanup(lambda: __import__('shutil').rmtree(self.tmp, ignore_errors=True))
+        self._media = override_settings(MEDIA_ROOT=self.tmp)
+        self._media.enable()
+        self.addCleanup(self._media.disable)
+
+    def test_dry_run_writes_nothing(self):
+        call_command('seed_save_download_blog_post', stdout=io.StringIO())
+        self.assertFalse(BlogPost.objects.filter(slug=self.SLUG).exists())
+
+    def test_apply_creates_post_with_cover(self):
+        call_command('seed_save_download_blog_post', '--apply', stdout=io.StringIO())
+        self.assertEqual(BlogPost.objects.filter(slug=self.SLUG).count(), 1)
+        post = BlogPost.objects.get(slug=self.SLUG)
+        self.assertEqual(post.title, 'How to Save and Download Emoji Kitchen Stickers')
+        self.assertEqual(post.status, BlogPost.STATUS_PUBLISHED)
+        self.assertIn('unofficial, fan-made', post.content)
+        self.assertTrue(post.featured_image)
+        self.assertTrue(post.featured_image.name.endswith(
+            'how-to-save-download-emoji-kitchen-stickers-cover.png'
+        ))
+
+    def test_apply_twice_leaves_updated_at_and_content_unchanged(self):
+        call_command('seed_save_download_blog_post', '--apply', stdout=io.StringIO())
+        first = BlogPost.objects.get(slug=self.SLUG)
+        first_pk = first.pk
+        first_content = first.content
+        first_updated = first.updated_at
+        first_cover = first.featured_image.read()
+        first.featured_image.close()
+
+        call_command('seed_save_download_blog_post', '--apply', stdout=io.StringIO())
+        self.assertEqual(BlogPost.objects.filter(slug=self.SLUG).count(), 1)
+        again = BlogPost.objects.get(slug=self.SLUG)
+        self.assertEqual(again.pk, first_pk)
+        self.assertEqual(again.content, first_content)
+        self.assertEqual(again.updated_at, first_updated)
+        again.featured_image.open('rb')
+        try:
+            self.assertEqual(again.featured_image.read(), first_cover)
+        finally:
+            again.featured_image.close()
 
 
 # ── Discord blog seed ─────────────────────────────────────────────────────────

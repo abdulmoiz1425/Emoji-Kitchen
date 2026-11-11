@@ -4,8 +4,9 @@
     python manage.py seed_save_download_blog_post --apply    # write to the database
 
 Safe by default: nothing is saved unless --apply is given. Running twice with
---apply is idempotent for the seeded fields and refreshes the featured cover
-image on the same BlogPost row (no duplicate posts).
+--apply is idempotent for the seeded fields and the featured cover, and it
+does not call post.save() when nothing changed, so updated_at stays put
+(no duplicate posts).
 """
 from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand, CommandError
@@ -85,8 +86,11 @@ class Command(BaseCommand):
         self.stdout.write(f'  web address: /blog/{SLUG}/')
         self.stdout.write(f'  cover source: {COVER_PATH.name} ({len(image_bytes)} bytes)')
 
+        post_changes = 0
+        cover_changes = False
         if existing is None:
             self.stdout.write('  action: create new published post')
+            post_changes = len(UPDATE_FIELDS) + 1
             for field in UPDATE_FIELDS:
                 if field == 'content':
                     self.stdout.write(f'  content: {len(content.split())} words (new)')
@@ -94,14 +98,14 @@ class Command(BaseCommand):
                     value = str(desired[field])
                     self.stdout.write(f'  {field}: {value[:110]}{"…" if len(value) > 110 else ""}')
             self.stdout.write(f'  featured_image: will set -> blog/featured/{COVER_FILENAME}')
+            cover_changes = True
         else:
             self.stdout.write(f'  action: update existing post (id={existing.pk})')
-            changes = 0
             for field in UPDATE_FIELDS:
                 old = getattr(existing, field)
                 new = desired[field]
                 if (old or '') != (new or ''):
-                    changes += 1
+                    post_changes += 1
                     if field == 'content':
                         self.stdout.write(
                             f'  content: {len(strip_tags(old).split())} -> '
@@ -112,12 +116,13 @@ class Command(BaseCommand):
                         self.stdout.write(f'      was: {str(old)[:110]}{"…" if len(str(old)) > 110 else ""}')
                         self.stdout.write(f'      now: {str(new)[:110]}{"…" if len(str(new)) > 110 else ""}')
             if _cover_needs_update(existing, image_bytes):
-                changes += 1
+                post_changes += 1
+                cover_changes = True
                 current_name = existing.featured_image.name if existing.featured_image else '(none)'
                 self.stdout.write(
                     f'  featured_image: {current_name} -> blog/featured/{COVER_FILENAME}'
                 )
-            if changes == 0:
+            if post_changes == 0:
                 self.stdout.write('  fields: already up to date')
 
         if not options['apply']:
@@ -127,36 +132,44 @@ class Command(BaseCommand):
             return
 
         with transaction.atomic():
-            if existing is None:
-                post = BlogPost(slug=SLUG, publish_date=timezone.now())
+            if existing is None or post_changes:
+                if existing is None:
+                    post = BlogPost(slug=SLUG, publish_date=timezone.now())
+                else:
+                    post = existing
+                for field, value in desired.items():
+                    setattr(post, field, value)
+                if existing is None and not post.publish_date:
+                    post.publish_date = timezone.now()
+
+                # Attach / refresh the cover on the same row (never create a second post).
+                if cover_changes or _cover_needs_update(post if existing else None, image_bytes):
+                    if post.featured_image:
+                        post.featured_image.delete(save=False)
+                    post.featured_image.save(
+                        COVER_FILENAME,
+                        ContentFile(image_bytes),
+                        save=False,
+                    )
+
+                post.save()
+                fresh = BlogPost.objects.get(slug=SLUG)
+                if fresh.content != content or fresh.status != BlogPost.STATUS_PUBLISHED:
+                    raise CommandError(f'{SLUG} did not save correctly; everything was rolled back.')
+                if not fresh.featured_image or not fresh.featured_image.name.endswith(COVER_FILENAME):
+                    raise CommandError(f'{SLUG} featured_image did not save correctly; rolled back.')
+                # Confirm only one row for this slug.
+                if BlogPost.objects.filter(slug=SLUG).count() != 1:
+                    raise CommandError(f'{SLUG} duplicated; rolled back.')
             else:
-                post = existing
-            for field, value in desired.items():
-                setattr(post, field, value)
-            if existing is None and not post.publish_date:
-                post.publish_date = timezone.now()
+                self.stdout.write('  skipped post.save(); nothing changed')
 
-            # Attach / refresh the cover on the same row (never create a second post).
-            if _cover_needs_update(post if existing else None, image_bytes):
-                if post.featured_image:
-                    post.featured_image.delete(save=False)
-                post.featured_image.save(
-                    COVER_FILENAME,
-                    ContentFile(image_bytes),
-                    save=False,
-                )
-
-            post.save()
-            fresh = BlogPost.objects.get(slug=SLUG)
-            if fresh.content != content or fresh.status != BlogPost.STATUS_PUBLISHED:
-                raise CommandError(f'{SLUG} did not save correctly; everything was rolled back.')
-            if not fresh.featured_image or not fresh.featured_image.name.endswith(COVER_FILENAME):
-                raise CommandError(f'{SLUG} featured_image did not save correctly; rolled back.')
-            # Confirm only one row for this slug.
-            if BlogPost.objects.filter(slug=SLUG).count() != 1:
-                raise CommandError(f'{SLUG} duplicated; rolled back.')
-
-        action = 'Created' if existing is None else 'Updated'
+        if existing is None:
+            action = 'Created'
+        elif post_changes:
+            action = 'Updated'
+        else:
+            action = 'Left unchanged'
         self.stdout.write(self.style.SUCCESS(
             f'{action} /blog/{SLUG}/ '
             f'(status=published, reading_time={desired["reading_time"]} min, '
