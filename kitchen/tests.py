@@ -2165,3 +2165,113 @@ class OnPcBlogSeedTests(TestCase):
             BlogPost.objects.get(slug='emoji-kitchen-not-working').content,
         )
         self.assertFalse(BlogPost.objects.filter(slug='emoji-kitchen-gboard').exists())
+
+
+# ── Discord blog seed ─────────────────────────────────────────────────────────
+
+class DiscordBlogSeedTests(TestCase):
+    SLUG = 'emoji-kitchen-discord'
+    INBOUND = (
+        'how-to-save-download-emoji-kitchen-stickers',
+        'emoji-kitchen-on-pc',
+        'emoji-kitchen-not-working',
+    )
+    MARKER = f'/blog/{SLUG}/'
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.addCleanup(lambda: __import__('shutil').rmtree(self.tmp, ignore_errors=True))
+        self._media = override_settings(MEDIA_ROOT=self.tmp)
+        self._media.enable()
+        self.addCleanup(self._media.disable)
+        for slug in self.INBOUND:
+            BlogPost.objects.create(
+                title=slug,
+                slug=slug,
+                excerpt='x',
+                content='<p>Base article without discord link.</p>',
+                status=BlogPost.STATUS_PUBLISHED,
+                seo_title=slug,
+                seo_description='d' * 90,
+            )
+
+    def test_dry_run_writes_nothing(self):
+        call_command('seed_discord_blog_post', stdout=io.StringIO())
+        self.assertFalse(BlogPost.objects.filter(slug=self.SLUG).exists())
+        for slug in self.INBOUND:
+            self.assertNotIn(self.MARKER, BlogPost.objects.get(slug=slug).content)
+
+    def test_apply_creates_post_with_schema_cover_and_unofficial_wording(self):
+        call_command('seed_discord_blog_post', '--apply', stdout=io.StringIO())
+        self.assertEqual(BlogPost.objects.filter(slug=self.SLUG).count(), 1)
+        post = BlogPost.objects.get(slug=self.SLUG)
+        self.assertEqual(post.title, 'How to Use Emoji Kitchen Stickers on Discord')
+        self.assertEqual(post.status, BlogPost.STATUS_PUBLISHED)
+        self.assertIn('unofficial, fan-made', post.content)
+        self.assertIn('not run by Google', post.content)
+        self.assertIn('href="/"', post.content)
+        self.assertTrue(post.featured_image)
+        self.assertTrue(post.featured_image.name.endswith('emoji-kitchen-discord-cover.png'))
+        self.assertEqual(
+            post.canonical_url,
+            'https://emojikitchenhub.com/blog/emoji-kitchen-discord/',
+        )
+        from kitchen.seo import faq_pairs_from_html
+        self.assertEqual(len(faq_pairs_from_html(post.content)), 6)
+
+        html = self.client.get(f'/blog/{self.SLUG}/').content.decode()
+        blocks = []
+        for match in re.finditer(
+            r'<script type="application/ld\+json">(.*?)</script>', html, re.DOTALL
+        ):
+            blocks.append(json.loads(match.group(1)))
+        types = {b.get('@type') for b in blocks}
+        self.assertIn('BlogPosting', types)  # Article-style schema used sitewide
+        self.assertIn('FAQPage', types)
+        faq = next(b for b in blocks if b.get('@type') == 'FAQPage')
+        self.assertEqual(len(faq['mainEntity']), 6)
+        self.assertIn(self.MARKER.strip('/').split('/')[-1], html)  # page renders
+        self.assertIn('rel="canonical"', html)
+        self.assertIn('/blog/emoji-kitchen-discord/', html)
+        self.assertIn('href="/"', html)
+
+    def test_apply_is_idempotent_and_adds_inbound_links(self):
+        call_command('seed_discord_blog_post', '--apply', stdout=io.StringIO())
+        first = BlogPost.objects.get(slug=self.SLUG)
+        first_pk = first.pk
+        first_content = first.content
+        first_updated = first.updated_at
+        first_cover = first.featured_image.read()
+        first.featured_image.close()
+        for slug in self.INBOUND:
+            content = BlogPost.objects.get(slug=slug).content
+            self.assertIn(self.MARKER, content)
+            self.assertIn('use Emoji Kitchen stickers on Discord', content)
+
+        call_command('seed_discord_blog_post', '--apply', stdout=io.StringIO())
+        self.assertEqual(BlogPost.objects.filter(slug=self.SLUG).count(), 1)
+        again = BlogPost.objects.get(slug=self.SLUG)
+        self.assertEqual(again.pk, first_pk)
+        self.assertEqual(again.content, first_content)
+        self.assertEqual(again.updated_at, first_updated)
+        again.featured_image.open('rb')
+        try:
+            self.assertEqual(again.featured_image.read(), first_cover)
+        finally:
+            again.featured_image.close()
+        for slug in self.INBOUND:
+            self.assertEqual(BlogPost.objects.get(slug=slug).content.count(self.MARKER), 1)
+
+    def test_missing_related_posts_do_not_abort_seed(self):
+        BlogPost.objects.filter(slug='emoji-kitchen-on-pc').delete()
+        call_command('seed_discord_blog_post', '--apply', stdout=io.StringIO())
+        self.assertTrue(BlogPost.objects.filter(slug=self.SLUG).exists())
+        self.assertIn(
+            self.MARKER,
+            BlogPost.objects.get(slug='how-to-save-download-emoji-kitchen-stickers').content,
+        )
+        self.assertIn(
+            self.MARKER,
+            BlogPost.objects.get(slug='emoji-kitchen-not-working').content,
+        )
+        self.assertFalse(BlogPost.objects.filter(slug='emoji-kitchen-on-pc').exists())
