@@ -2762,6 +2762,144 @@ class IndexNowTests(TestCase):
         self.assertGreater(len(sent), 0)
         self.assertEqual(kwargs.get('force'), True)
 
+    def _capture_save(self, callback):
+        from kitchen import indexnow
+        with mock.patch.object(indexnow, 'submit_urls', wraps=indexnow.submit_urls) as submit:
+            with mock.patch.object(indexnow.requests, 'post') as post:
+                with mock.patch.object(indexnow.threading, 'Thread', side_effect=_run_thread_inline):
+                    with override_settings(INDEXNOW_ENABLED=True, DEBUG=False):
+                        with self.captureOnCommitCallbacks(execute=True):
+                            result = callback()
+        return result, submit, post
+
+    def test_noop_resave_of_published_post_does_not_ping(self):
+        post_obj = self._save_post(BlogPost.STATUS_PUBLISHED, slug='indexnow-noop')
+        _, submit, post = self._capture_save(post_obj.save)
+        submit.assert_not_called()
+        post.assert_not_called()
+
+    def test_published_unchanged_resave_sends_no_ping(self):
+        post_obj = self._save_post(BlogPost.STATUS_PUBLISHED, slug='indexnow-unchanged')
+        post_obj.refresh_from_db()
+        _, submit, post = self._capture_save(post_obj.save)
+        submit.assert_not_called()
+        post.assert_not_called()
+
+    def test_changing_title_of_published_post_sends_one_ping(self):
+        post_obj = self._save_post(BlogPost.STATUS_PUBLISHED, slug='indexnow-title')
+
+        def _update():
+            post_obj.title = 'Updated IndexNow Title'
+            post_obj.save()
+            return post_obj
+
+        _, submit, post = self._capture_save(_update)
+        expected_url = f'https://emojikitchenhub.com{post_obj.get_absolute_url()}'
+        submit.assert_called_once_with([expected_url])
+        post.assert_called_once()
+
+    def test_changing_content_of_published_post_sends_one_ping(self):
+        post_obj = self._save_post(BlogPost.STATUS_PUBLISHED, slug='indexnow-content')
+
+        def _update():
+            post_obj.content = '<p>Updated body</p>'
+            post_obj.save()
+            return post_obj
+
+        _, submit, post = self._capture_save(_update)
+        expected_url = f'https://emojikitchenhub.com{post_obj.get_absolute_url()}'
+        submit.assert_called_once_with([expected_url])
+        post.assert_called_once()
+
+    def test_draft_to_published_sends_one_ping(self):
+        post_obj = self._save_post(BlogPost.STATUS_DRAFT, slug='indexnow-publish')
+
+        def _update():
+            post_obj.status = BlogPost.STATUS_PUBLISHED
+            post_obj.save()
+            return post_obj
+
+        _, submit, post = self._capture_save(_update)
+        expected_url = f'https://emojikitchenhub.com{post_obj.get_absolute_url()}'
+        submit.assert_called_once_with([expected_url])
+        post.assert_called_once()
+
+    def test_slug_change_pings_only_the_new_url(self):
+        post_obj = self._save_post(BlogPost.STATUS_PUBLISHED, slug='indexnow-old-slug')
+
+        def _update():
+            post_obj.slug = 'indexnow-new-slug'
+            post_obj.save()
+            return post_obj
+
+        _, submit, post = self._capture_save(_update)
+        submit.assert_called_once_with(['https://emojikitchenhub.com/blog/indexnow-new-slug/'])
+        post.assert_called_once()
+
+    def test_submit_urls_ignores_foreign_host_urls(self):
+        from kitchen import indexnow
+        with mock.patch.object(indexnow.requests, 'post') as post:
+            with self.assertLogs('kitchen.indexnow', level='WARNING'):
+                result = indexnow.submit_urls(
+                    [
+                        'https://example.com/x',
+                        'https://www.emojikitchenhub.com/ok/',
+                        'http://emojikitchenhub.com/also/',
+                    ],
+                    force=True,
+                )
+        post.assert_called_once()
+        payload = post.call_args.kwargs['json']
+        self.assertEqual(
+            payload['urlList'],
+            [
+                'https://emojikitchenhub.com/ok/',
+                'https://emojikitchenhub.com/also/',
+            ],
+        )
+        self.assertEqual(result['urlList'], payload['urlList'])
+
+    def test_submit_urls_ignores_an_all_foreign_list(self):
+        from kitchen import indexnow
+        with mock.patch.object(indexnow.requests, 'post') as post:
+            with self.assertLogs('kitchen.indexnow', level='WARNING'):
+                result = indexnow.submit_urls(['https://example.com/x'], force=True)
+        self.assertIsNone(result)
+        post.assert_not_called()
+
+    def test_command_rejects_a_foreign_host(self):
+        with mock.patch('kitchen.management.commands.indexnow_submit.submit_urls') as submit:
+            stderr = io.StringIO()
+            with self.assertLogs('kitchen.indexnow', level='WARNING'):
+                with self.assertRaises(CommandError) as caught:
+                    call_command(
+                        'indexnow_submit',
+                        'https://example.com/x',
+                        stdout=io.StringIO(),
+                        stderr=stderr,
+                    )
+        submit.assert_not_called()
+        self.assertIn('No valid emojikitchenhub.com URLs', str(caught.exception))
+        self.assertIn('example.com', stderr.getvalue())
+
+    def test_command_accepts_apex_and_www_urls(self):
+        with mock.patch('kitchen.management.commands.indexnow_submit.submit_urls', return_value={'ok': True}) as submit:
+            output = io.StringIO()
+            call_command(
+                'indexnow_submit',
+                'https://emojikitchenhub.com/blog/foo/',
+                'https://www.emojikitchenhub.com/blog/bar/',
+                stdout=output,
+            )
+        submit.assert_called_once_with(
+            [
+                'https://emojikitchenhub.com/blog/foo/',
+                'https://emojikitchenhub.com/blog/bar/',
+            ],
+            force=True,
+        )
+        self.assertIn('Submitted 2 URL(s)', output.getvalue())
+
 
 # ── Meta descriptions lengthened for search snippets ──────────────────────────
 

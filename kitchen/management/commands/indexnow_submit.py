@@ -10,6 +10,7 @@ from kitchen.indexnow import (
     INDEXNOW_BATCH_SIZE,
     collect_sitemap_urls,
     configured_key,
+    normalize_indexnow_url,
     submit_urls,
 )
 
@@ -17,14 +18,15 @@ from kitchen.indexnow import (
 class Command(BaseCommand):
     help = (
         'Submit one or more URLs, or every URL in the site sitemaps, to IndexNow. '
-        'Use --dry-run to print the list without sending.'
+        'Only emojikitchenhub.com URLs are accepted. Use --dry-run to print the '
+        'list without sending.'
     )
 
     def add_arguments(self, parser):
         parser.add_argument(
             'urls',
             nargs='*',
-            help='Absolute URLs or site paths to submit.',
+            help='Absolute emojikitchenhub.com URLs or site paths to submit.',
         )
         parser.add_argument(
             '--sitemap',
@@ -44,16 +46,24 @@ class Command(BaseCommand):
         if not urls:
             raise CommandError('Provide at least one URL, or use --sitemap.')
 
-        if not options['dry_run'] and not configured_key():
-            raise CommandError('INDEXNOW_KEY is empty; nothing was submitted.')
-
-        # Deduplicate while preserving order (submit_urls also does this).
         unique = []
         seen = set()
         for url in urls:
-            if url not in seen:
-                seen.add(url)
-                unique.append(url)
+            normalized = normalize_indexnow_url(url)
+            if normalized is None:
+                self.stderr.write(self.style.WARNING(
+                    f'Skipping URL that is not on emojikitchenhub.com: {url}'
+                ))
+                continue
+            if normalized not in seen:
+                seen.add(normalized)
+                unique.append(normalized)
+
+        if not unique:
+            raise CommandError('No valid emojikitchenhub.com URLs to submit.')
+
+        if not options['dry_run'] and not configured_key():
+            raise CommandError('INDEXNOW_KEY is empty; nothing was submitted.')
 
         if options['dry_run']:
             for url in unique:
