@@ -6,10 +6,11 @@ from django.templatetags.static import static as static_url
 from django.urls import path, include
 from django.views.generic.base import RedirectView
 
-from kitchen.sitemaps import StaticViewSitemap, BlogPostSitemap
+from kitchen.sitemaps import BlogPostSitemap, ComboPageSitemap, StaticViewSitemap
 
 sitemaps = {
     'static': StaticViewSitemap,
+    'combos': ComboPageSitemap,
     'blog': BlogPostSitemap,
 }
 

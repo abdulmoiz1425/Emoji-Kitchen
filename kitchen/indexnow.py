@@ -112,11 +112,11 @@ def normalize_indexnow_url(path_or_url):
 
 def collect_sitemap_urls():
     """Absolute production URLs from the Django sitemap classes, no HTTP."""
-    from kitchen.sitemaps import BlogPostSitemap, StaticViewSitemap
+    from kitchen.sitemaps import BlogPostSitemap, ComboPageSitemap, StaticViewSitemap
 
     urls = []
     seen = set()
-    for sitemap_cls in (StaticViewSitemap, BlogPostSitemap):
+    for sitemap_cls in (StaticViewSitemap, ComboPageSitemap, BlogPostSitemap):
         sitemap = sitemap_cls()
         for item in sitemap.items():
             url = normalize_indexnow_url(sitemap.location(item))

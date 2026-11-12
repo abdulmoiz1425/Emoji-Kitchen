@@ -1,11 +1,12 @@
 {% extends 'kitchen/base.html' %}
 {% load static %}
 
-{% block title %}Cute Emoji Combos to Copy and Paste{% endblock %}
-{% block meta_description %}Find cute emoji combos with animals, bows, flowers, hearts and soft expressions. Copy and paste them for bios, messages, captions and profiles.{% endblock %}
+{% block title %}Cute Emoji Combos to Copy &amp; Paste: Bows, Bunnies, Hearts{% endblock %}
+{% block meta_description %}Copy and paste cute emoji combos with bows, bunnies, flowers, hearts and soft faces for bios, texts and captions. Tap Copy, then paste anywhere.{% endblock %}
+{% block canonical_href %}{{ canonical_url }}{% endblock %}
 
 {% block extra_head %}
-{% include "kitchen/_social_meta.html" with page_title="Cute Emoji Combos to Copy and Paste" page_description="Find cute emoji combos with animals, bows, flowers, hearts and soft expressions. Copy and paste them for bios, messages, captions and profiles." %}
+{% include "kitchen/_social_meta.html" with page_title="Cute Emoji Combos to Copy & Paste: Bows, Bunnies, Hearts" page_description="Copy and paste cute emoji combos with bows, bunnies, flowers, hearts and soft faces for bios, texts and captions. Tap Copy, then paste anywhere." page_url=canonical_url %}
 {% endblock %}
 
 {% block content %}
@@ -17,10 +18,10 @@
       <span class="section-badge">🎀 Cute Emoji Combos</span>
       <h1>Cute Emoji Combos to Copy and Paste</h1>
       <p class="section-head__sub" style="font-size:.78rem;color:var(--t3);margin-top:-8px">
-        Written by: Emoji Kitchen Hub Editorial Team &nbsp;·&nbsp; Last updated: July 29, 2026
+        Written by: Emoji Kitchen Hub Editorial Team &nbsp;·&nbsp; Last updated: November 12, 2026
       </p>
       <p>Cute emoji combos often use friendly faces, small animals, hearts, flowers, bows and soft colors. Choose a short set for a username or message, or a more decorative group for a caption.</p>
-      <p>This collection focuses on playful and sweet combinations. For a consistently color-matched look, explore <a href="/emoji-combos/aesthetic/">Aesthetic Emoji Combos</a>. For romantic messages, browse <a href="/emoji-combos/love/">Love Emoji Combos</a>.</p>
+      <p>Two or three emojis read best in a username or a quick message; longer sets suit a caption. For a coordinated color look, try <a href="/emoji-combos/aesthetic/">Aesthetic Emoji Combos</a>. For romantic messages, browse <a href="/emoji-combos/love/">Love Emoji Combos</a>. If you would rather send a picture, mix a pair such as <a href="/?emoji1=%F0%9F%A5%BA&amp;emoji2=%F0%9F%8E%80#kitchen">🥺 + 🎀</a> or <a href="/?emoji1=%F0%9F%90%B0&amp;emoji2=%F0%9F%8C%B8#kitchen">🐰 + 🌸</a> in Emoji Kitchen. Not every pair has a mashup.</p>
     </div>
   </div>
 </section>
@@ -31,7 +32,7 @@
     <div class="combo-tool animate-up">
 
       <div class="combo-tool__header">
-        <span class="combo-tool__title">🎀 200 Cute Emoji Combinations</span>
+        <span class="combo-tool__title">🎀 Cute Emoji Combinations to Copy &middot; <span id="combo-count">{{ combo_count }}</span> sets</span>
       </div>
       <div class="combo-tool__controls">
         <div class="combo-search-wrap">
@@ -692,6 +693,9 @@
     {cat:'lifestyle', label:'Earthy', emoji:'🌿🪵🤎'},
     {cat:'lifestyle', label:'Trendy Party', emoji:'🪩💿✨'},
   ];
+
+  // The number in the tool heading always comes from the data: distinct sets in COMBOS.
+  document.getElementById('combo-count').textContent = new Set(COMBOS.map(c => c.emoji)).size;
 
   const grid     = document.getElementById('combo-grid');
   const search   = document.getElementById('combo-search');

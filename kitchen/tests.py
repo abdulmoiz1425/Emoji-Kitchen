@@ -23,7 +23,7 @@ from emoji_kitchen.envfile import load_env
 from . import blog_content, blog_updates, explore
 
 from .models import BlogPost
-from .sitemaps import StaticViewSitemap
+from .sitemaps import ComboPageSitemap, StaticViewSitemap
 
 PC = '/emoji-keyboard-for-pc/'
 WHATSAPP_URL = 'https://whatsapp.com/channel/0029VbELF1pCXC3RhJFkUm25'
@@ -43,8 +43,18 @@ COMBOS = [
     '/emoji-combos/funny/',
     '/emoji-combos/pink/',
 ]
+# The data-driven category pages (kitchen/combo_pages.py). Kept apart from COMBOS on purpose:
+# the home page links to the five COMBOS pages and only to two of these.
+MORE_COMBOS = [
+    '/emoji-combos/birthday/',
+    '/emoji-combos/sad/',
+    '/emoji-combos/friendship/',
+    '/emoji-combos/bio/',
+    '/emoji-combos/dark/',
+    '/emoji-combos/christmas/',
+]
 LEGAL = ['/about-us/', '/contact/', '/privacy/', '/terms/', '/disclaimer/', '/cookie-policy/']
-ALL_PAGES = HUBS + [PC] + COMBOS + ['/blog/'] + POSTS + LEGAL
+ALL_PAGES = HUBS + [PC] + COMBOS + MORE_COMBOS + ['/blog/'] + POSTS + LEGAL
 WEAK_ANCHORS = {'click here', 'read more', 'here', 'more', 'learn more'}
 # Some page copy links with the full address, so those count as internal too.
 SITE_HOSTS = {'testserver', 'emojikitchenhub.com', 'www.emojikitchenhub.com'}
@@ -258,8 +268,9 @@ class SitemapTests(PageTestCase):
 
     def test_counts_and_drafts(self):
         locs = self.locations()
-        self.assertEqual(len(StaticViewSitemap().items()), 18)
-        self.assertEqual(len(locs), 18 + len(POST_SLUGS))
+        self.assertEqual(len(StaticViewSitemap().items()), 12)
+        self.assertEqual(len(ComboPageSitemap().items()), 12)   # hub + 5 older + 6 category pages
+        self.assertEqual(len(locs), 12 + 12 + len(POST_SLUGS))
         self.assertFalse(any('hidden-draft' in l for l in locs))
 
     def test_every_sitemap_url_is_clean(self):
@@ -1165,23 +1176,23 @@ class KeyboardPagesContentTests(PageTestCase):
 
 COMBO_PAGE_TEXT = {
     # path: (title, meta description, first sentence of the new introduction)
-    '/emoji-combos/': ('Emoji Combos to Copy & Paste (Cute, Love, Funny)',
-                       'Copy and paste emoji combos for cute, love, funny, pink and aesthetic vibes. Short sequences for bios, captions, chats and profiles — ready to use.',
+    '/emoji-combos/': ('100+ Emoji Combos to Copy & Paste: Cute, Love, Funny',
+                       'Tap to copy 100+ emoji combos for bios, captions and chats: cute, aesthetic, love, funny and pink sets. Want an image? Mix emojis with Emoji Kitchen.',
                        'Emoji combos are groups of two or more emoji characters used together to express a mood, topic or visual style.'),
-    '/emoji-combos/love/': ('Love Emoji Combos to Copy and Paste',
-                            'Browse romantic, affectionate and soft love emoji combos for messages, captions and bios. Copy ready-made sequences of hearts, faces and flowers.',
+    '/emoji-combos/love/': ('Love Emoji Combos to Copy & Paste for Texts & Captions',
+                            'Copy and paste love emoji combos with hearts, roses and soft faces for romantic texts, anniversaries, captions and bios. Tap Copy to use one.',
                             'Love emoji combos bring hearts, faces, flowers and other symbols together to add tone to a message.'),
-    '/emoji-combos/cute/': ('Cute Emoji Combos to Copy and Paste',
-                            'Find cute emoji combos with animals, bows, flowers, hearts and soft expressions. Copy and paste them for bios, messages, captions and profiles.',
+    '/emoji-combos/cute/': ('Cute Emoji Combos to Copy & Paste: Bows, Bunnies, Hearts',
+                            'Copy and paste cute emoji combos with bows, bunnies, flowers, hearts and soft faces for bios, texts and captions. Tap Copy, then paste anywhere.',
                             'Cute emoji combos often use friendly faces, small animals, hearts, flowers, bows and soft colors.'),
-    '/emoji-combos/aesthetic/': ('Aesthetic Emoji Combos for Bios and Captions',
-                                 'Explore aesthetic emoji combos by mood, color and visual style. Find coordinated sequences to copy and paste for profiles, captions and bios.',
+    '/emoji-combos/aesthetic/': ('Aesthetic Emoji Combos to Copy & Paste for Bios, Captions',
+                                 'Copy and paste aesthetic emoji combos sorted by mood, color and style, from soft and coquette to dark academia, for bios, captions and stories.',
                                  'Aesthetic emoji combos use a consistent visual mood, such as soft pastels, night skies, flowers, nature, minimal symbols or warm neutral tones.'),
-    '/emoji-combos/funny/': ('Funny Emoji Combos to Copy and Paste',
-                             'Browse funny emoji combos for reactions, jokes, group chats and captions. Copy and paste a playful sequence that fits the context of your message.',
+    '/emoji-combos/funny/': ('Funny Emoji Combos to Copy & Paste: Reactions & Memes',
+                             'Copy and paste funny emoji combos for reactions, jokes, memes and group chats. Pick a playful set that fits the tone of your message and the moment.',
                              'Funny emoji combos bring faces, objects, animals and symbols together to make a reaction more playful.'),
-    '/emoji-combos/pink/': ('Pink Emoji Combos to Copy and Paste',
-                            'Explore pink emoji combos featuring hearts, flowers, bows and pastel symbols. Copy and paste them for bios, captions, profiles and messages.',
+    '/emoji-combos/pink/': ('Pink Emoji Combos to Copy & Paste: Hearts, Bows, Flowers',
+                            'Copy and paste pink emoji combos made of hearts, bows, flowers and pastel symbols for bios, captions, profiles and messages. Tap Copy to use one.',
                             'Pink emoji combos bring together hearts, flowers, bows, ribbons and other symbols that suit a pink or pastel visual theme.'),
 }
 GUIDES = {   # page -> the guide the document adds before the FAQs
@@ -1772,7 +1783,7 @@ def _ld_blocks(html):
 
 
 class SiteWideSeoTests(PageTestCase):
-    FAQ_PAGES = HUBS[:1] + ['/emoji-maker/', '/emoji-generator/', '/emoji-keyboard/', '/emoji-combos/', PC] + COMBOS
+    FAQ_PAGES = HUBS[:1] + ['/emoji-maker/', '/emoji-generator/', '/emoji-keyboard/', '/emoji-combos/', PC] + COMBOS + MORE_COMBOS
 
     def test_every_json_ld_block_on_every_page_is_valid_json(self):
         for path in [p for p in ALL_PAGES if p not in POSTS]:
@@ -2430,6 +2441,7 @@ class BlogSeedChainIdempotentTests(TestCase):
     ALL_SEEDS = REALISTIC_ORDER + (
         'seed_iphone_blog_post',
         'seed_blog_crawl_links',
+        'seed_combo_page_links',
     )
     OLDER_SEEDS = (
         'seed_save_download_blog_post',
@@ -3094,3 +3106,412 @@ class LengthenedMetaDescriptionTests(PageTestCase):
             )
             self.assertEqual(page.meta.get('og:description'), description, path)
             self.assertEqual(page.meta.get('twitter:description'), description, path)
+
+
+# ── Emoji combo CTR rewrite and the data-driven category pages ───────────────
+
+import html as _html_lib
+import itertools
+
+from . import combo_counts
+from .combo_pages import COMBO_PAGES
+from .seo import CANONICAL_HOST
+
+COMBO_SITE = f'https://{CANONICAL_HOST}'
+EXISTING_COMBO_PAGES = ['/emoji-combos/'] + COMBOS
+EXISTING_COMBO_TEMPLATES = {
+    '/emoji-combos/': 'emoji_combos.html',
+    '/emoji-combos/love/': 'emoji_combos_love.html',
+    '/emoji-combos/cute/': 'emoji_combos_cute.html',
+    '/emoji-combos/aesthetic/': 'emoji_combos_aesthetic.html',
+    '/emoji-combos/funny/': 'emoji_combos_funny.html',
+    '/emoji-combos/pink/': 'emoji_combos_pink.html',
+}
+MIN_SETS_PER_NEW_PAGE = 40
+ADSENSE_HOME_SLOT = '1461359629'
+
+
+def _words(text):
+    return re.findall(r"[a-z']+", _html_lib.unescape(re.sub(r'<[^>]+>', ' ', text)).lower())
+
+
+def _shingles(text, size=3):
+    words = _words(text)
+    return {tuple(words[i:i + size]) for i in range(len(words) - size + 1)}
+
+
+def _page_copy(page):
+    """All the prose of a category page's data (no emoji sets, no shared boilerplate)."""
+    parts = [*page['intro'], page['mashup_note'], page['siblings_cta']]
+    for heading, paragraphs in page['sections']:
+        parts += [heading, *paragraphs]
+    for question, answer in page['faqs']:
+        parts += [question, answer]
+    return '\n'.join(parts)
+
+
+def _visible_text(html):
+    return re.sub(r'<(script|style)\b.*?</\1>', ' ', html, flags=re.DOTALL)
+
+
+class ComboCategoryDataTests(SimpleTestCase):
+    """The six pages in kitchen/combo_pages.py have real, distinct substance."""
+
+    def test_the_six_pages_exist(self):
+        self.assertEqual(sorted(COMBO_PAGES), sorted(p.rsplit('/', 2)[-2] for p in MORE_COMBOS))
+
+    def test_each_page_has_enough_unique_sets(self):
+        for slug, page in COMBO_PAGES.items():
+            sets = [c[2] for c in page['combos']]
+            self.assertGreaterEqual(len(sets), MIN_SETS_PER_NEW_PAGE, slug)
+            self.assertEqual(len(sets), len(set(sets)), f'{slug} repeats a set')
+            labels = [c[1] for c in page['combos']]
+            self.assertEqual(len(labels), len(set(labels)), f'{slug} repeats a label')
+            filters = {key for key, _label in page['filters']}
+            self.assertTrue({c[0] for c in page['combos']} <= filters, slug)
+            for key in filters:
+                self.assertGreaterEqual(len([c for c in page['combos'] if c[0] == key]), 3, f'{slug}/{key} is thin')
+
+    def test_sets_are_emoji_only_and_not_on_any_other_page(self):
+        seen = {}
+        existing = set()
+        for name in EXISTING_COMBO_TEMPLATES.values():
+            existing |= set(combo_counts.template_sets(name))
+        for slug, page in COMBO_PAGES.items():
+            for _cat, _label, emoji_set in page['combos']:
+                self.assertFalse(emoji_set.isascii(), (slug, emoji_set))
+                self.assertFalse(any(ch.isascii() and ch.isalnum() for ch in emoji_set), (slug, emoji_set))
+                self.assertFalse(emoji_set.startswith('\ufe0f') or emoji_set.startswith('\u200d'), (slug, emoji_set))
+                self.assertNotIn(emoji_set, existing, f'{slug}: {emoji_set} is already on an older combo page')
+                self.assertNotIn(emoji_set, seen, f'{slug}: {emoji_set} is also on {seen.get(emoji_set)}')
+                seen[emoji_set] = slug
+
+    def test_editorial_substance(self):
+        for slug, page in COMBO_PAGES.items():
+            self.assertEqual(len(page['faqs']), 5, slug)
+            self.assertGreaterEqual(len(page['sections']), 2, slug)
+            self.assertEqual(len(page['intro']), 2, slug)
+            self.assertEqual(len(page['mashups']), 6, slug)
+            self.assertGreaterEqual(len(_words(_page_copy(page))), 350, f'{slug} copy is thin')
+
+    def test_every_mashup_pair_exists_in_the_dataset(self):
+        for slug, page in COMBO_PAGES.items():
+            for first, second in page['mashups']:
+                self.assertTrue(views.combo_image_url(first, second), f'{slug}: {first} + {second} has no Emoji Kitchen pair')
+            self.assertEqual(len(views.mashup_links(page['mashups'])), 6, slug)
+
+    def test_no_number_is_written_into_the_copy(self):
+        for slug, page in COMBO_PAGES.items():
+            for field in ('title', 'meta', 'h1', 'badge'):
+                self.assertIsNone(re.search(r'\d', page[field]), f'{slug} {field}: {page[field]}')
+            for paragraph in page['intro']:
+                self.assertIsNone(re.search(r'\d', paragraph), f'{slug}: {paragraph}')
+
+    def test_title_and_meta_lengths(self):
+        for slug, page in COMBO_PAGES.items():
+            self.assertLessEqual(len(page['title']), 60, slug)
+            self.assertGreaterEqual(len(page['title']), 30, slug)
+            self.assertTrue(140 <= len(page['meta']) <= 155, f'{slug} meta is {len(page["meta"])}')
+
+    def test_copy_is_distinct_between_the_new_pages(self):
+        shingles = {slug: _shingles(_page_copy(page)) for slug, page in COMBO_PAGES.items()}
+        for first, second in itertools.combinations(shingles, 2):
+            score = len(shingles[first] & shingles[second]) / len(shingles[first] | shingles[second])
+            self.assertLess(score, 0.15, f'{first} and {second} copy overlap ({score:.3f})')
+
+    def test_every_page_has_its_own_title_meta_and_h1(self):
+        for field in ('title', 'meta', 'h1'):
+            values = [page[field] for page in COMBO_PAGES.values()]
+            self.assertEqual(len(values), len(set(values)), field)
+
+
+class ComboCountsTests(SimpleTestCase):
+    def test_floor_hundreds(self):
+        self.assertEqual([combo_counts.floor_hundreds(n) for n in (0, 99, 100, 138, 199, 200, 345)],
+                         [0, 0, 100, 100, 100, 200, 300])
+
+    def test_hub_title_and_meta_use_a_number_only_when_the_count_supports_it(self):
+        title, meta = views.emoji_combos_hub_copy(138)
+        self.assertTrue(title.startswith('100+ Emoji Combos'))
+        self.assertIn('Tap to copy 100+ emoji combos', meta)
+        title, meta = views.emoji_combos_hub_copy(99)
+        self.assertIsNone(re.search(r'\d', title + meta))
+        self.assertTrue(title.startswith('Emoji Combos to Copy & Paste'))
+        self.assertTrue(views.emoji_combos_hub_copy(250)[0].startswith('200+ '))
+        for count in (0, 99, 100, 250):
+            title, meta = views.emoji_combos_hub_copy(count)
+            self.assertLessEqual(len(title), 60, count)
+            self.assertTrue(140 <= len(meta) <= 155, (count, len(meta)))
+
+    def test_older_pages_ship_the_counts_the_review_found(self):
+        # Entries listed in each COMBOS array. Aesthetic, funny, pink, love and the hub repeat a few sets,
+        # so the number shown to visitors is the count of distinct sets.
+        listed = {name: len(combo_counts.template_sets(name)) for name in EXISTING_COMBO_TEMPLATES.values()}
+        self.assertEqual(listed['emoji_combos_cute.html'], 185)
+        self.assertEqual(listed['emoji_combos_aesthetic.html'], 194)
+        self.assertEqual(listed['emoji_combos_funny.html'], 149)
+        self.assertGreaterEqual(combo_counts.distinct_set_count('emoji_combos.html'), 100)
+
+
+class ComboCategoryPageTests(PageTestCase):
+    def slug(self, path):
+        return path.rsplit('/', 2)[-2]
+
+    def test_each_new_page_is_a_complete_page(self):
+        for path in MORE_COMBOS:
+            page_data = COMBO_PAGES[self.slug(path)]
+            html = self.fetch(path)
+            page = self.parse(path)
+            self.assertEqual(len(page.h1), 1, path)
+            self.assertEqual(_clean(page.h1[0]), page_data['h1'], path)
+            self.assertEqual(_clean(page.title), page_data['title'], path)
+            self.assertEqual(page.meta['description'], page_data['meta'], path)
+            self.assertEqual(page.canonical, COMBO_SITE + path, path)
+            self.assertEqual(page.meta['og:url'], COMBO_SITE + path, path)
+            self.assertEqual(page.meta['og:title'], page_data['title'], path)
+            self.assertEqual(page.meta['og:description'], page_data['meta'], path)
+            self.assertNotIn('noindex', page.meta.get('robots') or '', path)
+            faq_blocks = [b for b in _ld_blocks(html) if b.get('@type') == 'FAQPage']
+            self.assertEqual(len(faq_blocks), 1, path)
+            shown = len(re.findall(r'<details class="faq-item[ "]', html))
+            self.assertEqual(shown, 5, path)
+            self.assertEqual(len(faq_blocks[0]['mainEntity']), shown, path)
+            links = self.body_links(path)
+            for needed in ('/emoji-combos/', '/', '/emoji-maker/', '/blog/'):
+                self.assertIn(needed, links, f'{path} does not link to {needed}')
+            siblings = [t for t in links if t.startswith('/emoji-combos/') and t not in ('/emoji-combos/', path)]
+            self.assertGreaterEqual(len(siblings), 2, path)
+            self.assertNotIn(path, links, f'{path} links to itself')
+            for target, anchors in links.items():
+                for anchor in anchors:
+                    self.assertNotIn(anchor, WEAK_ANCHORS, f'{path} -> {target}')
+
+    def test_title_meta_and_server_rendered_sets(self):
+        for path in MORE_COMBOS:
+            data = COMBO_PAGES[self.slug(path)]
+            html = self.fetch(path)
+            cards = re.findall(r'<div class="combo-card">', _visible_text(html))
+            self.assertEqual(len(cards), 12, path)   # first 12 sets exist before any JS runs
+            for _cat, _label, emoji_set in data['combos'][:12]:
+                self.assertIn(f'data-combo="{emoji_set}"', html, path)
+
+    def test_the_count_shown_is_the_count_in_the_data(self):
+        for path in MORE_COMBOS:
+            data = COMBO_PAGES[self.slug(path)]
+            html = self.fetch(path)
+            distinct = len({c[2] for c in data['combos']})
+            self.assertIn(f'<span id="combo-count">{distinct}</span> sets', html, path)
+            payload = re.search(r'<script id="combos-data" type="application/json">(.*?)</script>', html, re.DOTALL)
+            rows = json.loads(payload.group(1))
+            self.assertEqual(len(rows), len(data['combos']), path)
+            self.assertEqual({r['emoji'] for r in rows}, {c[2] for c in data['combos']}, path)
+            self.assertIn("new Set(COMBOS.map(c => c.emoji)).size", html, path)
+            # no number is written into the title, meta, H1 or intro of the rendered page
+            page = self.parse(path)
+            self.assertIsNone(re.search(r'\d', _clean(page.title) + page.meta['description'] + page.h1[0]), path)
+
+    def test_mashup_block_links_resolve_to_the_mixer_with_supported_pairs(self):
+        for path in MORE_COMBOS:
+            data = COMBO_PAGES[self.slug(path)]
+            html = self.fetch(path)
+            self.assertIn('<h2>Emoji Kitchen Mashups to Try</h2>', html, path)
+            self.assertIn('unofficial fan site, not made or endorsed by Google', html, path)
+            mixer = [h for h, _t, _a in self.parse(path).body_links if h.startswith('/?emoji1=')]
+            self.assertEqual(len(mixer), 6, path)
+            for href in mixer:
+                query = dict(part.split('=') for part in urlparse(href).query.split('&'))
+                from urllib.parse import unquote
+                self.assertTrue(views.combo_image_url(unquote(query['emoji1']), unquote(query['emoji2'])), href)
+                self.assertEqual(self.client.get(href.split('#')[0]).status_code, 200)
+            self.assertNotIn('gstatic.com/android/keyboard/emojikitchen', html, 'no Google sticker images are embedded')
+
+    def test_hub_links_to_every_new_page_and_has_the_new_copy(self):
+        html = self.fetch('/emoji-combos/')
+        links = self.body_links('/emoji-combos/')
+        for path in MORE_COMBOS:
+            self.assertIn(path, links)
+        for theme in ['Birthday', 'Friendship', 'Sad', 'Dark', 'Christmas']:
+            self.assertIn(f'<h3>{theme} Emoji Combos</h3>', html)
+        self.assertIn('<h3>Emoji Combos for Bio</h3>', html)
+        self.assertIn('<h2>Want One Image Instead of a Row of Emojis?</h2>', html)
+        self.assertLess(html.index('Want One Image Instead'), html.index('Plain Combinations vs. Emoji Kitchen Mashups'))
+        self.assertIn('Emoji Combos to Copy and Paste: Cute, Love, Funny and Aesthetic', html)
+        self.assertEqual(self.client.get('/emoji-combos/unknown/').status_code, 404)
+
+    def test_home_links_to_birthday_and_bio_and_still_links_to_the_five_combo_pages(self):
+        links = self.body_links('/')
+        for path in COMBOS + ['/emoji-combos/birthday/', '/emoji-combos/bio/']:
+            self.assertIn(path, links)
+        self.assertIn('emoji combos to copy and paste', links['/emoji-combos/'])
+
+    def test_every_number_in_the_older_pages_matches_their_data(self):
+        for path, template in EXISTING_COMBO_TEMPLATES.items():
+            html = self.fetch(path)
+            visible = _visible_text(html)
+            distinct = combo_counts.distinct_set_count(template)
+            if path in ('/emoji-combos/', '/emoji-combos/cute/', '/emoji-combos/aesthetic/', '/emoji-combos/funny/'):
+                self.assertIn(f'<span id="combo-count">{distinct}</span> sets', html, path)
+                self.assertIn("new Set(COMBOS.map(c => c.emoji)).size", html, path)
+            # the false counts the review found must be gone
+            for stale in ('200 Cute Emoji', '200+ Aesthetic', '150+ Funny'):
+                self.assertNotIn(stale, visible, path)
+            page = self.parse(path)
+            claims = re.findall(r'(\d[\d,]*)\+?', _clean(page.title) + ' ' + page.meta['description'] + ' ' + page.h1[0])
+            for claim in claims:
+                self.assertEqual(path, '/emoji-combos/', f'{path} writes the number {claim} into its title/meta/H1')
+
+    def test_hub_hundred_plus_claim_is_true(self):
+        page = self.parse('/emoji-combos/')
+        distinct = combo_counts.distinct_set_count('emoji_combos.html')
+        floor = combo_counts.floor_hundreds(distinct)
+        self.assertGreaterEqual(floor, 100)
+        self.assertTrue(_clean(page.title).startswith(f'{floor}+ '), page.title)
+        self.assertIn(f'copy {floor}+ emoji combos', page.meta['description'])
+        self.assertEqual(re.findall(r'\d+', _clean(page.title)), [str(floor)])
+        self.assertEqual(re.findall(r'\d+', page.meta['description']), [str(floor)])
+        self.assertEqual(re.findall(r'\d+', page.h1[0]), [])
+
+    def test_titles_and_metas_have_sensible_lengths_on_every_combo_page(self):
+        for path in EXISTING_COMBO_PAGES + MORE_COMBOS:
+            page = self.parse(path)
+            title = _clean(page.title)
+            meta = page.meta['description']
+            self.assertTrue(30 <= len(title) <= 60, f'{path} title is {len(title)}: {title}')
+            self.assertTrue(140 <= len(meta) <= 155, f'{path} meta is {len(meta)}: {meta}')
+            self.assertEqual(page.meta['og:title'], title, path)
+            self.assertEqual(page.meta['og:description'], meta, path)
+            self.assertEqual(page.meta['twitter:description'], meta, path)
+
+    def test_new_copy_is_not_a_copy_of_the_older_pages(self):
+        older = {path: _shingles(_visible_text(self.fetch(path))) for path in EXISTING_COMBO_PAGES}
+        for slug, data in COMBO_PAGES.items():
+            mine = _shingles(_page_copy(data))
+            for path, theirs in older.items():
+                shared = len(mine & theirs) / len(mine)
+                self.assertLess(shared, 0.15, f'{slug} copy shares {shared:.3f} of its phrases with {path}')
+
+    @override_settings(ALLOWED_HOSTS=['testserver', 'emojikitchenhub.com', 'www.emojikitchenhub.com'])
+    def test_canonicals_are_pinned_to_the_public_https_host(self):
+        for path in EXISTING_COMBO_PAGES + MORE_COMBOS:
+            for kwargs in ({}, {'HTTP_HOST': 'www.emojikitchenhub.com'}, {'HTTP_HOST': 'testserver:8000'},
+                           {'HTTP_HOST': 'emojikitchenhub.com', 'HTTP_X_FORWARDED_PROTO': 'http'}):
+                response = self.client.get(path + '?utm_source=x', **kwargs)
+                self.assertEqual(response.status_code, 200)
+                parser = _PageParser()
+                parser.feed(response.content.decode())
+                self.assertEqual(parser.canonical, COMBO_SITE + path, (path, kwargs))
+                self.assertEqual(parser.meta['og:url'], COMBO_SITE + path, (path, kwargs))
+
+    @override_settings(ALLOWED_HOSTS=['testserver', 'emojikitchenhub.com', 'www.emojikitchenhub.com'])
+    def test_sitemap_locs_for_combo_pages_equal_their_canonicals_and_return_200(self):
+        response = self.client.get('/sitemap.xml', HTTP_HOST='www.emojikitchenhub.com')
+        ns = {'s': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+        locs = [u.text for u in ET.fromstring(response.content).findall('s:url/s:loc', ns)]
+        combo_locs = [loc for loc in locs if '/emoji-combos/' in loc]
+        expected = [COMBO_SITE + p for p in EXISTING_COMBO_PAGES + MORE_COMBOS]
+        self.assertEqual(sorted(combo_locs), sorted(expected))
+        for loc in combo_locs:
+            path = urlparse(loc).path
+            self.assertEqual(self.parse(path).canonical, loc)
+            self.assertEqual(self.client.get(path).status_code, 200)
+
+    def test_indexnow_sitemap_collection_includes_the_new_pages(self):
+        from . import indexnow
+        urls = indexnow.collect_sitemap_urls()
+        for path in MORE_COMBOS:
+            self.assertIn(COMBO_SITE + path, urls)
+
+    def test_category_pages_keep_ga4_once_and_adsense_off_the_home_slot(self):
+        home = self.fetch('/')
+        self.assertIn(ADSENSE_HOME_SLOT, home)
+        for path in EXISTING_COMBO_PAGES + MORE_COMBOS:
+            html = self.fetch(path)
+            self.assertEqual(html.count('googletagmanager.com/gtag/js?id=G-3DKYS4C5DL'), 1, path)
+            self.assertEqual(html.count("gtag('config', 'G-3DKYS4C5DL')"), 1, path)
+            self.assertEqual(html.count('name="google-adsense-account"'), 1, path)
+            self.assertEqual(html.count('ca-pub-3200425003686406'), 1, path)
+            self.assertNotIn(ADSENSE_HOME_SLOT, html, path)
+
+
+class ComboPageLinksSeedTests(TestCase):
+    """seed_combo_page_links: dry run by default, guarded save, safe to re-run."""
+
+    def setUp(self):
+        from .blog_seed_combo_links import COMBO_LINKS
+        self.links = COMBO_LINKS
+        bodies = {
+            'emoji-kitchen-whatsapp': '<h2>Intro</h2>\n\n<p>Body one.</p>\n\n<h2>Create Your Next WhatsApp Sticker</h2>\n\n<p>Closing.</p>\n',
+            'emoji-kitchen-gboard': '<h2>Tips</h2>\n\n<p>Body.</p>\n\n<h2>Make Your Next Gboard Emoji Mashup</h2>\n\n<p>Closing.</p>\n',
+            'emoji-kitchen-samsung': '<h2>Tips</h2>\n\n<p>Body.</p>\n\n<h2>Conclusion</h2>\n\n<p>Closing.</p>\n',
+        }
+        for slug in self.links:
+            BlogPost.objects.create(
+                title=slug, slug=slug, excerpt='x', content=bodies.get(slug, '<h2>A</h2>\n\n<p>Body.</p>\n'),
+                status=BlogPost.STATUS_PUBLISHED, seo_title=slug, seo_description='d' * 90,
+            )
+
+    def run_seed(self, apply=True):
+        out = io.StringIO()
+        call_command(*(('seed_combo_page_links', '--apply') if apply else ('seed_combo_page_links',)), stdout=out)
+        return out.getvalue()
+
+    def snapshot(self):
+        return {p.slug: (p.content, p.updated_at, p.reading_time) for p in BlogPost.objects.all()}
+
+    def test_dry_run_writes_nothing(self):
+        before = self.snapshot()
+        output = self.run_seed(apply=False)
+        self.assertIn('Dry run only', output)
+        self.assertEqual(self.snapshot(), before)
+
+    def test_apply_adds_each_paragraph_once_and_a_rerun_changes_nothing(self):
+        self.run_seed()
+        first = self.snapshot()
+        for slug, (_marker, _placement, html) in self.links.items():
+            self.assertEqual(first[slug][0].count(html), 1, slug)
+        self.run_seed()
+        self.assertEqual(self.snapshot(), first)
+        self.assertIn('Nothing to change', self.run_seed())
+
+    def test_placement_before_the_closing_heading_and_at_the_end(self):
+        self.run_seed()
+        whatsapp = BlogPost.objects.get(slug='emoji-kitchen-whatsapp').content
+        html = self.links['emoji-kitchen-whatsapp'][2]
+        self.assertLess(whatsapp.index(html), whatsapp.index('<h2>Create Your Next WhatsApp Sticker</h2>'))
+        self.assertGreater(whatsapp.index(html), whatsapp.index('Body one.'))
+        self.assertTrue(whatsapp.endswith('<p>Closing.</p>\n'))
+        iphone = BlogPost.objects.get(slug='emoji-kitchen-iphone').content
+        self.assertTrue(iphone.rstrip().endswith(self.links['emoji-kitchen-iphone'][2]))
+
+    def test_missing_heading_appends_at_the_end_and_missing_post_is_skipped(self):
+        BlogPost.objects.filter(slug='emoji-kitchen-samsung').update(content='<h2>Other</h2>\n\n<p>Body.</p>\n')
+        BlogPost.objects.filter(slug='emoji-kitchen-gboard').delete()
+        output = self.run_seed()
+        self.assertIn('emoji-kitchen-gboard: missing - skip', output)
+        self.assertIn('appended at the end instead', output)
+        samsung = BlogPost.objects.get(slug='emoji-kitchen-samsung').content
+        self.assertTrue(samsung.rstrip().endswith(self.links['emoji-kitchen-samsung'][2]))
+
+    def test_a_post_that_already_links_to_the_new_page_is_left_alone(self):
+        BlogPost.objects.filter(slug='emoji-kitchen-iphone').update(
+            content='<p>See our <a href="/emoji-combos/sad/">sad emoji combos</a>.</p>')
+        before = BlogPost.objects.get(slug='emoji-kitchen-iphone')
+        output = self.run_seed()
+        self.assertIn('emoji-kitchen-iphone: already has the link - skip', output)
+        after = BlogPost.objects.get(slug='emoji-kitchen-iphone')
+        self.assertEqual((after.content, after.updated_at), (before.content, before.updated_at))
+
+    def test_new_paragraphs_are_known_inbound_suffixes_for_the_older_seeds(self):
+        from .blog_seed_utils import desired_seed_content, split_allowed_inbound_suffix
+        for slug in ('emoji-kitchen-discord', 'emoji-kitchen-iphone', 'how-to-save-download-emoji-kitchen-stickers'):
+            html = self.links[slug][2]
+            core, suffix = split_allowed_inbound_suffix('<p>fixture</p>\n' + html + '\n')
+            self.assertEqual(core.strip(), '<p>fixture</p>', slug)
+            self.assertEqual(suffix.strip(), html, slug)
+            current = '<p>fixture</p>\n' + html + '\n'
+            self.assertEqual(desired_seed_content('<p>fixture</p>', current), current, slug)
+
+    def test_links_only_point_at_pages_that_exist(self):
+        for _slug, (_marker, _placement, html) in self.links.items():
+            for href in re.findall(r'href="(/[^"]*)"', html):
+                self.assertEqual(self.client.get(href).status_code, 200, href)

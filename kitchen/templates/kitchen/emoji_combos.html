@@ -1,11 +1,12 @@
 {% extends 'kitchen/base.html' %}
 {% load static %}
 
-{% block title %}Emoji Combos to Copy &amp; Paste (Cute, Love, Funny){% endblock %}
-{% block meta_description %}Copy and paste emoji combos for cute, love, funny, pink and aesthetic vibes. Short sequences for bios, captions, chats and profiles — ready to use.{% endblock %}
+{% block title %}{{ page_title }}{% endblock %}
+{% block meta_description %}{{ page_meta }}{% endblock %}
+{% block canonical_href %}{{ canonical_url }}{% endblock %}
 
 {% block extra_head %}
-{% include "kitchen/_social_meta.html" with page_title="Emoji Combos to Copy & Paste (Cute, Love, Funny)" page_description="Copy and paste emoji combos for cute, love, funny, pink and aesthetic vibes. Short sequences for bios, captions, chats and profiles — ready to use." %}
+{% include "kitchen/_social_meta.html" with page_title=page_title page_description=page_meta page_url=canonical_url %}
 {% endblock %}
 
 {% block content %}
@@ -15,12 +16,12 @@
   <div class="container container--narrow">
     <div class="section-head section-head--center animate-up">
       <span class="section-badge">🎭 Emoji Combos</span>
-      <h1>Emoji Combos to Copy and Paste – Cute, Love, Funny Ideas</h1>
+      <h1>Emoji Combos to Copy and Paste: Cute, Love, Funny and Aesthetic</h1>
       <p class="section-head__sub" style="font-size:.78rem;color:var(--t3);margin-top:-8px">
-        Written by: Emoji Kitchen Hub Editorial Team &nbsp;·&nbsp; Last updated: July 21, 2026
+        Written by: Emoji Kitchen Hub Editorial Team &nbsp;·&nbsp; Last updated: November 12, 2026
       </p>
       <p>Emoji combos are groups of two or more emoji characters used together to express a mood, topic or visual style. This collection brings together examples for messages, captions, bios, comments and profiles.</p>
-      <p>Search by theme or browse the categories below, then choose a sequence that fits the text you are writing. A short sequence is usually easier to read in a username or message. Longer sets can work as decoration in a caption or profile line, but the best length depends on where you plan to use them.</p>
+      <p>Tap <strong>Copy</strong> on any set to paste it into a bio, caption, comment or chat. These are ordinary emoji characters placed side by side, so they paste as text in most apps. Start with a theme: <a href="/emoji-combos/cute/">cute</a>, <a href="/emoji-combos/aesthetic/">aesthetic</a>, <a href="/emoji-combos/love/">love</a>, <a href="/emoji-combos/funny/">funny</a>, <a href="/emoji-combos/pink/">pink</a>, <a href="/emoji-combos/birthday/">birthday</a>, <a href="/emoji-combos/friendship/">friendship</a>, <a href="/emoji-combos/sad/">sad</a>, <a href="/emoji-combos/dark/">dark</a> or <a href="/emoji-combos/christmas/">Christmas</a>, or go straight to <a href="/emoji-combos/bio/">emoji combos for your bio</a>. If you would rather send one picture than a row of characters, the Emoji Kitchen mixer on this unofficial fan site (not made or endorsed by Google) blends two emojis into a sticker-style mashup.</p>
     </div>
   </div>
 </section>
@@ -32,7 +33,7 @@
 
       <!-- Controls -->
       <div class="combo-tool__header">
-        <span class="combo-tool__title">✨ Browse &amp; Copy Emoji Combos</span>
+        <span class="combo-tool__title">✨ Browse &amp; Copy Emoji Combos &middot; <span id="combo-count">{{ combo_count }}</span> sets</span>
       </div>
       <div class="combo-tool__controls">
         <div class="combo-search-wrap">
@@ -132,6 +133,18 @@
       <p>Use unexpected faces, objects and reactions to add humor to a casual conversation. Browse the <a href="/emoji-combos/funny/">Funny Emoji Combos</a> collection for playful reactions.</p>
       <h3>Pink Emoji Combos</h3>
       <p>Find pink hearts, bows, flowers and pastel combinations for a coordinated visual theme. Visit the <a href="/emoji-combos/pink/">Pink Emoji Combos</a> page for its dedicated collection.</p>
+      <h3>Birthday Emoji Combos</h3>
+      <p>Sweet wishes, party sets and funny birthday jokes, plus belated and thank-you combos. Open the <a href="/emoji-combos/birthday/">Birthday Emoji Combos</a> page to copy one.</p>
+      <h3>Friendship Emoji Combos</h3>
+      <p>Sets for besties, group chats, long-distance friends and thank-you notes. See <a href="/emoji-combos/friendship/">Friendship Emoji Combos</a>.</p>
+      <h3>Sad Emoji Combos</h3>
+      <p>Rainy, wilted and broken-heart sets for low moods and heartbreak. Browse <a href="/emoji-combos/sad/">Sad Emoji Combos</a>.</p>
+      <h3>Dark Emoji Combos</h3>
+      <p>Gothic, dark academia, witchy and dark feminine looks. Visit <a href="/emoji-combos/dark/">Dark Emoji Combos</a>.</p>
+      <h3>Christmas Emoji Combos</h3>
+      <p>Cozy, festive and funny holiday sets, plus New Year wishes. See <a href="/emoji-combos/christmas/">Christmas Emoji Combos</a>.</p>
+      <h3>Emoji Combos for Bio</h3>
+      <p>Sets sorted by interest for Instagram, TikTok and Discord profiles. Open <a href="/emoji-combos/bio/">Emoji Combos for Bio</a>.</p>
       <p>This page is the starting point for browsing. Each category page has a focused collection of its own.</p>
 
       <h2>Cute Sets</h2>
@@ -354,6 +367,9 @@
         that sequence.
       </p>
       <p>For the cleanest result, preview the set in the final app. Use common emojis when broad device support matters.</p>
+
+      <h2>Want One Image Instead of a Row of Emojis?</h2>
+      <p>Text combos are separate characters. If you want a single picture, the Emoji Kitchen mixer on this site blends two supported emojis into one sticker-style mashup that you can copy or download. Try <a href="/?emoji1=%F0%9F%98%82&amp;emoji2=%F0%9F%92%80#kitchen">😂 + 💀</a>, <a href="/?emoji1=%F0%9F%A5%B0&amp;emoji2=%F0%9F%8C%B8#kitchen">🥰 + 🌸</a>, <a href="/?emoji1=%F0%9F%98%AD&amp;emoji2=%F0%9F%92%94#kitchen">😭 + 💔</a>, <a href="/?emoji1=%F0%9F%A5%BA&amp;emoji2=%F0%9F%8E%80#kitchen">🥺 + 🎀</a>, <a href="/?emoji1=%F0%9F%A6%84&amp;emoji2=%F0%9F%8C%88#kitchen">🦄 + 🌈</a>, <a href="/?emoji1=%F0%9F%98%8D&amp;emoji2=%F0%9F%94%A5#kitchen">😍 + 🔥</a>. Not every pair has a mashup, and Emoji Kitchen Hub is an unofficial fan site, not made or endorsed by Google.</p>
 
       <h2>Plain Combinations vs. Emoji Kitchen Mashups</h2>
       <p>Plain emoji sequences and Emoji Kitchen mashups are not the same format.</p>
@@ -587,6 +603,9 @@
     {cat:'nature', label:'Cloud picnic', emoji:'☁️🧺🌼'},
     {cat:'nature', label:'Golden hour', emoji:'🌅📸🧡'},
   ];
+
+  // The number in the tool heading (and the title's "100+") comes from the data: distinct sets in COMBOS.
+  document.getElementById('combo-count').textContent = new Set(COMBOS.map(c => c.emoji)).size;
 
   const grid     = document.getElementById('combo-grid');
   const search   = document.getElementById('combo-search');

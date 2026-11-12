@@ -3,7 +3,7 @@
 <meta property="og:site_name" content="Emoji Kitchen Hub" />
 <meta property="og:title" content="{{ page_title }}" />
 <meta property="og:description" content="{{ page_description }}" />
-<meta property="og:url" content="{{ request.scheme }}://{{ request.get_host }}{{ request.path }}" />
+<meta property="og:url" content="{% if page_url %}{{ page_url }}{% else %}{{ request.scheme }}://{{ request.get_host }}{{ request.path }}{% endif %}" />
 <meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static 'og-emoji-kitchen-hub.png' %}" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="{{ page_title }}" />

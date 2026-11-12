@@ -25,6 +25,13 @@ def absolute_blog_canonical(slug):
     return f'{CANONICAL_SCHEME}://{CANONICAL_HOST}{reverse("blog_detail", kwargs={"slug": slug})}'
 
 
+def absolute_site_url(path):
+    """Public absolute URL for a site path, always https on the canonical host."""
+    if not path.startswith('/'):
+        path = '/' + path
+    return f'{CANONICAL_SCHEME}://{CANONICAL_HOST}{path}'
+
+
 _META_LABEL = re.compile(r'^\s*meta description:\s*', re.IGNORECASE)
 _IMG_TAG = re.compile(r'<img\b[^>]*?>', re.IGNORECASE | re.DOTALL)
 _SRC_ATTR = re.compile(r"""\bsrc\s*=\s*(['"])(.*?)\1""", re.IGNORECASE | re.DOTALL)

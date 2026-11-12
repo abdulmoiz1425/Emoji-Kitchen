@@ -1,11 +1,12 @@
 {% extends 'kitchen/base.html' %}
 {% load static %}
 
-{% block title %}Aesthetic Emoji Combos for Bios and Captions{% endblock %}
-{% block meta_description %}Explore aesthetic emoji combos by mood, color and visual style. Find coordinated sequences to copy and paste for profiles, captions and bios.{% endblock %}
+{% block title %}Aesthetic Emoji Combos to Copy &amp; Paste for Bios, Captions{% endblock %}
+{% block meta_description %}Copy and paste aesthetic emoji combos sorted by mood, color and style, from soft and coquette to dark academia, for bios, captions and stories.{% endblock %}
+{% block canonical_href %}{{ canonical_url }}{% endblock %}
 
 {% block extra_head %}
-{% include "kitchen/_social_meta.html" with page_title="Aesthetic Emoji Combos for Bios and Captions" page_description="Explore aesthetic emoji combos by mood, color and visual style. Find coordinated sequences to copy and paste for profiles, captions and bios." %}
+{% include "kitchen/_social_meta.html" with page_title="Aesthetic Emoji Combos to Copy & Paste for Bios, Captions" page_description="Copy and paste aesthetic emoji combos sorted by mood, color and style, from soft and coquette to dark academia, for bios, captions and stories." page_url=canonical_url %}
 {% endblock %}
 
 {% block content %}
@@ -17,10 +18,10 @@
       <span class="section-badge">✨ Aesthetic Emoji Combos</span>
       <h1>Aesthetic Emoji Combos to Copy and Paste</h1>
       <p class="section-head__sub" style="font-size:.78rem;color:var(--t3);margin-top:-8px">
-        Written by: Emoji Kitchen Hub Editorial Team &nbsp;·&nbsp; Last updated: July 29, 2026
+        Written by: Emoji Kitchen Hub Editorial Team &nbsp;·&nbsp; Last updated: November 12, 2026
       </p>
       <p>Aesthetic emoji combos use a consistent visual mood, such as soft pastels, night skies, flowers, nature, minimal symbols or warm neutral tones. They can decorate a profile, caption, story or journal-style note.</p>
-      <p>Choose a sequence whose colors and theme fit the rest of your text instead of adding unrelated symbols to make it longer. This collection focuses on visual style. For playful animal and character themes, explore <a href="/emoji-combos/cute/">Cute Emoji Combos</a>. For romantic messages, browse <a href="/emoji-combos/love/">Love Emoji Combos</a>.</p>
+      <p>Pick the style first, then the set: soft and dreamy, coquette, vintage, dark academia or a single color. A sequence whose colors and theme match the rest of your text looks better than a longer one with unrelated symbols. For playful animal and character themes, explore <a href="/emoji-combos/cute/">Cute Emoji Combos</a>. For romantic messages, browse <a href="/emoji-combos/love/">Love Emoji Combos</a>. For moodier sets, see <a href="/emoji-combos/dark/">dark emoji combos</a>.</p>
     </div>
   </div>
 </section>
@@ -31,7 +32,7 @@
     <div class="combo-tool animate-up">
 
       <div class="combo-tool__header">
-        <span class="combo-tool__title">✨ 200+ Aesthetic Emoji Combinations</span>
+        <span class="combo-tool__title">✨ Aesthetic Emoji Combinations to Copy &middot; <span id="combo-count">{{ combo_count }}</span> sets</span>
       </div>
       <div class="combo-tool__controls">
         <div class="combo-search-wrap">
@@ -740,6 +741,9 @@
     {cat:'captions', label:'Midnight Thoughts', emoji:'midnight thoughts 🌙💭'},
     {cat:'captions', label:'Stay Golden', emoji:'stay golden ✨💛'},
   ];
+
+  // The number in the tool heading always comes from the data: distinct sets in COMBOS.
+  document.getElementById('combo-count').textContent = new Set(COMBOS.map(c => c.emoji)).size;
 
   const grid     = document.getElementById('combo-grid');
   const search   = document.getElementById('combo-search');

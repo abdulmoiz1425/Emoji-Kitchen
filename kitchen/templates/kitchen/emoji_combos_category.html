@@ -1,0 +1,212 @@
+{% extends 'kitchen/base.html' %}
+{% load static %}
+
+{% block title %}{{ page.title }}{% endblock %}
+{% block meta_description %}{{ page.meta }}{% endblock %}
+{% block canonical_href %}{{ canonical_url }}{% endblock %}
+
+{% block extra_head %}
+{% include "kitchen/_social_meta.html" with page_title=page.title page_description=page.meta page_url=canonical_url %}
+{% endblock %}
+
+{% block content %}
+
+<!-- ══════════════════════════════════════════════════════════ INTRO ══ -->
+<section class="section" style="padding-bottom:0">
+  <div class="container container--narrow">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">{{ page.badge }}</span>
+      <h1>{{ page.h1 }}</h1>
+      <p class="section-head__sub" style="font-size:.78rem;color:var(--t3);margin-top:-8px">
+        Written by: Emoji Kitchen Hub Editorial Team &nbsp;·&nbsp; Last updated: November 12, 2026
+      </p>
+      {% for paragraph in page.intro %}<p>{{ paragraph|safe }}</p>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════ COMBO BROWSER TOOL ══ -->
+<section class="section" id="combo-tool" style="padding-top:32px;padding-bottom:0">
+  <div class="container">
+    <div class="combo-tool animate-up">
+
+      <div class="combo-tool__header">
+        <span class="combo-tool__title">{{ page.badge }} &middot; <span id="combo-count">{{ combo_count }}</span> sets</span>
+      </div>
+      <div class="combo-tool__controls">
+        <div class="combo-search-wrap">
+          <input type="search" class="combo-search" id="combo-search" placeholder="Search {{ page.label|lower }} sets by emoji or name…" autocomplete="off" />
+        </div>
+        <button class="combo-random-btn" id="combo-random-btn">🎲 Pick a Random {{ page.label }} Set</button>
+      </div>
+
+      <div class="combo-filter" id="combo-filter">
+        <button class="combo-filter__btn active" data-filter="all">All</button>
+        {% for f in filters %}<button class="combo-filter__btn" data-filter="{{ f.key }}">{{ f.label }}</button>
+        {% endfor %}
+      </div>
+
+      <div class="combo-grid" id="combo-grid">
+        {% for c in featured %}<div class="combo-card">
+          <span class="combo-card__emoji">{{ c.emoji }}</span>
+          <span class="combo-card__label">{{ c.label }}</span>
+          <button class="combo-card__copy" data-combo="{{ c.emoji }}">📋 Copy</button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════ ARTICLE BODY ══ -->
+<section class="section" style="padding-top:48px">
+  <div class="container container--narrow">
+    <div class="blog-detail__content">
+      {% for heading, paragraphs in page.sections %}
+      <h2>{{ heading }}</h2>
+      {% for paragraph in paragraphs %}<p>{{ paragraph }}</p>
+      {% endfor %}{% endfor %}
+
+      <h2>Emoji Kitchen Mashups to Try</h2>
+      <p>Want a picture instead of text? These pairs have an Emoji Kitchen mashup: {% for m in mashups %}<a href="{{ m.href }}">{{ m.first }} + {{ m.second }}</a>{% if not forloop.last %}, {% endif %}{% endfor %}. {{ page.mashup_note }} Not every pair has a mashup, and Emoji Kitchen Hub is an unofficial fan site, not made or endorsed by Google.</p>
+
+      <p>{{ page.siblings_cta|safe }}</p>
+
+      <p>Browse every theme on the <a href="{% url 'emoji_combos' %}">emoji combos</a> page, make an image with the <a href="{% url 'emoji_maker' %}">emoji maker</a> or the mixer on the <a href="{% url 'home' %}">Emoji Kitchen Hub home page</a>, and read the <a href="{% url 'blog' %}">Emoji Kitchen blog</a> for how-to guides.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ FAQ ══ -->
+<section class="section faq-section">
+  <div class="container">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">❓ Help &amp; support</span>
+      <h2>Frequently Asked Questions</h2>
+      <p>Common questions about {{ page.label|lower }} emoji combos and how to use them.</p>
+    </div>
+    <div class="faq-list">
+      {% for item in faqs %}
+      <details class="faq-item animate-up" style="--delay:{{ forloop.counter0 }}0ms">
+        <summary class="faq-item__q">
+          <span>{{ item.question }}</span>
+          <span class="faq-item__chevron">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </summary>
+        <div class="faq-item__a"><p>{{ item.answer }}</p></div>
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{{ combos_json|json_script:"combos-data" }}
+
+<!-- ═══════════════════════════════════════════════════ COMBO TOOL JS ══ -->
+<script>
+(function () {
+  'use strict';
+
+  const COMBOS = JSON.parse(document.getElementById('combos-data').textContent);
+
+  const grid     = document.getElementById('combo-grid');
+  const search   = document.getElementById('combo-search');
+  const filterEl = document.getElementById('combo-filter');
+  const randBtn  = document.getElementById('combo-random-btn');
+  const countEl  = document.getElementById('combo-count');
+
+  // The visible number always comes from the data: distinct sets in the list.
+  countEl.textContent = new Set(COMBOS.map(c => c.emoji)).size;
+
+  function esc(s) {
+    return String(s).replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+  }
+
+  let activeFilter = 'all';
+  let searchQuery  = '';
+
+  function render() {
+    const q = searchQuery.toLowerCase();
+    const visible = COMBOS.filter(c => {
+      const catMatch = activeFilter === 'all' || c.cat === activeFilter;
+      const searchMatch = !q || c.emoji.toLowerCase().includes(q) || c.label.toLowerCase().includes(q) || c.cat.includes(q);
+      return catMatch && searchMatch;
+    });
+
+    if (!visible.length) {
+      grid.innerHTML = '<div class="combo-empty">No matching set found. Try another word or filter.</div>';
+      return;
+    }
+
+    grid.innerHTML = visible.map(c => `
+      <div class="combo-card">
+        <span class="combo-card__emoji">${esc(c.emoji)}</span>
+        <span class="combo-card__label">${esc(c.label)}</span>
+        <button class="combo-card__copy" data-combo="${esc(c.emoji)}">📋 Copy</button>
+      </div>
+    `).join('');
+  }
+
+  function fallback(text, btn) {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => { btn.textContent = '📋 Copy'; }, 1800);
+  }
+
+  // One delegated handler also covers the server-rendered cards that exist before render() runs.
+  grid.addEventListener('click', e => {
+    const btn = e.target.closest('.combo-card__copy');
+    if (!btn) return;
+    const combo = btn.dataset.combo;
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(combo)
+        .then(() => {
+          btn.textContent = '✅ Copied!';
+          setTimeout(() => { btn.textContent = '📋 Copy'; }, 1800);
+          if (window.showToast) window.showToast('Copied ✓ — paste it anywhere!', '{{ page.badge|slice:":1" }}');
+        })
+        .catch(() => fallback(combo, btn));
+    } else {
+      fallback(combo, btn);
+    }
+  });
+
+  filterEl.addEventListener('click', e => {
+    const btn = e.target.closest('.combo-filter__btn');
+    if (!btn) return;
+    filterEl.querySelectorAll('.combo-filter__btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeFilter = btn.dataset.filter;
+    render();
+  });
+
+  search.addEventListener('input', () => {
+    searchQuery = search.value;
+    render();
+  });
+
+  randBtn.addEventListener('click', () => {
+    const pool = activeFilter === 'all' ? COMBOS : COMBOS.filter(c => c.cat === activeFilter);
+    if (!pool.length) return;
+    const pick = pool[Math.floor(Math.random() * pool.length)];
+    if (navigator.clipboard?.writeText) {
+      navigator.clipboard.writeText(pick.emoji)
+        .then(() => {
+          if (window.showToast) window.showToast(`Random combo copied: ${pick.emoji}`, '{{ page.badge|slice:":1" }}');
+        });
+    }
+  });
+
+  render();
+})();
+</script>
+
+{% endblock %}

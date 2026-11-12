@@ -1,12 +1,13 @@
 {% extends "kitchen/base.html" %}
 {% load static %}
 
-{% block title %}Pink Emoji Combos to Copy and Paste{% endblock %}
+{% block title %}Pink Emoji Combos to Copy &amp; Paste: Hearts, Bows, Flowers{% endblock %}
 
-{% block meta_description %}Explore pink emoji combos featuring hearts, flowers, bows and pastel symbols. Copy and paste them for bios, captions, profiles and messages.{% endblock %}
+{% block meta_description %}Copy and paste pink emoji combos made of hearts, bows, flowers and pastel symbols for bios, captions, profiles and messages. Tap Copy to use one.{% endblock %}
+{% block canonical_href %}{{ canonical_url }}{% endblock %}
 
 {% block extra_head %}
-{% include "kitchen/_social_meta.html" with page_title="Pink Emoji Combos to Copy and Paste" page_description="Explore pink emoji combos featuring hearts, flowers, bows and pastel symbols. Copy and paste them for bios, captions, profiles and messages." %}
+{% include "kitchen/_social_meta.html" with page_title="Pink Emoji Combos to Copy & Paste: Hearts, Bows, Flowers" page_description="Copy and paste pink emoji combos made of hearts, bows, flowers and pastel symbols for bios, captions, profiles and messages. Tap Copy to use one." page_url=canonical_url %}
 <style>
 /* ── page shell ── */
 .combo-hero{background:linear-gradient(135deg,#fde8f0 0%,#fce4f5 50%,#f0e4fd 100%);padding:56px 0 40px;text-align:center}
@@ -79,9 +80,9 @@
 <!-- HERO -->
 <section class="combo-hero">
   <div class="container">
-    <h1>Pink Emoji Combos 🎀</h1>
+    <h1>Pink Emoji Combos to Copy and Paste 🎀</h1>
     <p>Pink emoji combos bring together hearts, flowers, bows, ribbons and other symbols that suit a pink or pastel visual theme. Use them to decorate a caption, profile, bio or casual message.</p>
-    <p>Choose symbols that work together visually and fit the tone you want. Some combinations may feel romantic, while others are playful or decorative. If you prefer a broader focus on visual style, explore <a href="/emoji-combos/aesthetic/">Aesthetic Emoji Combos</a>. For affectionate messages, browse <a href="/emoji-combos/love/">Love Emoji Combos</a>.</p>
+    <p>Choose symbols that work together visually and fit the tone you want. Some pink sets feel romantic, others playful or purely decorative. For a broader focus on visual style, explore <a href="/emoji-combos/aesthetic/">Aesthetic Emoji Combos</a>. For affectionate messages, browse <a href="/emoji-combos/love/">Love Emoji Combos</a>. To make a pink image, mix <a href="/?emoji1=%F0%9F%A5%B0&amp;emoji2=%F0%9F%8C%B8#kitchen">🥰 + 🌸</a> or <a href="/?emoji1=%F0%9F%98%8D&amp;emoji2=%F0%9F%92%97#kitchen">😍 + 💗</a> in Emoji Kitchen.</p>
   </div>
 </section>
 

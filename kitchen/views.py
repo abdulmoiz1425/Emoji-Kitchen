@@ -5,9 +5,15 @@ import random as _random
 from django.contrib.sitemaps.views import sitemap as django_sitemap
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse, Http404
+from django.urls import reverse
+from urllib.parse import quote
 
 from .models import BlogPost
-from .seo import absolute_media_url, article_json_ld, clean_canonical, faq_json_ld, faq_pairs_from_html
+from .combo_counts import distinct_set_count, floor_hundreds
+from .combo_pages import COMBO_PAGES
+from .seo import (
+    absolute_media_url, absolute_site_url, article_json_ld, clean_canonical, faq_json_ld, faq_pairs_from_html,
+)
 
 
 # ── Emoji combo lookup ──────────────────────────────────────────────────────────
@@ -230,6 +236,18 @@ EMOJI_COMBOS_PAGE_FAQS = [
     {
         'question': 'When should I use an emoji combo instead of one emoji?',
         'answer': 'Use a short combo when one character does not carry the mood you want—for example a soft reply, a bio accent, or a caption decoration. Keep the set short enough to read on a phone.',
+    },
+    {
+        'question': 'How do I copy and paste emoji combos on iPhone or Android?',
+        'answer': 'Tap the Copy button beside a set, open your app, press and hold in the text field and choose Paste. The sets are text, so they paste like any typed message.',
+    },
+    {
+        'question': 'Can I turn two emojis into one image?',
+        'answer': 'Sometimes. Open the Emoji Kitchen mixer on the home page, pick two emojis and, if that pair has a mashup, the preview appears and you can copy or download it. Not every pair is supported.',
+    },
+    {
+        'question': 'Which emoji combos work for an Instagram or TikTok bio?',
+        'answer': 'Two to four emojis per line are usually enough. The emoji combos for bio page sorts sets by interest, such as creator, student, gamer, fitness and travel.',
     },
 ]
 
@@ -716,9 +734,27 @@ def emoji_generator(request):
     return render(request, 'kitchen/emoji_generator.html', context)
 
 
+def emoji_combos_hub_copy(count):
+    """Title and meta for /emoji-combos/. A '100+' style number is used only when the real count supports it."""
+    floor = floor_hundreds(count)
+    lead = f'{floor}+ ' if floor else ''
+    title = f'{lead}Emoji Combos to Copy & Paste: Cute, Love, Funny'
+    meta = (
+        f'Tap to copy {lead}emoji combos for bios, captions and chats: cute, aesthetic, love, funny and pink sets. '
+        'Want an image? Mix emojis with Emoji Kitchen.'
+    )
+    return title, meta
+
+
 def emoji_combos(request):
+    combo_count = distinct_set_count('emoji_combos.html')
+    page_title, page_meta = emoji_combos_hub_copy(combo_count)
     context = {
         'faqs': EMOJI_COMBOS_PAGE_FAQS,
+        'canonical_url': absolute_site_url(reverse('emoji_combos')),
+        'page_title': page_title,
+        'page_meta': page_meta,
+        'combo_count': combo_count,
     }
     return render(request, 'kitchen/emoji_combos.html', context)
 
@@ -726,6 +762,7 @@ def emoji_combos(request):
 def emoji_combos_love(request):
     context = {
         'faqs': LOVE_EMOJI_COMBOS_FAQS,
+        'canonical_url': absolute_site_url(reverse('emoji_combos_love')),
     }
     return render(request, 'kitchen/emoji_combos_love.html', context)
 
@@ -733,6 +770,8 @@ def emoji_combos_love(request):
 def emoji_combos_cute(request):
     context = {
         'faqs': CUTE_EMOJI_COMBOS_FAQS,
+        'canonical_url': absolute_site_url(reverse('emoji_combos_cute')),
+        'combo_count': distinct_set_count('emoji_combos_cute.html'),
     }
     return render(request, 'kitchen/emoji_combos_cute.html', context)
 
@@ -740,6 +779,8 @@ def emoji_combos_cute(request):
 def emoji_combos_funny(request):
     context = {
         'faqs': FUNNY_EMOJI_COMBOS_FAQS,
+        'canonical_url': absolute_site_url(reverse('emoji_combos_funny')),
+        'combo_count': distinct_set_count('emoji_combos_funny.html'),
     }
     return render(request, 'kitchen/emoji_combos_funny.html', context)
 
@@ -747,6 +788,7 @@ def emoji_combos_funny(request):
 def emoji_combos_pink(request):
     context = {
         'faqs': PINK_EMOJI_COMBOS_FAQS,
+        'canonical_url': absolute_site_url(reverse('emoji_combos_pink')),
     }
     return render(request, 'kitchen/emoji_combos_pink.html', context)
 
@@ -754,8 +796,46 @@ def emoji_combos_pink(request):
 def emoji_combos_aesthetic(request):
     context = {
         'faqs': AESTHETIC_EMOJI_COMBOS_FAQS,
+        'canonical_url': absolute_site_url(reverse('emoji_combos_aesthetic')),
+        'combo_count': distinct_set_count('emoji_combos_aesthetic.html'),
     }
     return render(request, 'kitchen/emoji_combos_aesthetic.html', context)
+
+
+def mashup_links(pairs):
+    """[(emoji1, emoji2, href)] for the mixer. A pair with no sticker in the data is dropped, so no link can be dead."""
+    links = []
+    for first, second in pairs:
+        if combo_image_url(first, second):
+            href = f'/?emoji1={quote(first)}&emoji2={quote(second)}#kitchen'
+            links.append({'first': first, 'second': second, 'href': href})
+    return links
+
+
+def category_combos(page):
+    """The page's copyable sets as dicts, with a count of distinct sets computed from the data."""
+    combos = [{'cat': cat, 'label': label, 'emoji': emoji} for cat, label, emoji in page['combos']]
+    return combos, len({c['emoji'] for c in combos})
+
+
+def emoji_combos_category(request, slug):
+    page = COMBO_PAGES.get(slug)
+    if page is None:
+        raise Http404('No such emoji combo page')
+    combos, combo_count = category_combos(page)
+    url_name = f'emoji_combos_{slug}'
+    context = {
+        'page': page,
+        'faqs': [{'question': q, 'answer': a} for q, a in page['faqs']],
+        'canonical_url': absolute_site_url(reverse(url_name)),
+        'combos': combos,
+        'combos_json': combos,
+        'combo_count': combo_count,
+        'featured': combos[:12],
+        'filters': [{'key': key, 'label': label} for key, label in page['filters']],
+        'mashups': mashup_links(page['mashups']),
+    }
+    return render(request, 'kitchen/emoji_combos_category.html', context)
 
 
 def emoji_keyboard(request):

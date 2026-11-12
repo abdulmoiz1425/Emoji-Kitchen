@@ -1,11 +1,12 @@
 {% extends 'kitchen/base.html' %}
 {% load static %}
 
-{% block title %}Funny Emoji Combos to Copy and Paste{% endblock %}
-{% block meta_description %}Browse funny emoji combos for reactions, jokes, group chats and captions. Copy and paste a playful sequence that fits the context of your message.{% endblock %}
+{% block title %}Funny Emoji Combos to Copy &amp; Paste: Reactions &amp; Memes{% endblock %}
+{% block meta_description %}Copy and paste funny emoji combos for reactions, jokes, memes and group chats. Pick a playful set that fits the tone of your message and the moment.{% endblock %}
+{% block canonical_href %}{{ canonical_url }}{% endblock %}
 
 {% block extra_head %}
-{% include "kitchen/_social_meta.html" with page_title="Funny Emoji Combos to Copy and Paste" page_description="Browse funny emoji combos for reactions, jokes, group chats and captions. Copy and paste a playful sequence that fits the context of your message." %}
+{% include "kitchen/_social_meta.html" with page_title="Funny Emoji Combos to Copy & Paste: Reactions & Memes" page_description="Copy and paste funny emoji combos for reactions, jokes, memes and group chats. Pick a playful set that fits the tone of your message and the moment." page_url=canonical_url %}
 {% endblock %}
 
 {% block content %}
@@ -17,10 +18,10 @@
       <span class="section-badge">😂 Funny Emoji Combos</span>
       <h1>Funny Emoji Combos to Copy and Paste</h1>
       <p class="section-head__sub" style="font-size:.78rem;color:var(--t3);margin-top:-8px">
-        Written by: Emoji Kitchen Hub Editorial Team &nbsp;·&nbsp; Last updated: July 30, 2026
+        Written by: Emoji Kitchen Hub Editorial Team &nbsp;·&nbsp; Last updated: November 12, 2026
       </p>
       <p>Funny emoji combos bring faces, objects, animals and symbols together to make a reaction more playful. Use them in casual messages, group chats, captions and posts when an emoji sequence helps express the tone.</p>
-      <p>The meaning of a combination often depends on the conversation. A dramatic face may communicate surprise, embarrassment or exaggerated frustration, depending on what came before it. Choose a sequence that fits the situation rather than assuming every reader will interpret it in exactly the same way.</p>
+      <p>A funny set depends on the conversation: a dramatic face can mean surprise, embarrassment or mock outrage depending on what came before it. Choose a combination that fits the moment rather than assuming everyone reads it the same way. Want a reaction image instead of text? Try <a href="/?emoji1=%F0%9F%98%82&amp;emoji2=%F0%9F%92%80#kitchen">😂 + 💀</a> or <a href="/?emoji1=%F0%9F%A4%A1&amp;emoji2=%F0%9F%98%82#kitchen">🤡 + 😂</a> in the Emoji Kitchen mixer. For softer jokes between friends, see <a href="/emoji-combos/friendship/">friendship emoji combos</a>.</p>
     </div>
   </div>
 </section>
@@ -31,7 +32,7 @@
     <div class="combo-tool animate-up">
 
       <div class="combo-tool__header">
-        <span class="combo-tool__title">😂 150+ Funny Emoji Combinations</span>
+        <span class="combo-tool__title">😂 Funny Emoji Combinations to Copy &middot; <span id="combo-count">{{ combo_count }}</span> sets</span>
       </div>
       <div class="combo-tool__controls">
         <div class="combo-search-wrap">
@@ -620,6 +621,9 @@
     {cat:'birthday', label:'Birthday Nap', emoji:'🎂😴🎈'},
     {cat:'birthday', label:'Age Is Confidential', emoji:'🎂🤐🔒'},
   ];
+
+  // The number in the tool heading always comes from the data: distinct sets in COMBOS.
+  document.getElementById('combo-count').textContent = new Set(COMBOS.map(c => c.emoji)).size;
 
   const grid     = document.getElementById('combo-grid');
   const search   = document.getElementById('combo-search');
