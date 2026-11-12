@@ -3745,3 +3745,204 @@ class ComboPageLinksSeedTests(TestCase):
         for _slug, (_marker, _placement, html) in self.links.items():
             for href in re.findall(r'href="(/[^"]*)"', html):
                 self.assertEqual(self.client.get(href).status_code, 200, href)
+
+
+# ── FAQ extractor: footer disclaimer must not leak into FAQPage answers ───────
+
+# Previous extractor: the FAQ section ran to the next <h2> or EOF, so a
+# trailing italic disclaimer (and later inbound-link paragraphs) was folded
+# into the last answer. Kept only to show that current answers match that
+# output once the leaked disclaimer is removed.
+_LEGACY_H2 = re.compile(r'<h2\b[^>]*>(.*?)</h2>', re.IGNORECASE | re.DOTALL)
+_LEGACY_H3 = re.compile(r'<h3\b[^>]*>(.*?)</h3>', re.IGNORECASE | re.DOTALL)
+_LEGACY_TAG = re.compile(r'<[^>]+>')
+
+
+def _legacy_plain(fragment):
+    return re.sub(r'\s+', ' ', __import__('html').unescape(_LEGACY_TAG.sub(' ', fragment))).strip()
+
+
+def _legacy_faq_pairs(content):
+    content = content or ''
+    for heading in _LEGACY_H2.finditer(content):
+        if not re.search(r'\bFAQs?\b', _legacy_plain(heading.group(1)), re.IGNORECASE):
+            continue
+        following = _LEGACY_H2.search(content, heading.end())
+        section = content[heading.end():following.start() if following else len(content)]
+        questions = list(_LEGACY_H3.finditer(section))
+        pairs = []
+        for i, question in enumerate(questions):
+            end = questions[i + 1].start() if i + 1 < len(questions) else len(section)
+            q, a = _legacy_plain(question.group(1)), _legacy_plain(section[question.end():end])
+            if q and a:
+                pairs.append((q, a))
+        return pairs
+    return []
+
+
+# Fixtures whose last FAQ answer previously swallowed the italic footer.
+AFFECTED_FAQ_FIXTURES = (
+    'emoji-kitchen-discord.html',
+    'emoji-kitchen-google-messages.html',
+    'emoji-kitchen-not-working.html',
+    'emoji-kitchen-on-pc.html',
+)
+
+# Counts from the previous extractor; the fix must not drop or invent questions.
+FAQ_FIXTURE_COUNTS = {
+    'emoji-kitchen-discord.html': 6,
+    'emoji-kitchen-gboard.html': 9,
+    'emoji-kitchen-google-messages.html': 6,
+    'emoji-kitchen-iphone-rewrite.html': 6,
+    'emoji-kitchen-iphone.html': 9,
+    'emoji-kitchen-not-working.html': 6,
+    'emoji-kitchen-on-pc.html': 6,
+    'emoji-kitchen-samsung.html': 9,
+    'emoji-kitchen-whatsapp.html': 7,
+    'how-to-save-download-emoji-kitchen-stickers.html': 6,
+}
+
+# Legal footer language that must not appear in any extracted answer.
+_FAQ_DISCLAIMER_RE = re.compile(
+    r'\btrademarks?\b|independent, fan-made (?:project|site)',
+    re.IGNORECASE,
+)
+
+
+class FaqExtractorDisclaimerTests(SimpleTestCase):
+    def _fixtures(self):
+        return sorted((BLOG_SAMPLES).glob('*.html'))
+
+    def test_every_fixture_keeps_its_faq_count(self):
+        from kitchen.seo import faq_pairs_from_html
+
+        names = {path.name for path in self._fixtures()}
+        self.assertEqual(names, set(FAQ_FIXTURE_COUNTS))
+        for path in self._fixtures():
+            pairs = faq_pairs_from_html(path.read_text(encoding='utf-8'))
+            self.assertEqual(len(pairs), FAQ_FIXTURE_COUNTS[path.name], path.name)
+
+    def test_last_answers_do_not_include_the_footer_disclaimer(self):
+        from kitchen.seo import faq_pairs_from_html
+
+        for path in self._fixtures():
+            pairs = faq_pairs_from_html(path.read_text(encoding='utf-8'))
+            if not pairs:
+                continue
+            last = pairs[-1][1]
+            self.assertIsNone(_FAQ_DISCLAIMER_RE.search(last), f'{path.name}: {last}')
+
+    def test_answers_match_the_previous_extractor_once_the_disclaimer_is_gone(self):
+        from kitchen.seo import faq_pairs_from_html
+
+        for path in self._fixtures():
+            html = path.read_text(encoding='utf-8')
+            new_pairs = faq_pairs_from_html(html)
+            old_pairs = _legacy_faq_pairs(html)
+            self.assertEqual([q for q, _ in new_pairs], [q for q, _ in old_pairs], path.name)
+            for index, ((question, new_answer), (_, old_answer)) in enumerate(zip(new_pairs, old_pairs)):
+                if new_answer == old_answer:
+                    continue
+                self.assertEqual(index, len(old_pairs) - 1, f'{path.name} changed an earlier answer: {question}')
+                self.assertTrue(old_answer.startswith(new_answer), path.name)
+                leftover = old_answer[len(new_answer):].strip()
+                self.assertTrue(leftover, path.name)
+                self.assertIsNotNone(_FAQ_DISCLAIMER_RE.search(leftover), leftover)
+                self.assertIn(path.name, AFFECTED_FAQ_FIXTURES)
+
+        changed = {
+            path.name
+            for path in self._fixtures()
+            if faq_pairs_from_html(path.read_text(encoding='utf-8')) != _legacy_faq_pairs(path.read_text(encoding='utf-8'))
+        }
+        self.assertEqual(changed, set(AFFECTED_FAQ_FIXTURES))
+
+    def test_multi_paragraph_answers_are_kept_and_the_disclaimer_is_not(self):
+        from kitchen.seo import faq_pairs_from_html
+
+        html = (
+            '<h2>FAQ</h2>\n'
+            '<h3>What is a long answer?</h3>\n'
+            '<p>First paragraph of the answer.</p>\n'
+            '<p>Second paragraph still belongs to this answer.</p>\n'
+            '<h3>And a short one?</h3>\n'
+            '<p>Just one paragraph.</p>\n'
+            '<p><em>Emoji Kitchen Hub is an independent, fan-made project and is '
+            'not affiliated with Google. Gboard is a trademark of Google LLC.</em></p>\n'
+        )
+        pairs = faq_pairs_from_html(html)
+        self.assertEqual(
+            pairs,
+            [
+                (
+                    'What is a long answer?',
+                    'First paragraph of the answer. Second paragraph still belongs to this answer.',
+                ),
+                ('And a short one?', 'Just one paragraph.'),
+            ],
+        )
+
+    def test_section_stops_at_hr_higher_headings_and_inbound_links(self):
+        from kitchen.blog_seed_utils import CRAWL_LINKS_HTML
+        from kitchen.seo import faq_pairs_from_html
+
+        base = '<h2>FAQ</h2>\n<h3>A question?</h3>\n<p>The real answer.</p>\n'
+        self.assertEqual(
+            faq_pairs_from_html(base + '<hr>\n<p>After the rule, not a FAQ answer.</p>\n'),
+            [('A question?', 'The real answer.')],
+        )
+        self.assertEqual(
+            faq_pairs_from_html(base + '<h1>Next chapter</h1>\n<p>Not in the FAQ.</p>\n'),
+            [('A question?', 'The real answer.')],
+        )
+        self.assertEqual(
+            faq_pairs_from_html(base + CRAWL_LINKS_HTML + '\n'),
+            [('A question?', 'The real answer.')],
+        )
+        # A genuine unofficial answer, with no footer markup, is kept in full.
+        unofficial = (
+            '<h2>FAQs</h2>\n'
+            '<h3>Is this official?</h3>\n'
+            '<p>No. It is unofficial and fan-made. It is not affiliated with Google or Apple.</p>\n'
+        )
+        self.assertEqual(
+            faq_pairs_from_html(unofficial),
+            [(
+                'Is this official?',
+                'No. It is unofficial and fan-made. It is not affiliated with Google or Apple.',
+            )],
+        )
+
+
+class FaqSchemaRenderTests(TestCase):
+    """FAQPage JSON-LD is computed from the stored body at render time."""
+
+    def test_rendered_schema_strips_the_disclaimer_without_changing_stored_content(self):
+        from kitchen.seo import faq_pairs_from_html
+
+        html = (BLOG_SAMPLES / 'emoji-kitchen-google-messages.html').read_text(encoding='utf-8')
+        post = BlogPost.objects.create(
+            title='How to Use Emoji Kitchen in Google Messages (Android Guide)',
+            slug='emoji-kitchen-google-messages',
+            excerpt='excerpt',
+            content=html,
+            status=BlogPost.STATUS_PUBLISHED,
+        )
+        stored = BlogPost.objects.get(pk=post.pk).content
+        self.assertIn('trademarks of Google LLC', stored)
+
+        page = self.client.get('/blog/emoji-kitchen-google-messages/').content.decode()
+        blocks = [
+            json.loads(match.group(1))
+            for match in re.finditer(
+                r'<script type="application/ld\+json">(.*?)</script>', page, re.DOTALL
+            )
+        ]
+        faq = next(block for block in blocks if block.get('@type') == 'FAQPage')
+        answers = [entity['acceptedAnswer']['text'] for entity in faq['mainEntity']]
+        expected = faq_pairs_from_html(html)
+        self.assertEqual(len(answers), 6)
+        self.assertEqual(answers, [answer for _, answer in expected])
+        self.assertFalse(any(_FAQ_DISCLAIMER_RE.search(answer) for answer in answers))
+        # The body in the database is unchanged; only the schema is cleaned.
+        self.assertEqual(BlogPost.objects.get(pk=post.pk).content, stored)
