@@ -1329,10 +1329,14 @@ class LegalAndSupportPagesTests(PageTestCase):
         html = self.fetch('/cookie-policy/')
         self.assertIn('<h2>What This Website Uses Today</h2>', html)
         self.assertIn("up to six) in your browser's local storage", html)
-        self.assertIn('does not set its own cookies on its public pages and does not use a separate analytics service', html)
+        self.assertIn('does not set its own cookies on its public pages', html)
+        self.assertIn('uses Google Analytics 4 to understand how visitors use the site', html)
+        self.assertNotIn('does not use a separate analytics service', html)
         self.assertIn('https://policies.google.com/technologies/partner-sites', html)
         self.assertIn('https://adssettings.google.com', html)
-        self.assertIn('EmojiKitchenHub uses Google AdSense to show advertising on some pages.', self.fetch('/privacy/'))
+        privacy = self.fetch('/privacy/')
+        self.assertIn('EmojiKitchenHub uses Google AdSense to show advertising on some pages.', privacy)
+        self.assertIn('EmojiKitchenHub uses Google Analytics 4 to understand how visitors use the site.', privacy)
 
     def test_the_facts_stated_in_the_policies_are_still_true(self):
         """If one of these fails, update the Cookie Policy and Privacy Policy as well."""
@@ -1345,8 +1349,10 @@ class LegalAndSupportPagesTests(PageTestCase):
             self.assertFalse(self.client.get(path).cookies, f'{path} sets a cookie')
         templates = Path(settings.BASE_DIR) / 'kitchen/templates'
         scripts = '\n'.join(p.read_text(encoding='utf-8') for p in templates.rglob('*.html'))
-        for tracker in ['googletagmanager', 'gtag(', 'google-analytics', 'clarity.ms', 'hotjar', 'plausible', 'matomo']:
+        for tracker in ['clarity.ms', 'hotjar', 'plausible', 'matomo']:
             self.assertNotIn(tracker, scripts, f'a tracking script ({tracker}) was added: update the policies')
+        self.assertIn('www.googletagmanager.com/gtag/js', scripts)                # GA4, as the policies say
+        self.assertIn("gtag('config'", scripts)
         self.assertIn('fonts.googleapis.com', scripts)                           # Google Fonts, as the Cookie Policy says
         self.assertIn('pagead2.googlesyndication.com', self.fetch('/'))          # AdSense, as the policies say
 
@@ -2525,3 +2531,83 @@ class BlogSeedChainIdempotentTests(TestCase):
         for marker in self.INBOUND_MARKERS:
             self.assertIn(marker, again.content)
         self.assertEqual(new_suffix.strip(), suffix.strip())
+
+
+# ── Google Analytics 4 ────────────────────────────────────────────────────────
+
+GTAG_SRC = 'https://www.googletagmanager.com/gtag/js?id=G-3DKYS4C5DL'
+GTAG_CONFIG = "gtag('config', 'G-3DKYS4C5DL')"
+ADSENSE_SCRIPT = 'pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3200425003686406'
+ADSENSE_META = 'name="google-adsense-account" content="ca-pub-3200425003686406"'
+
+
+class GoogleAnalyticsTests(TestCase):
+    """The gtag snippet is rendered once from base.html when the measurement ID is set."""
+
+    def setUp(self):
+        BlogPost.objects.create(
+            title='GA4 Test Post',
+            slug='ga4-test-post',
+            content='<p>Body</p>',
+            status=BlogPost.STATUS_PUBLISHED,
+        )
+
+    def _assert_gtag_once(self, html):
+        self.assertEqual(html.count(GTAG_SRC), 1)
+        self.assertEqual(html.count(GTAG_CONFIG), 1)
+        self.assertEqual(html.count('www.googletagmanager.com/gtag/js'), 1)
+        self.assertEqual(html.count("gtag('config'"), 1)
+        self.assertIn(ADSENSE_META, html)
+
+    def test_gtag_appears_once_on_home_combo_blog_legal_and_404(self):
+        home = self.client.get('/')
+        self.assertEqual(home.status_code, 200)
+        home_html = home.content.decode()
+        self._assert_gtag_once(home_html)
+        self.assertIn(ADSENSE_SCRIPT, home_html)
+
+        combo = self.client.get('/emoji-combos/love/')
+        self.assertEqual(combo.status_code, 200)
+        combo_html = combo.content.decode()
+        self._assert_gtag_once(combo_html)
+        self.assertNotIn('adsbygoogle', combo_html)
+
+        blog = self.client.get('/blog/ga4-test-post/')
+        self.assertEqual(blog.status_code, 200)
+        blog_html = blog.content.decode()
+        self._assert_gtag_once(blog_html)
+        self.assertNotIn('adsbygoogle', blog_html)
+
+        legal = self.client.get('/privacy/')
+        self.assertEqual(legal.status_code, 200)
+        legal_html = legal.content.decode()
+        self._assert_gtag_once(legal_html)
+        self.assertNotIn('adsbygoogle', legal_html)
+
+        with override_settings(DEBUG=False, ALLOWED_HOSTS=['testserver', 'localhost', '127.0.0.1']):
+            missing = self.client.get('/does-not-exist-for-ga4-404/')
+        self.assertEqual(missing.status_code, 404)
+        missing_html = missing.content.decode()
+        self._assert_gtag_once(missing_html)
+        self.assertNotIn('adsbygoogle', missing_html)
+
+    @override_settings(GA_MEASUREMENT_ID='')
+    def test_empty_measurement_id_omits_gtag(self):
+        for path, status in [('/', 200), ('/emoji-combos/love/', 200), ('/blog/ga4-test-post/', 200), ('/privacy/', 200)]:
+            response = self.client.get(path)
+            self.assertEqual(response.status_code, status, path)
+            html = response.content.decode()
+            self.assertNotIn('googletagmanager', html, path)
+            self.assertNotIn('gtag(', html, path)
+            self.assertIn(ADSENSE_META, html, path)
+
+        home = self.client.get('/').content.decode()
+        self.assertIn(ADSENSE_SCRIPT, home)
+
+        with override_settings(DEBUG=False, ALLOWED_HOSTS=['testserver', 'localhost', '127.0.0.1'], GA_MEASUREMENT_ID=''):
+            missing = self.client.get('/does-not-exist-for-ga4-404/')
+        self.assertEqual(missing.status_code, 404)
+        html = missing.content.decode()
+        self.assertNotIn('googletagmanager', html)
+        self.assertNotIn('gtag(', html)
+        self.assertIn(ADSENSE_META, html)

@@ -1,4 +1,5 @@
 import os
+import re
 from pathlib import Path
 
 from django.core.exceptions import ImproperlyConfigured
@@ -85,6 +86,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'kitchen.context_processors.google_analytics',
             ],
         },
     },
@@ -119,6 +121,22 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# ── Google Analytics 4 ──────────────────────────────────────────────────────
+# Optional. An empty GA_MEASUREMENT_ID disables the tag. Values that do not
+# match ^G-[A-Z0-9]+$ are treated as unset so a typo cannot be injected.
+_GA_MEASUREMENT_ID_RE = re.compile(r'^G-[A-Z0-9]+$')
+
+
+def _ga_measurement_id(raw):
+    value = (raw or '').strip()
+    if not value or not _GA_MEASUREMENT_ID_RE.fullmatch(value):
+        return ''
+    return value
+
+
+GA_MEASUREMENT_ID = _ga_measurement_id(os.environ.get('GA_MEASUREMENT_ID', 'G-3DKYS4C5DL'))
 
 # ── CKEditor (rich text content) ────────────────────────────────────────────
 CKEDITOR_UPLOAD_PATH = 'uploads/'
