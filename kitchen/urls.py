@@ -26,6 +26,7 @@ urlpatterns = [
     path('emoji-keyboard-for-pc/', views.emoji_keyboard_for_pc, name='emoji_keyboard_for_pc'),
     path('robots.txt', views.robots_txt, name='robots_txt'),
     path('ads.txt', views.ads_txt, name='ads_txt'),
+    path('<str:key>.txt', views.indexnow_key_file, name='indexnow_key'),
     path('privacy/', views.privacy, name='privacy'),
     path('terms/', views.terms, name='terms'),
     path('contact/', views.contact, name='contact'),

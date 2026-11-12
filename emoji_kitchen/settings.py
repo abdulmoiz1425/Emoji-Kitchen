@@ -191,3 +191,18 @@ CKEDITOR_CONFIGS = {
         'width': '100%',
     },
 }
+
+
+# ── IndexNow (Bing Webmaster Tools) ─────────────────────────────────────────
+# The key is public by design: it is also served at /<INDEXNOW_KEY>.txt.
+# Override with INDEXNOW_KEY in the environment if you rotate it.
+# Submissions are off in DEBUG and under the test runner (Django forces
+# DEBUG=False during tests, so we also detect "test" in argv). Set
+# INDEXNOW_ENABLED=true to force a send, or false to disable in production.
+import sys as _sys
+
+INDEXNOW_KEY = os.environ.get('INDEXNOW_KEY', 'c784779f391c5dcf67516cb8179ea325').strip()
+INDEXNOW_ENABLED = (not DEBUG) and ('test' not in _sys.argv)
+if 'INDEXNOW_ENABLED' in os.environ:
+    INDEXNOW_ENABLED = _as_bool(os.environ.get('INDEXNOW_ENABLED'))
+del _sys

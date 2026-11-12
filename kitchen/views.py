@@ -647,6 +647,11 @@ def ads_txt(request):
     )
 
 
+def indexnow_key_file(request, key):
+    from kitchen.indexnow import key_file
+    return key_file(request, key)
+
+
 def privacy(request):
     return render(request, 'kitchen/privacy.html')
 

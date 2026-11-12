@@ -2611,3 +2611,150 @@ class GoogleAnalyticsTests(TestCase):
         self.assertNotIn('googletagmanager', html)
         self.assertNotIn('gtag(', html)
         self.assertIn(ADSENSE_META, html)
+
+
+# ── IndexNow (key file, post-save ping, management command) ───────────────────
+
+INDEXNOW_TEST_KEY = 'c784779f391c5dcf67516cb8179ea325'
+
+
+def _run_thread_inline(target=None, args=(), kwargs=None, daemon=None):
+    """Stand-in for threading.Thread that runs the target immediately."""
+
+    class _Immediate:
+        def start(self):
+            if target:
+                target(*(args or ()), **(kwargs or {}))
+
+        def join(self, timeout=None):
+            return None
+
+    return _Immediate()
+
+
+class IndexNowTests(TestCase):
+    def _key_path(self, key=INDEXNOW_TEST_KEY):
+        return f'/{key}.txt'
+
+    def test_key_file_returns_the_configured_key(self):
+        response = self.client.get(self._key_path())
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response['Content-Type'].startswith('text/plain'))
+        self.assertEqual(response.content.decode(), INDEXNOW_TEST_KEY)
+
+    def test_wrong_key_and_other_txt_paths_are_404(self):
+        self.assertEqual(self.client.get('/not-the-indexnow-key.txt').status_code, 404)
+        self.assertEqual(self.client.get('/random.txt').status_code, 404)
+
+    def test_robots_and_ads_txt_are_unchanged(self):
+        robots = self.client.get('/robots.txt')
+        ads = self.client.get('/ads.txt')
+        self.assertEqual(robots.status_code, 200)
+        self.assertEqual(ads.status_code, 200)
+        self.assertIn('Sitemap:', robots.content.decode())
+        self.assertIn('google.com, pub-3200425003686406', ads.content.decode())
+
+    def _save_post(self, status, slug='indexnow-ping-post'):
+        from kitchen.models import BlogPost
+        return BlogPost.objects.create(
+            title='IndexNow Ping Post',
+            slug=slug,
+            content='<p>Body</p>',
+            status=status,
+        )
+
+    def _capture_ping(self, status, slug='indexnow-ping-post'):
+        from kitchen import indexnow
+        with mock.patch.object(indexnow, 'submit_urls', wraps=indexnow.submit_urls) as submit:
+            with mock.patch.object(indexnow.requests, 'post') as post:
+                with mock.patch.object(indexnow.threading, 'Thread', side_effect=_run_thread_inline):
+                    with override_settings(INDEXNOW_ENABLED=True, DEBUG=False):
+                        with self.captureOnCommitCallbacks(execute=True):
+                            post_obj = self._save_post(status, slug=slug)
+        return post_obj, submit, post
+
+    def test_saving_a_published_post_pings_indexnow_with_the_right_payload(self):
+        post_obj, submit, post = self._capture_ping(BlogPost.STATUS_PUBLISHED)
+        expected_url = f'https://emojikitchenhub.com{post_obj.get_absolute_url()}'
+        submit.assert_called_once_with([expected_url])
+        post.assert_called_once()
+        args, kwargs = post.call_args
+        self.assertEqual(args[0], 'https://api.indexnow.org/indexnow')
+        payload = kwargs['json']
+        self.assertEqual(payload['host'], 'emojikitchenhub.com')
+        self.assertEqual(payload['key'], INDEXNOW_TEST_KEY)
+        self.assertEqual(
+            payload['keyLocation'],
+            f'https://emojikitchenhub.com/{INDEXNOW_TEST_KEY}.txt',
+        )
+        self.assertEqual(payload['urlList'], [expected_url])
+        self.assertEqual(kwargs['timeout'], 5)
+
+    def test_saving_a_draft_does_not_ping(self):
+        _post_obj, submit, post = self._capture_ping(BlogPost.STATUS_DRAFT, slug='indexnow-draft')
+        submit.assert_not_called()
+        post.assert_not_called()
+
+    def test_a_ping_exception_does_not_break_the_save(self):
+        from kitchen import indexnow
+        with mock.patch.object(indexnow.requests, 'post', side_effect=RuntimeError('network down')):
+            with mock.patch.object(indexnow.threading, 'Thread', side_effect=_run_thread_inline):
+                with override_settings(INDEXNOW_ENABLED=True, DEBUG=False):
+                    with self.assertLogs('kitchen.indexnow', level='ERROR'):
+                        with self.captureOnCommitCallbacks(execute=True):
+                            post_obj = self._save_post(BlogPost.STATUS_PUBLISHED, slug='indexnow-error')
+        post_obj.refresh_from_db()
+        self.assertEqual(post_obj.slug, 'indexnow-error')
+        self.assertEqual(post_obj.status, BlogPost.STATUS_PUBLISHED)
+
+    def test_submit_urls_is_skipped_by_default_during_tests(self):
+        from kitchen import indexnow
+        with mock.patch.object(indexnow.requests, 'post') as post:
+            result = indexnow.submit_urls(['https://emojikitchenhub.com/'])
+        self.assertIsNone(result)
+        post.assert_not_called()
+
+    def test_command_submits_a_url(self):
+        with mock.patch('kitchen.management.commands.indexnow_submit.submit_urls', return_value={'ok': True}) as submit:
+            output = io.StringIO()
+            call_command(
+                'indexnow_submit',
+                'https://emojikitchenhub.com/blog/emoji-kitchen-discord/',
+                stdout=output,
+            )
+        submit.assert_called_once_with(
+            ['https://emojikitchenhub.com/blog/emoji-kitchen-discord/'],
+            force=True,
+        )
+        self.assertIn('Submitted 1 URL(s)', output.getvalue())
+
+    def test_command_sitemap_collects_urls_and_dry_run_does_not_send(self):
+        from kitchen import indexnow
+        BlogPost.objects.create(
+            title='Visible For Sitemap',
+            slug='visible-for-sitemap',
+            content='<p>Body</p>',
+            status=BlogPost.STATUS_PUBLISHED,
+        )
+        urls = indexnow.collect_sitemap_urls()
+        self.assertGreater(len(urls), 0)
+        self.assertIn('https://emojikitchenhub.com/', urls)
+        self.assertIn('https://emojikitchenhub.com/blog/visible-for-sitemap/', urls)
+
+        with mock.patch('kitchen.management.commands.indexnow_submit.submit_urls') as submit:
+            output = io.StringIO()
+            call_command('indexnow_submit', '--sitemap', '--dry-run', stdout=output)
+        submit.assert_not_called()
+        text = output.getvalue()
+        self.assertIn('https://emojikitchenhub.com/', text)
+        self.assertIn(f'Would submit {len(urls)} URL(s)', text)
+
+        with mock.patch('kitchen.management.commands.indexnow_submit.submit_urls', return_value={'ok': True}) as submit:
+            call_command('indexnow_submit', '--sitemap', stdout=io.StringIO())
+        submit.assert_called()
+        sent = []
+        for args, kwargs in submit.call_args_list:
+            sent.extend(args[0])
+        self.assertEqual(len(sent), len(urls))
+        self.assertGreater(len(sent), 0)
+        self.assertEqual(kwargs.get('force'), True)
