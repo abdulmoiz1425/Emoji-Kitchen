@@ -27,7 +27,9 @@ def inbound_link_snippets():
     from kitchen.blog_seed_not_working import INBOUND_HTML as not_working_html
     from kitchen.blog_seed_on_pc import INBOUND_HTML as on_pc_html
 
-    return (discord_html, not_working_html, on_pc_html, CRAWL_LINKS_HTML)
+    from kitchen.blog_seed_combo_links import combo_link_snippets
+
+    return (discord_html, not_working_html, on_pc_html, CRAWL_LINKS_HTML, *combo_link_snippets())
 
 
 def split_allowed_inbound_suffix(content):
