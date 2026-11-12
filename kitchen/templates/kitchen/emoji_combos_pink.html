@@ -89,6 +89,7 @@
 <!-- TOOL -->
 <section class="container">
   <div class="combo-tool">
+    <p class="combo-tool__title" style="text-align:center;font-weight:700;color:#b03060;margin:0 0 16px">🎀 Pink Emoji Combinations to Copy &middot; <span id="combo-count">{{ combo_count }}</span> sets</p>
     <div class="combo-search-row">
       <input type="text" id="comboSearch" placeholder="Search pink combos…" autocomplete="off" />
       <button class="btn--random-pink" id="randomBtn">🎲 Random</button>
@@ -592,6 +593,9 @@
     {cat:'desi',label:'💐🩷🌺',emoji:'💐🩷🌺'},
     {cat:'desi',label:'🌸🩷🪷',emoji:'🌸🩷🪷'},
   ];
+
+  // The number in the tool heading always comes from the data: distinct sets in COMBOS.
+  document.getElementById('combo-count').textContent = new Set(COMBOS.map(c => c.emoji)).size;
 
   const CATS = [
     {key:'all',label:'All'},

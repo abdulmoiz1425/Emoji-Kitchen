@@ -763,6 +763,7 @@ def emoji_combos_love(request):
     context = {
         'faqs': LOVE_EMOJI_COMBOS_FAQS,
         'canonical_url': absolute_site_url(reverse('emoji_combos_love')),
+        'combo_count': distinct_set_count('emoji_combos_love.html'),
     }
     return render(request, 'kitchen/emoji_combos_love.html', context)
 
@@ -789,6 +790,7 @@ def emoji_combos_pink(request):
     context = {
         'faqs': PINK_EMOJI_COMBOS_FAQS,
         'canonical_url': absolute_site_url(reverse('emoji_combos_pink')),
+        'combo_count': distinct_set_count('emoji_combos_pink.html'),
     }
     return render(request, 'kitchen/emoji_combos_pink.html', context)
 

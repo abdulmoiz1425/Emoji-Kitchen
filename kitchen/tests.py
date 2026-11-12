@@ -3154,6 +3154,26 @@ def _visible_text(html):
     return re.sub(r'<(script|style)\b.*?</\1>', ' ', html, flags=re.DOTALL)
 
 
+def _emoji_units(emoji_set):
+    """The emoji in a set as a sorted tuple, so reordered sets compare equal.
+
+    Variation selectors are ignored, a zero-width joiner glues the next character to the
+    emoji before it (family and couple sequences), and skin-tone modifiers and flag pairs stay together.
+    """
+    units = []
+    for char in emoji_set:
+        code = ord(char)
+        if char == '\ufe0f':
+            continue
+        if units and (units[-1].endswith('\u200d') or char == '\u200d' or 0x1F3FB <= code <= 0x1F3FF):
+            units[-1] += char
+        elif units and 0x1F1E6 <= code <= 0x1F1FF and len(units[-1]) == 1 and 0x1F1E6 <= ord(units[-1]) <= 0x1F1FF:
+            units[-1] += char
+        else:
+            units.append(char)
+    return tuple(sorted(units))
+
+
 class ComboCategoryDataTests(SimpleTestCase):
     """The six pages in kitchen/combo_pages.py have real, distinct substance."""
 
@@ -3185,6 +3205,25 @@ class ComboCategoryDataTests(SimpleTestCase):
                 self.assertNotIn(emoji_set, existing, f'{slug}: {emoji_set} is already on an older combo page')
                 self.assertNotIn(emoji_set, seen, f'{slug}: {emoji_set} is also on {seen.get(emoji_set)}')
                 seen[emoji_set] = slug
+
+    def test_emoji_units_ignore_order_and_variation_selectors(self):
+        self.assertEqual(_emoji_units('\U0001F9C1\U0001F380\U0001F497'), _emoji_units('\U0001F380\U0001F9C1\U0001F497'))
+        self.assertEqual(_emoji_units('\U0001F56F\ufe0f\U0001F319'), _emoji_units('\U0001F319\U0001F56F'))
+        self.assertEqual(len(_emoji_units('\U0001F468\u200d\U0001F469\u200d\U0001F467\U0001F384')), 2)
+        self.assertNotEqual(_emoji_units('\U0001F384\U0001F381'), _emoji_units('\U0001F384\U0001F384'))
+
+    def test_no_new_set_is_a_reordering_of_a_set_on_any_page(self):
+        # A set that only reorders the emoji of another page's set is a near-duplicate.
+        # Old-page against old-page overlaps are out of scope and not checked here.
+        seen = {}
+        for name in EXISTING_COMBO_TEMPLATES.values():
+            for emoji_set in combo_counts.template_sets(name):
+                seen.setdefault(_emoji_units(emoji_set), f'{name}: {emoji_set}')
+        for slug, page in COMBO_PAGES.items():
+            for _cat, label, emoji_set in page['combos']:
+                key = _emoji_units(emoji_set)
+                self.assertFalse(key in seen, f'{slug} "{label}" {emoji_set} reorders {seen.get(key)}')
+                seen[key] = f'{slug}: {emoji_set}'
 
     def test_editorial_substance(self):
         for slug, page in COMBO_PAGES.items():
@@ -3349,9 +3388,9 @@ class ComboCategoryPageTests(PageTestCase):
             html = self.fetch(path)
             visible = _visible_text(html)
             distinct = combo_counts.distinct_set_count(template)
-            if path in ('/emoji-combos/', '/emoji-combos/cute/', '/emoji-combos/aesthetic/', '/emoji-combos/funny/'):
-                self.assertIn(f'<span id="combo-count">{distinct}</span> sets', html, path)
-                self.assertIn("new Set(COMBOS.map(c => c.emoji)).size", html, path)
+            self.assertIn(f'<span id="combo-count">{distinct}</span> sets', html, path)
+            self.assertEqual(html.count('id="combo-count"'), 1, path)
+            self.assertIn("new Set(COMBOS.map(c => c.emoji)).size", html, path)
             # the false counts the review found must be gone
             for stale in ('200 Cute Emoji', '200+ Aesthetic', '150+ Funny'):
                 self.assertNotIn(stale, visible, path)

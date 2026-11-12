@@ -32,7 +32,7 @@
     <div class="combo-tool animate-up">
 
       <div class="combo-tool__header">
-        <span class="combo-tool__title">💕 Browse &amp; Copy Love Emoji Combos</span>
+        <span class="combo-tool__title">💕 Browse &amp; Copy Love Emoji Combos &middot; <span id="combo-count">{{ combo_count }}</span> sets</span>
       </div>
       <div class="combo-tool__controls">
         <div class="combo-search-wrap">
@@ -760,6 +760,9 @@
     {cat:'colors', label:'White', emoji:'🌼🤍🫶'},
     {cat:'colors', label:'White', emoji:'☁️🫂🤍'},
   ];
+
+  // The number in the tool heading always comes from the data: distinct sets in COMBOS.
+  document.getElementById('combo-count').textContent = new Set(COMBOS.map(c => c.emoji)).size;
 
   const grid     = document.getElementById('combo-grid');
   const search   = document.getElementById('combo-search');
