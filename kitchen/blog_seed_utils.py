@@ -24,12 +24,20 @@ def inbound_link_snippets():
     # Lazy imports: the seed modules must not import this helper at module level
     # in a way that would cycle, and the crawl HTML lives in this file.
     from kitchen.blog_seed_discord import INBOUND_HTML as discord_html
+    from kitchen.blog_seed_google_messages import INBOUND_HTML as google_messages_html
     from kitchen.blog_seed_not_working import INBOUND_HTML as not_working_html
     from kitchen.blog_seed_on_pc import INBOUND_HTML as on_pc_html
 
     from kitchen.blog_seed_combo_links import combo_link_snippets
 
-    return (discord_html, not_working_html, on_pc_html, CRAWL_LINKS_HTML, *combo_link_snippets())
+    return (
+        discord_html,
+        google_messages_html,
+        not_working_html,
+        on_pc_html,
+        CRAWL_LINKS_HTML,
+        *combo_link_snippets(),
+    )
 
 
 def split_allowed_inbound_suffix(content):
