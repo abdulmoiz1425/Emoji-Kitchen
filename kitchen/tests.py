@@ -203,8 +203,8 @@ class EmojiKeyboardForPcPageTests(PageTestCase):
         self.assertEqual(_clean(page.title), 'Emoji Keyboard for PC - Windows Shortcuts and Help')
         self.assertEqual(
             page.meta['description'],
-            'Open the Windows emoji panel, search for a character and learn how to troubleshoot '
-            'common emoji keyboard problems.',
+            'Open the Windows emoji panel, search for a character, and learn how to troubleshoot '
+            'common emoji keyboard problems, including shortcuts for Windows PCs.',
         )
         self.assertEqual(urlparse(page.canonical).path, PC)
         self.assertEqual(urlparse(page.meta['og:url']).path, PC)
@@ -1169,19 +1169,19 @@ COMBO_PAGE_TEXT = {
                        'Copy and paste emoji combos for cute, love, funny, pink and aesthetic vibes. Short sequences for bios, captions, chats and profiles — ready to use.',
                        'Emoji combos are groups of two or more emoji characters used together to express a mood, topic or visual style.'),
     '/emoji-combos/love/': ('Love Emoji Combos to Copy and Paste',
-                            'Browse romantic, affectionate and soft love emoji combos for messages, captions and bios.',
+                            'Browse romantic, affectionate and soft love emoji combos for messages, captions and bios. Copy ready-made sequences of hearts, faces and flowers.',
                             'Love emoji combos bring hearts, faces, flowers and other symbols together to add tone to a message.'),
     '/emoji-combos/cute/': ('Cute Emoji Combos to Copy and Paste',
-                            'Find cute emoji combos with animals, bows, flowers, hearts and soft expressions for bios, messages and captions.',
+                            'Find cute emoji combos with animals, bows, flowers, hearts and soft expressions. Copy and paste them for bios, messages, captions and profiles.',
                             'Cute emoji combos often use friendly faces, small animals, hearts, flowers, bows and soft colors.'),
     '/emoji-combos/aesthetic/': ('Aesthetic Emoji Combos for Bios and Captions',
-                                 'Explore aesthetic emoji combos by mood, color and visual style. Find coordinated sequences for profiles and captions.',
+                                 'Explore aesthetic emoji combos by mood, color and visual style. Find coordinated sequences to copy and paste for profiles, captions and bios.',
                                  'Aesthetic emoji combos use a consistent visual mood, such as soft pastels, night skies, flowers, nature, minimal symbols or warm neutral tones.'),
     '/emoji-combos/funny/': ('Funny Emoji Combos to Copy and Paste',
-                             'Browse funny emoji combos for reactions, jokes, group chats and captions. Choose a sequence that fits the context.',
+                             'Browse funny emoji combos for reactions, jokes, group chats and captions. Copy and paste a playful sequence that fits the context of your message.',
                              'Funny emoji combos bring faces, objects, animals and symbols together to make a reaction more playful.'),
     '/emoji-combos/pink/': ('Pink Emoji Combos to Copy and Paste',
-                            'Explore pink emoji combos featuring hearts, flowers, bows and pastel symbols for bios, captions, profiles and messages.',
+                            'Explore pink emoji combos featuring hearts, flowers, bows and pastel symbols. Copy and paste them for bios, captions, profiles and messages.',
                             'Pink emoji combos bring together hearts, flowers, bows, ribbons and other symbols that suit a pink or pastel visual theme.'),
 }
 GUIDES = {   # page -> the guide the document adds before the FAQs
@@ -1276,8 +1276,8 @@ class LegalAndSupportPagesTests(PageTestCase):
     def test_about_title_meta_and_introduction(self):
         page = self.parse('/about-us/')
         self.assertEqual(_clean(page.title), 'About Emoji Kitchen Hub - Our Tools and Guides')
-        self.assertEqual(page.meta['description'], 'Learn about Emoji Kitchen Hub, its emoji tools, educational resources '
-                         'and how to report corrections or problems.')
+        self.assertEqual(page.meta['description'], 'Learn about Emoji Kitchen Hub, its emoji tools and educational resources, '
+                         'and how to report corrections or problems with the site or its guides.')
         html = self.fetch('/about-us/')
         self.assertIn('<h2>About Emoji Kitchen Hub</h2>', html)
         self.assertIn('Emoji Kitchen Hub is not an official Google service and is not operated by Google.', html)
@@ -1296,7 +1296,7 @@ class LegalAndSupportPagesTests(PageTestCase):
         page = self.parse('/contact/')
         self.assertEqual(_clean(page.title), 'Contact Emoji Kitchen Hub')
         self.assertEqual(page.meta['description'], 'Contact Emoji Kitchen Hub to report a tool problem, suggest a correction, '
-                         'or ask a question about the website.')
+                         'or ask a question about the website, the guides, or any of the emoji tools.')
         html = self.fetch('/contact/')
         self.assertIn('<h2>Contact Emoji Kitchen Hub</h2>', html)
         self.assertIn('Do not send passwords or other sensitive information in a bug report.', html)
@@ -2758,3 +2758,31 @@ class IndexNowTests(TestCase):
         self.assertEqual(len(sent), len(urls))
         self.assertGreater(len(sent), 0)
         self.assertEqual(kwargs.get('force'), True)
+
+
+# ── Meta descriptions lengthened for search snippets ──────────────────────────
+
+LENGTHENED_META_PAGES = [
+    '/emoji-combos/love/',
+    '/emoji-combos/cute/',
+    '/emoji-combos/aesthetic/',
+    '/emoji-combos/funny/',
+    '/emoji-combos/pink/',
+    '/emoji-keyboard-for-pc/',
+    '/about-us/',
+    '/contact/',
+]
+
+
+class LengthenedMetaDescriptionTests(PageTestCase):
+    def test_changed_pages_have_meta_descriptions_between_120_and_160(self):
+        for path in LENGTHENED_META_PAGES:
+            page = self.parse(path)
+            description = page.meta['description']
+            length = len(description)
+            self.assertTrue(
+                120 <= length <= 160,
+                f'{path} description is {length} characters: {description}',
+            )
+            self.assertEqual(page.meta.get('og:description'), description, path)
+            self.assertEqual(page.meta.get('twitter:description'), description, path)
