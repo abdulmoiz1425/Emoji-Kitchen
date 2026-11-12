@@ -1828,16 +1828,20 @@ class ArticleSeoTests(BlogUpdateTestCase):
 
     def test_old_address_stored_as_canonical_is_ignored(self):
         post = self.post('emoji-kitchen-iphone')
+        expected = 'https://emojikitchenhub.com/blog/emoji-kitchen-iphone/'
         for stored in ['https://emojikitchenhub.com/emoji-kitchen-iphone/', '/emoji-kitchen-iphone/', 'emoji-kitchen-iphone']:
             post.canonical_url = stored
             post.save()
-            self.assertEqual(urlparse(self.parse('/blog/emoji-kitchen-iphone/').canonical).path, '/blog/emoji-kitchen-iphone/', stored)
+            self.assertEqual(self.parse('/blog/emoji-kitchen-iphone/').canonical, expected, stored)
 
     def test_a_correct_stored_canonical_is_kept(self):
         post = self.post('emoji-kitchen-gboard')
         post.canonical_url = 'https://emojikitchenhub.com/blog/emoji-kitchen-gboard/'
         post.save()
-        self.assertEqual(urlparse(self.parse('/blog/emoji-kitchen-gboard/').canonical).path, '/blog/emoji-kitchen-gboard/')
+        self.assertEqual(
+            self.parse('/blog/emoji-kitchen-gboard/').canonical,
+            'https://emojikitchenhub.com/blog/emoji-kitchen-gboard/',
+        )
 
     def test_each_article_has_blogposting_markup_built_from_what_the_page_shows(self):
         for slug in OLD_TITLES:
@@ -1987,6 +1991,7 @@ class MixerShareLinkTests(PageTestCase):
 class NotWorkingBlogSeedTests(TestCase):
     SLUG = 'emoji-kitchen-not-working'
     INBOUND = (
+        'emoji-kitchen-iphone',
         'emoji-kitchen-gboard',
         'emoji-kitchen-samsung',
         'how-to-save-download-emoji-kitchen-stickers',
@@ -2493,6 +2498,11 @@ class BlogSeedChainIdempotentTests(TestCase):
         self.assertIn('/blog/emoji-kitchen-discord/', not_working.content)
         on_pc = BlogPost.objects.get(slug='emoji-kitchen-on-pc')
         self.assertIn('/blog/emoji-kitchen-discord/', on_pc.content)
+        for slug in ('emoji-kitchen-iphone', 'emoji-kitchen-gboard', 'emoji-kitchen-samsung'):
+            related = BlogPost.objects.get(slug=slug)
+            self.assertIn('/blog/emoji-kitchen-not-working/', related.content)
+            self.assertIn('Emoji Kitchen not working fixes', related.content)
+            self.assertEqual(related.content.count('/blog/emoji-kitchen-not-working/'), 1)
 
         after_first = self._snapshot()
 
@@ -2534,6 +2544,163 @@ class BlogSeedChainIdempotentTests(TestCase):
         for marker in self.INBOUND_MARKERS:
             self.assertIn(marker, again.content)
         self.assertEqual(new_suffix.strip(), suffix.strip())
+
+
+# ── Blog canonicals, fix command, and not-working footer link ─────────────────
+
+class BlogCanonicalPageTests(PageTestCase):
+    """Every blog post page (and the sitemap) uses the public /blog/<slug>/ URL."""
+
+    def test_every_seeded_post_canonical_is_the_absolute_blog_url(self):
+        from kitchen.seo import absolute_blog_canonical
+
+        for slug in POST_SLUGS:
+            expected = absolute_blog_canonical(slug)
+            self.assertEqual(expected, f'https://emojikitchenhub.com/blog/{slug}/')
+            self.assertEqual(self.parse(f'/blog/{slug}/').canonical, expected, slug)
+
+    def test_bad_stored_canonical_falls_back_to_the_post_url(self):
+        from kitchen.seo import absolute_blog_canonical
+
+        post = BlogPost.objects.get(slug='emoji-kitchen-iphone')
+        expected = absolute_blog_canonical('emoji-kitchen-iphone')
+        for stored in [
+            'https://emojikitchenhub.com/emoji-kitchen-iphone/',
+            'https://www.emojikitchenhub.com/emoji-kitchen-iphone',
+            'http://emojikitchenhub.com/emoji-kitchen-iphone/',
+            '/emoji-kitchen-iphone/',
+            'https://emojikitchenhub.com/',
+            'https://emojikitchenhub.com/blog/',
+            'https://emojikitchenhub.com/blog/emoji-kitchen-gboard/',
+            'https://example.com/blog/emoji-kitchen-iphone/',
+        ]:
+            post.canonical_url = stored
+            post.save(update_fields=['canonical_url'])
+            self.assertEqual(self.parse('/blog/emoji-kitchen-iphone/').canonical, expected, stored)
+
+    def test_sitemap_blog_urls_equal_canonicals_and_return_200(self):
+        from kitchen.seo import absolute_blog_canonical
+
+        response = self.client.get('/sitemap.xml')
+        self.assertEqual(response.status_code, 200)
+        ns = {'s': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+        locs = [u.text for u in ET.fromstring(response.content).findall('s:url/s:loc', ns)]
+        blog_locs = [loc for loc in locs if urlparse(loc).path.startswith('/blog/') and urlparse(loc).path != '/blog/']
+        self.assertEqual(len(blog_locs), len(POST_SLUGS))
+        for loc in blog_locs:
+            path = urlparse(loc).path
+            slug = path.strip('/').split('/')[-1]
+            expected = absolute_blog_canonical(slug)
+            self.assertEqual(loc, expected, loc)
+            self.assertEqual(urlparse(loc).scheme, 'https')
+            self.assertEqual(urlparse(loc).netloc, 'emojikitchenhub.com')
+            self.assertTrue(path.endswith('/'), loc)
+            self.assertEqual(self.parse(path).canonical, loc)
+            self.assertEqual(self.client.get(path).status_code, 200)
+
+
+class FixBlogCanonicalsCommandTests(TestCase):
+    def setUp(self):
+        self.bad = BlogPost.objects.create(
+            title='iPhone',
+            slug='emoji-kitchen-iphone',
+            content='<p>Body</p>',
+            status=BlogPost.STATUS_PUBLISHED,
+            canonical_url='https://emojikitchenhub.com/emoji-kitchen-iphone/',
+        )
+        self.good = BlogPost.objects.create(
+            title='Gboard',
+            slug='emoji-kitchen-gboard',
+            content='<p>Body</p>',
+            status=BlogPost.STATUS_PUBLISHED,
+            canonical_url='https://emojikitchenhub.com/blog/emoji-kitchen-gboard/',
+        )
+        self.empty = BlogPost.objects.create(
+            title='Samsung',
+            slug='emoji-kitchen-samsung',
+            content='<p>Body</p>',
+            status=BlogPost.STATUS_PUBLISHED,
+            canonical_url='',
+        )
+
+    def test_dry_run_writes_nothing(self):
+        before = {
+            post.slug: (post.canonical_url, post.updated_at, post.pk)
+            for post in BlogPost.objects.all()
+        }
+        out = io.StringIO()
+        call_command('fix_blog_canonicals', stdout=out)
+        output = out.getvalue()
+        self.assertIn('DRY RUN', output)
+        self.assertIn('https://emojikitchenhub.com/emoji-kitchen-iphone/', output)
+        self.assertIn('https://emojikitchenhub.com/blog/emoji-kitchen-iphone/', output)
+        for post in BlogPost.objects.all():
+            stored, updated, pk = before[post.slug]
+            self.assertEqual(post.pk, pk)
+            self.assertEqual(post.canonical_url, stored)
+            self.assertEqual(post.updated_at, updated)
+
+    def test_apply_corrects_only_the_bad_value_and_rerun_is_a_noop(self):
+        first = io.StringIO()
+        call_command('fix_blog_canonicals', '--apply', stdout=first)
+        self.bad.refresh_from_db()
+        self.good.refresh_from_db()
+        self.empty.refresh_from_db()
+        self.assertEqual(
+            self.bad.canonical_url,
+            'https://emojikitchenhub.com/blog/emoji-kitchen-iphone/',
+        )
+        self.assertEqual(
+            self.good.canonical_url,
+            'https://emojikitchenhub.com/blog/emoji-kitchen-gboard/',
+        )
+        self.assertEqual(self.empty.canonical_url, '')
+        good_updated = self.good.updated_at
+        empty_updated = self.empty.updated_at
+        bad_updated = self.bad.updated_at
+        bad_pk = self.bad.pk
+        self.assertIn('Corrected 1', first.getvalue())
+
+        again = io.StringIO()
+        call_command('fix_blog_canonicals', '--apply', stdout=again)
+        self.bad.refresh_from_db()
+        self.good.refresh_from_db()
+        self.empty.refresh_from_db()
+        self.assertEqual(self.bad.pk, bad_pk)
+        self.assertEqual(
+            self.bad.canonical_url,
+            'https://emojikitchenhub.com/blog/emoji-kitchen-iphone/',
+        )
+        self.assertEqual(self.bad.updated_at, bad_updated)
+        self.assertEqual(self.good.updated_at, good_updated)
+        self.assertEqual(self.empty.updated_at, empty_updated)
+        self.assertEqual(self.empty.canonical_url, '')
+        self.assertIn('No stored canonicals need fixing', again.getvalue())
+
+
+class NotWorkingFooterLinkTests(TestCase):
+    def setUp(self):
+        BlogPost.objects.create(
+            title='Emoji Kitchen Not Working? 9 Fixes to Try',
+            slug='emoji-kitchen-not-working',
+            content='<p>Body</p>',
+            status=BlogPost.STATUS_PUBLISHED,
+        )
+
+    def test_footer_link_appears_once_and_resolves(self):
+        href = 'href="/blog/emoji-kitchen-not-working/"'
+        for path in ('/', '/blog/', '/privacy/', '/emoji-maker/'):
+            response = self.client.get(path)
+            self.assertEqual(response.status_code, 200, path)
+            html = response.content.decode()
+            footer = html[html.index('class="footer__nav"'):html.index('class="footer__legal"')]
+            self.assertEqual(footer.count(href), 1, path)
+            self.assertIn('Emoji Kitchen not working?', footer)
+        # The homepage has no second copy in the body; the footer is the only link.
+        home = self.client.get('/').content.decode()
+        self.assertEqual(home.count(href), 1)
+        target = self.client.get('/blog/emoji-kitchen-not-working/')
+        self.assertEqual(target.status_code, 200)
 
 
 # ── Google Analytics 4 ────────────────────────────────────────────────────────

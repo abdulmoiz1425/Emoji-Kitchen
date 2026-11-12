@@ -35,6 +35,7 @@ FIELDS = {
 
 # Related posts that should link back to this troubleshooting guide.
 INBOUND_SLUGS = (
+    'emoji-kitchen-iphone',
     'emoji-kitchen-gboard',
     'emoji-kitchen-samsung',
     'how-to-save-download-emoji-kitchen-stickers',

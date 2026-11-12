@@ -70,6 +70,14 @@ class StaticViewSitemap(Sitemap):
 class BlogPostSitemap(Sitemap):
     changefreq = 'monthly'
     priority = 0.6
+    protocol = 'https'
+
+    def get_domain(self, site=None):
+        # Keep sitemap loc identical to the public blog canonical, even when
+        # the request host is www, a staging name, or the test client.
+        from kitchen.seo import CANONICAL_HOST
+
+        return CANONICAL_HOST
 
     def items(self):
         return BlogPost.objects.visible()

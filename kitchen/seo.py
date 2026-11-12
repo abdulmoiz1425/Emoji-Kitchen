@@ -13,7 +13,17 @@ from django.conf import settings
 from django.urls import Resolver404, resolve
 
 # Hosts this project actually serves. Anything else in a stored canonical is ignored.
-_SITE_HOSTS = {'emojikitchenhub.com', 'www.emojikitchenhub.com'}
+CANONICAL_HOST = 'emojikitchenhub.com'
+CANONICAL_SCHEME = 'https'
+_SITE_HOSTS = {CANONICAL_HOST, f'www.{CANONICAL_HOST}'}
+
+
+def absolute_blog_canonical(slug):
+    """Public canonical for a blog post: https://emojikitchenhub.com/blog/<slug>/."""
+    from django.urls import reverse
+
+    return f'{CANONICAL_SCHEME}://{CANONICAL_HOST}{reverse("blog_detail", kwargs={"slug": slug})}'
+
 
 _META_LABEL = re.compile(r'^\s*meta description:\s*', re.IGNORECASE)
 _IMG_TAG = re.compile(r'<img\b[^>]*?>', re.IGNORECASE | re.DOTALL)
@@ -30,15 +40,18 @@ def strip_meta_description_label(text):
 def clean_canonical(request, explicit_url='', fallback_path='/', current_slug=None):
     """Absolute canonical with no query string.
 
-    Uses the request scheme (http on runserver, https when nginx sets
-    X-Forwarded-Proto). Stored canonicals that are not a real route, including
-    /emoji-kitchen-iphone/, fall back to fallback_path. A missing trailing
-    slash is added so the canonical matches the site's slash-terminated routes.
+    Blog posts always use the public https://emojikitchenhub.com host so the
+    tag matches the sitemap, even when the request is http, www, or a
+    local host. Stored canonicals are used only when they resolve to this
+    same post (blog_detail with current_slug). Values such as the old
+    top-level address /emoji-kitchen-iphone/, another post, or the home
+    page fall back to fallback_path. A missing trailing slash is added so
+    the canonical matches the site's slash-terminated routes.
     """
     fallback_path = fallback_path or '/'
     if not fallback_path.startswith('/'):
         fallback_path = '/' + fallback_path
-    fallback = f'{request.scheme}://{request.get_host()}{fallback_path}'
+    fallback = f'{CANONICAL_SCHEME}://{CANONICAL_HOST}{fallback_path}'
 
     raw = (explicit_url or '').strip()
     if not raw:
@@ -64,16 +77,18 @@ def clean_canonical(request, explicit_url='', fallback_path='/', current_slug=No
     except Resolver404:
         return fallback
 
-    if current_slug and match.url_name == 'blog_detail':
-        if match.kwargs.get('slug') != current_slug:
+    if current_slug:
+        # Only this post's own /blog/<slug>/ URL is acceptable. Legacy
+        # redirects, the homepage, and other site routes are ignored.
+        if match.url_name != 'blog_detail' or match.kwargs.get('slug') != current_slug:
             return fallback
-
-    # The old top-level article addresses (/emoji-kitchen-iphone/) now redirect to /blog/<slug>/,
-    # so a stored canonical that points at one is a redirect target, not the page itself.
-    if (match.url_name or '').startswith('legacy_'):
+    elif (match.url_name or '').startswith('legacy_'):
+        # The old top-level article addresses (/emoji-kitchen-iphone/) now
+        # redirect to /blog/<slug>/, so a stored canonical that points at
+        # one is a redirect target, not the page itself.
         return fallback
 
-    return f'{request.scheme}://{request.get_host()}{path}'
+    return f'{CANONICAL_SCHEME}://{CANONICAL_HOST}{path}'
 
 
 def _broken_webp_on_disk():
