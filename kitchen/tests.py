@@ -2462,7 +2462,12 @@ class GoogleMessagesBlogSeedTests(TestCase):
         self.assertIn('not run by Google', post.content)
         self.assertIn('href="/"', post.content)
         self.assertTrue(post.featured_image)
-        self.assertTrue(post.featured_image.name.endswith('emoji-kitchen-google-messages-cover.png'))
+        from kitchen.blog_seed_google_messages import COVER_FILENAME, cover_bytes
+        from kitchen.blog_seed_utils import cover_versioned_filename
+        self.assertEqual(
+            post.featured_image.name,
+            'blog/featured/' + cover_versioned_filename(COVER_FILENAME, cover_bytes()),
+        )
         self.assertEqual(post.canonical_url, self.CANONICAL)
         from kitchen.seo import faq_pairs_from_html
         self.assertEqual(len(faq_pairs_from_html(post.content)), 6)
@@ -2566,6 +2571,14 @@ class GoogleMessagesBlogSeedTests(TestCase):
         self.assertEqual(submit2.call_count, 0)
         post2.assert_not_called()
 
+    def test_cover_swap_versions_filename_and_pings_once(self):
+        from kitchen.blog_seed_google_messages import COVER_FILENAME, cover_bytes
+        _assert_cover_swap_versions_and_pings(
+            self,
+            command='seed_google_messages_blog_post',
+            cover_filename=COVER_FILENAME,
+            image_bytes=cover_bytes(),
+        )
 
 
 class InstagramBlogSeedTests(TestCase):
@@ -2640,7 +2653,12 @@ class InstagramBlogSeedTests(TestCase):
         self.assertIn('not run by Google', post.content)
         self.assertIn('href="/"', post.content)
         self.assertTrue(post.featured_image)
-        self.assertTrue(post.featured_image.name.endswith('emoji-kitchen-instagram-cover.png'))
+        from kitchen.blog_seed_instagram import COVER_FILENAME, cover_bytes
+        from kitchen.blog_seed_utils import cover_versioned_filename
+        self.assertEqual(
+            post.featured_image.name,
+            'blog/featured/' + cover_versioned_filename(COVER_FILENAME, cover_bytes()),
+        )
         self.assertEqual(post.canonical_url, self.CANONICAL)
         from kitchen.seo import faq_pairs_from_html
         self.assertEqual(len(faq_pairs_from_html(post.content)), 6)
@@ -2749,6 +2767,14 @@ class InstagramBlogSeedTests(TestCase):
         self.assertEqual(submit2.call_count, 0)
         post2.assert_not_called()
 
+    def test_cover_swap_versions_filename_and_pings_once(self):
+        from kitchen.blog_seed_instagram import COVER_FILENAME, cover_bytes
+        _assert_cover_swap_versions_and_pings(
+            self,
+            command='seed_instagram_blog_post',
+            cover_filename=COVER_FILENAME,
+            image_bytes=cover_bytes(),
+        )
 
 
 # ── Blog seed inbound-suffix helpers ──────────────────────────────────────────
@@ -2790,6 +2816,18 @@ class BlogSeedUtilsTests(SimpleTestCase):
         self.assertIn('/blog/emoji-kitchen-google-messages/', new_suffix)
         self.assertIn('/blog/emoji-kitchen-instagram/', new_suffix)
         self.assertNotIn('Fixture body of the post.', rewritten)
+
+    def test_cover_versioned_filename_is_deterministic(self):
+        from kitchen.blog_seed_utils import cover_versioned_filename
+        first = cover_versioned_filename('emoji-kitchen-google-messages-cover.png', b'abc')
+        second = cover_versioned_filename('emoji-kitchen-google-messages-cover.png', b'abc')
+        other = cover_versioned_filename('emoji-kitchen-google-messages-cover.png', b'abd')
+        self.assertEqual(first, second)
+        self.assertEqual(first, 'emoji-kitchen-google-messages-cover-ba7816bf.png')
+        self.assertNotEqual(first, other)
+        self.assertTrue(other.startswith('emoji-kitchen-google-messages-cover-'))
+        self.assertTrue(other.endswith('.png'))
+        self.assertEqual(len(other), len(first))
 
 
 # ── Cross-seed inbound links must survive a second apply ──────────────────────
@@ -3179,6 +3217,94 @@ class GoogleAnalyticsTests(TestCase):
 # ── IndexNow (key file, post-save ping, management command) ───────────────────
 
 INDEXNOW_TEST_KEY = 'c784779f391c5dcf67516cb8179ea325'
+
+
+
+def _assert_cover_swap_versions_and_pings(self, *, command, cover_filename, image_bytes):
+    """Simulate an older unversioned cover, then assert the seed swaps it once."""
+    from django.core.files.base import ContentFile
+    from django.core.files.storage import default_storage
+    from kitchen import indexnow
+    from kitchen.blog_seed_utils import cover_versioned_filename
+    from kitchen.models import BlogPost
+
+    call_command(command, '--apply', stdout=io.StringIO())
+    desired = cover_versioned_filename(cover_filename, image_bytes)
+    expected_path = f'blog/featured/{desired}'
+
+    post = BlogPost.objects.get(slug=self.SLUG)
+    old_bytes = b'\x89PNG\r\n\x1a\n' + b'old-cover-bytes-not-the-fixture'
+    post.featured_image.save(cover_filename, ContentFile(old_bytes), save=False)
+    post.og_image.save(cover_filename, ContentFile(old_bytes), save=True)
+    post = BlogPost.objects.get(slug=self.SLUG)
+    old_featured = post.featured_image.name
+    old_og = post.og_image.name
+    self.assertTrue(old_featured.endswith(cover_filename))
+    self.assertTrue(default_storage.exists(old_featured))
+    self.assertTrue(default_storage.exists(old_og))
+    self.assertTrue(post.og_image)
+    updated_before = post.updated_at
+
+    with mock.patch.object(indexnow, 'submit_urls', wraps=indexnow.submit_urls) as submit:
+        with mock.patch.object(indexnow.requests, 'post') as posted:
+            with mock.patch.object(indexnow.threading, 'Thread', side_effect=_run_thread_inline):
+                with override_settings(INDEXNOW_ENABLED=True, DEBUG=False):
+                    with self.captureOnCommitCallbacks(execute=True):
+                        call_command(command, '--apply', stdout=io.StringIO())
+    submitted = [url for call in submit.call_args_list for url in call.args[0]]
+    self.assertEqual(submitted, [self.CANONICAL])
+    posted.assert_called()
+
+    post = BlogPost.objects.get(slug=self.SLUG)
+    self.assertEqual(post.featured_image.name, expected_path)
+    self.assertFalse(post.og_image)
+    self.assertEqual(post.og_image_display.name, expected_path)
+    self.assertFalse(default_storage.exists(old_featured))
+    self.assertFalse(default_storage.exists(old_og))
+    post.featured_image.open('rb')
+    try:
+        self.assertEqual(post.featured_image.read(), image_bytes)
+    finally:
+        post.featured_image.close()
+    self.assertNotEqual(post.updated_at, updated_before)
+
+    html = self.client.get(f'/blog/{self.SLUG}/').content.decode()
+    og = re.search(r'property="og:image" content="([^"]+)"', html)
+    tw = re.search(r'name="twitter:image" content="([^"]+)"', html)
+    self.assertIsNotNone(og)
+    self.assertIsNotNone(tw)
+    self.assertIn(desired, og.group(1))
+    self.assertIn(desired, tw.group(1))
+    blocks = [
+        json.loads(match.group(1))
+        for match in re.finditer(
+            r'<script type="application/ld\+json">(.*?)</script>', html, re.DOTALL
+        )
+    ]
+    blog = next(b for b in blocks if b.get('@type') == 'BlogPosting')
+    image = blog['image']
+    if isinstance(image, list):
+        image = image[0]
+    if isinstance(image, dict):
+        image = image.get('url') or image.get('@id') or ''
+    self.assertIn(desired, image)
+    self.assertNotIn('/' + cover_filename, og.group(1))
+    self.assertNotIn('/' + cover_filename, tw.group(1))
+    self.assertNotIn('/' + cover_filename, image)
+
+    first_updated = post.updated_at
+    first_name = post.featured_image.name
+    with mock.patch.object(indexnow, 'submit_urls', wraps=indexnow.submit_urls) as submit2:
+        with mock.patch.object(indexnow.requests, 'post') as posted2:
+            with mock.patch.object(indexnow.threading, 'Thread', side_effect=_run_thread_inline):
+                with override_settings(INDEXNOW_ENABLED=True, DEBUG=False):
+                    with self.captureOnCommitCallbacks(execute=True):
+                        call_command(command, '--apply', stdout=io.StringIO())
+    self.assertEqual(submit2.call_count, 0)
+    posted2.assert_not_called()
+    again = BlogPost.objects.get(slug=self.SLUG)
+    self.assertEqual(again.updated_at, first_updated)
+    self.assertEqual(again.featured_image.name, first_name)
 
 
 def _run_thread_inline(target=None, args=(), kwargs=None, daemon=None):
