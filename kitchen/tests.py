@@ -315,6 +315,24 @@ class WhatsAppFooterTests(PageTestCase):
 # ── Internal linking ──────────────────────────────────────────────────────────
 
 class InternalLinkTests(PageTestCase):
+    # Homepage device guides include two later posts that are not in POST_SLUGS
+    # (those four still have the only legacy /<slug>/ redirects).
+    EXTRA_HOME_GUIDE_SLUGS = (
+        'how-to-save-download-emoji-kitchen-stickers',
+        'emoji-kitchen-not-working',
+    )
+
+    @classmethod
+    def setUpTestData(cls):
+        super().setUpTestData()
+        for slug in cls.EXTRA_HOME_GUIDE_SLUGS:
+            BlogPost.objects.create(
+                title=slug.replace('-', ' ').title(),
+                slug=slug,
+                content='<p>Body</p>',
+                status=BlogPost.STATUS_PUBLISHED,
+            )
+
     def test_new_page_receives_body_links_from_five_pages(self):
         for source in ['/', '/emoji-keyboard/', '/emoji-combos/', '/emoji-maker/', '/emoji-generator/']:
             self.assertIn(PC, self.body_links(source), f'{source} does not link to {PC}')
@@ -830,8 +848,8 @@ class HomePageContentTests(PageTestCase):
         page = self.parse('/')
         self.assertEqual(_clean(page.title), 'Emoji Kitchen Mixer – Mix Two Emojis Free')
         self.assertEqual(page.meta['description'],
-                         'Free emoji kitchen mixer: combine two compatible emojis into one sticker-style mashup. '
-                         'Preview, copy, or download results in your browser — no sign-up.')
+                         'Mix two emojis into one sticker with this free Emoji Kitchen mixer. '
+                         'Works in your browser on iPhone, Android or PC. Copy or download, no sign-up.')
         self.assertEqual(page.meta['og:title'], 'Emoji Kitchen Mixer – Mix Two Emojis Free')
         self.assertEqual(len(page.h1), 1)
         self.assertEqual(_clean(page.h1[0]), 'Emoji Kitchen Mixer – Mix Two Emojis into Custom Stickers')
@@ -881,7 +899,7 @@ class HomePageContentTests(PageTestCase):
 
     def test_devices_section_covers_desktop_mobile_and_gboard(self):
         html = self.home()
-        self.assertIn('<h2>Using Emoji Mashups on Different Devices</h2>', html)
+        self.assertIn('<h2>How to Use Emoji Kitchen on Any Device</h2>', html)
         self.assertIn("The browser mixer on this website and Google's Emoji Kitchen feature are separate products", html)
         for h3 in ['Desktop Browsers', 'Mobile Browsers', "Gboard and Google's Emoji Kitchen"]:
             self.assertIn(f'<h3>{h3}</h3>', html)
@@ -907,15 +925,18 @@ class HomePageContentTests(PageTestCase):
         self.assertIn('href="#kitchen"', card)
         self.assertIn('Try the 🎲 button', card)
 
-    def test_faqs_are_the_eight_questions_from_the_brief(self):
+    def test_faqs_are_the_eleven_questions_from_the_brief(self):
         self.assertEqual([f['question'] for f in views.FAQS], [
-            'Is Emoji Kitchen Hub free?', 'Do I need to install an app?', 'Can I combine any two emojis?',
-            'Are the results real Unicode emojis?', 'Can I use the tool on my phone?', 'Can I download my emoji mashup?',
-            'Can I save favourite combinations?', 'Is Emoji Kitchen Hub operated by Google?'])
+            'What is Emoji Kitchen?', 'Is Emoji Kitchen Hub free?', 'Do I need to install an app?',
+            'Can I combine any two emojis?', 'Are the results real Unicode emojis?', 'Can I use the tool on my phone?',
+            'Can I use Emoji Kitchen on iPhone?', 'Why is Emoji Kitchen not showing on my keyboard?',
+            'Can I download my emoji mashup?', 'Can I save favourite combinations?',
+            'Is Emoji Kitchen Hub operated by Google?'])
         html = self.home()
-        self.assertEqual(html.count('class="faq-item animate-up"'), 8)
+        self.assertEqual(html.count('class="faq-item animate-up"'), 11)
         ld = json.loads(re.search(r'<script type="application/ld\+json">(\{"@context": "https://schema.org", "@type": "FAQPage".*?)</script>', html).group(1))
-        self.assertEqual(len(ld['mainEntity']), 8)
+        self.assertEqual(len(ld['mainEntity']), 11)
+        self.assertEqual(sum(1 for e in ld['mainEntity'] if e.get('@type') == 'Question'), 11)
         self.assertNotIn('Google Search mixer', html)
 
     def test_closing_call_to_action_follows_the_faqs(self):
@@ -937,9 +958,39 @@ class HomePageContentTests(PageTestCase):
 
     def test_existing_sections_are_kept(self):
         html = self.home()
-        for kept in ['What Is an Emoji Kitchen?', 'Share Emoji Kitchen Stickers with Friends', 'Emoji Kitchen FAQs',
+        for kept in ['What Is Emoji Kitchen?', 'Share Emoji Kitchen Stickers with Friends', 'Emoji Kitchen FAQs',
                      'id="kitchen"', 'class="explore"']:
             self.assertIn(kept, html)
+
+    def test_home_links_the_six_live_device_guides(self):
+        html = self.home()
+        for href in [
+            '/blog/emoji-kitchen-iphone/',
+            '/blog/how-to-save-download-emoji-kitchen-stickers/',
+            '/blog/emoji-kitchen-gboard/',
+            '/blog/emoji-kitchen-samsung/',
+            '/blog/emoji-kitchen-whatsapp/',
+            '/blog/emoji-kitchen-not-working/',
+        ]:
+            self.assertIn(f'href="{href}"', html)
+        self.assertNotIn('/blog/emoji-kitchen-on-pc/', html)
+        self.assertNotIn('/blog/emoji-kitchen-discord/', html)
+
+    def test_homepage_faq_json_ld_has_eleven_questions(self):
+        html = self.home()
+        ld = json.loads(re.search(
+            r'<script type="application/ld\+json">(\{"@context": "https://schema.org", "@type": "FAQPage".*?)</script>',
+            html,
+        ).group(1))
+        questions = [e for e in ld['mainEntity'] if e.get('@type') == 'Question']
+        self.assertEqual(len(questions), 11)
+        names = [e['name'] for e in questions]
+        for question in [
+            'What is Emoji Kitchen?',
+            'Can I use Emoji Kitchen on iPhone?',
+            'Why is Emoji Kitchen not showing on my keyboard?',
+        ]:
+            self.assertIn(question, names)
 
 
 # ── Emoji Maker and Emoji Generator: content from the "Emoji Updates" document ─
@@ -1396,10 +1447,10 @@ class RemainingUpdatesTests(PageTestCase):
 
     def test_home_what_is_section_uses_the_new_explanation(self):
         html = self.fetch('/')
-        self.assertIn("Emoji Kitchen is commonly associated with Google's emoji-mixing feature", html)
-        self.assertIn('Emoji Kitchen Hub is an independent website that provides its own browser-based emoji-mixing experience.', html)
+        self.assertIn("Emoji Kitchen is Google's emoji-mixing feature. In Gboard on Android, it turns two emojis into one sticker-style mashup that you can send in chats.", html)
+        self.assertIn('Emoji Kitchen Hub is an unofficial, independent website (not made by Google) that lets you mix supported pairs in any browser, including on iPhone and PC.', html)
         self.assertIn('sticker-style images, not newly registered Unicode emoji characters.', html)
-        self.assertIn('<h2>What Is an Emoji Kitchen?</h2>', html)
+        self.assertIn('<h2>What Is Emoji Kitchen?</h2>', html)
         for old in ['Google first introduced the feature through Gboard on Android.', 'through Google Search',
                     'Emoji Kitchen Hub is an unofficial fan-made tool']:
             self.assertNotIn(old, html)
@@ -3127,9 +3178,9 @@ class NotWorkingFooterLinkTests(TestCase):
             footer = html[html.index('class="footer__nav"'):html.index('class="footer__legal"')]
             self.assertEqual(footer.count(href), 1, path)
             self.assertIn('Emoji Kitchen not working?', footer)
-        # The homepage has no second copy in the body; the footer is the only link.
+        # Homepage: the footer link plus the devices-section guide link.
         home = self.client.get('/').content.decode()
-        self.assertEqual(home.count(href), 1)
+        self.assertEqual(home.count(href), 2)
         target = self.client.get('/blog/emoji-kitchen-not-working/')
         self.assertEqual(target.status_code, 200)
 

@@ -54,6 +54,10 @@ SUPPORTED_EMOJI_COUNTS = _count_partners()
 
 FAQS = [
     {
+        'question': 'What is Emoji Kitchen?',
+        'answer': "Emoji Kitchen is Google's feature that mixes two emojis into one sticker-style image, mainly through Gboard on Android. Emoji Kitchen Hub is an unofficial website that lets you mix supported pairs in a browser.",
+    },
+    {
         'question': 'Is Emoji Kitchen Hub free?',
         'answer': 'Yes. The tool is free to use in your browser, and no sign-up is needed.',
     },
@@ -72,6 +76,14 @@ FAQS = [
     {
         'question': 'Can I use the tool on my phone?',
         'answer': 'Yes. The mixer works in a mobile browser. Copying an image can vary by browser and app, so use the Download button if pasting does not work.',
+    },
+    {
+        'question': 'Can I use Emoji Kitchen on iPhone?',
+        'answer': "Gboard's built-in mashup suggestions are mainly an Android feature. On iPhone, you can open Emoji Kitchen Hub in Safari or another browser, mix two emojis, then download the image and send it in your chat app.",
+    },
+    {
+        'question': 'Why is Emoji Kitchen not showing on my keyboard?',
+        'answer': 'Mashup suggestions need Gboard, and they appear only in supported apps, for supported emoji pairs. Update Gboard, check that emoji suggestions are turned on, and try another pair. You can also make mashups on this website in any browser.',
     },
     {
         'question': 'Can I download my emoji mashup?',
