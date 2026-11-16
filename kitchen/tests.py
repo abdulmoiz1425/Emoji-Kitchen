@@ -890,6 +890,17 @@ class HomePageContentTests(PageTestCase):
             self.assertNotIn(old, html)
         self.assertIn('keeps up to six recent ones in your browser', html)      # My Combos really caps at 6 (main.js)
 
+    def test_features_zero_description_matches_the_intent_split(self):
+        expected = (
+            'Open the tool in your browser with no app to install. '
+            'To create and customize your own design, use the '
+            '<a href="/emoji-maker/" style="text-decoration:underline;text-underline-offset:3px">Emoji Maker</a>. '
+            'For an instant or random mashup, try the '
+            '<a href="/emoji-generator/" style="text-decoration:underline;text-underline-offset:3px">Emoji Generator</a>.'
+        )
+        self.assertEqual(views.FEATURES[0]['description'], expected)
+        self.assertIn(expected, self.home())
+
     def test_no_two_sections_share_a_heading(self):
         for path in ['/', '/emoji-maker/', '/emoji-generator/']:
             headings = [re.sub(r'<[^>]+>', '', h).strip() for h in re.findall(r'<h2[^>]*>(.*?)</h2>', self.fetch(path), re.S)]
@@ -1039,6 +1050,7 @@ class MakerAndGeneratorContentTests(PageTestCase):
             self.assertEqual(len(meta), 144 if path == '/emoji-maker/' else 153, path)
             self.assertEqual(page.meta['og:title'], title)
             self.assertEqual(page.meta['og:description'], meta)
+            self.assertEqual(page.meta.get('twitter:description'), meta, path)
             self.assertEqual(len(page.h1), 1)
             blob = f'{title} {page.h1[0]} {meta}'.lower()
             self.assertNotIn('emoji kitchen', blob)
@@ -1104,6 +1116,47 @@ class MakerAndGeneratorContentTests(PageTestCase):
             self.assertEqual([e['name'] for e in entities], questions)
             self.assertEqual([e['acceptedAnswer']['text'] for e in entities],
                              [answers[q] for q in questions])
+            start = html.index('class="faq-list"')
+            faq_html = html[start:html.index('</section>', start)]
+            visible_q = [re.sub(r'<[^>]+>', '', q).strip() for q in re.findall(r'<summary class="faq-item__q">(.*?)</summary>', faq_html, re.S)]
+            visible_a = [re.sub(r'<[^>]+>', '', a).strip() for a in re.findall(r'<div class="faq-item__a">(.*?)</div>', faq_html, re.S)]
+            from html import unescape
+            visible_q = [_clean(unescape(q)) for q in visible_q]
+            visible_a = [_clean(unescape(a)) for a in visible_a]
+            self.assertEqual(visible_q, questions, path)
+            self.assertEqual(visible_a, [answers[q] for q in questions], path)
+            self.assertEqual(visible_q, [e['name'] for e in entities], path)
+            self.assertEqual(visible_a, [e['acceptedAnswer']['text'] for e in entities], path)
+
+    def test_one_body_block_per_page_matches_the_spec_byte_for_byte(self):
+        def compact(html):
+            return re.sub(r'>\s+<', '><', html.strip())
+
+        spec_path = Path('/home/box/shared/emoji-kitchen/specs/2026-11-16-emoji-maker-generator-strengthen.md')
+        # Exact paste-ready blocks from the spec (What Is … sections).
+        maker_block = (
+            '<h2>What Is an Emoji Maker?</h2>\n'
+            '<p>An emoji maker creates a custom emoji-style image. Some tools build avatars, turn a photo into a sticker, or use an AI prompt. This page is different: you choose two existing emojis and combine them into one sticker.</p>\n'
+            '<p>Emoji Kitchen Hub is an unofficial, fan-made website and is not made by Google. Use this page when you already know the idea you want. For a surprise pair, try the <a href="/emoji-generator/" style="text-decoration:underline;text-underline-offset:3px">Emoji Generator</a>.</p>'
+        )
+        generator_block = (
+            '<h2>What Is an Emoji Generator?</h2>\n'
+            '<p>The name covers several kinds of tool. Some produce strings of regular emojis or AI artwork from a prompt. This one combines existing emoji designs: pick two supported emojis, or press the random button for an instant pair that already works.</p>\n'
+            '<p>This generator is part of Emoji Kitchen Hub, an unofficial fan-made site that is not made or endorsed by Google. For help building a specific custom design, see the <a href="/emoji-maker/">Emoji Maker</a> guide.</p>'
+        )
+        if spec_path.is_file():
+            spec = spec_path.read_text()
+
+            def spec_html(heading):
+                match = re.search(r'\*\*' + re.escape(heading) + r'\*\*.*?```html\n(.*?)```', spec, re.S)
+                self.assertIsNotNone(match, heading)
+                return match.group(1).strip()
+
+            self.assertEqual(spec_html('What Is an Emoji Maker?'), maker_block)
+            self.assertEqual(spec_html('What Is an Emoji Generator?'), generator_block)
+
+        self.assertIn(compact(maker_block), compact(self.fetch('/emoji-maker/')))
+        self.assertIn(compact(generator_block), compact(self.fetch('/emoji-generator/')))
 
     def test_the_two_pages_no_longer_repeat_each_other(self):
         maker, generator = self.fetch('/emoji-maker/'), self.fetch('/emoji-generator/')
@@ -1202,14 +1255,20 @@ class MakerAndGeneratorContentTests(PageTestCase):
                 self.assertIn(part, html, f'{part} missing on {path}')
 
     def test_blog_closer_links_maker_generator_and_homepage_mixer(self):
-        html = self.fetch('/blog/emoji-kitchen-iphone/')
-        tools = html[html.index('class="blog-detail__tools"'):html.index('</p>', html.index('class="blog-detail__tools"'))]
-        self.assertIn('href="/emoji-maker/"', tools)
-        self.assertIn('href="/emoji-generator/"', tools)
-        self.assertIn('href="/#kitchen"', tools)
-        self.assertIn('emoji maker', tools)
-        self.assertIn('emoji generator', tools)
-        self.assertIn('Emoji Kitchen', tools)
+        published = list(
+            BlogPost.objects.filter(status=BlogPost.STATUS_PUBLISHED).values_list('slug', flat=True)
+        )
+        self.assertGreaterEqual(len(published), len(POST_SLUGS))
+        self.assertEqual(set(published), set(POST_SLUGS))
+        for slug in published:
+            html = self.fetch(f'/blog/{slug}/')
+            tools = html[html.index('class="blog-detail__tools"'):html.index('</p>', html.index('class="blog-detail__tools"'))]
+            self.assertIn('href="/emoji-maker/"', tools, slug)
+            self.assertIn('href="/emoji-generator/"', tools, slug)
+            self.assertIn('href="/#kitchen"', tools, slug)
+            self.assertIn('emoji maker', tools, slug)
+            self.assertIn('emoji generator', tools, slug)
+            self.assertIn('Emoji Kitchen', tools, slug)
 
 
 # ── Emoji Keyboard and Emoji Keyboard for PC: content from the "Emoji Updates" document ──

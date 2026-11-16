@@ -1649,18 +1649,18 @@ strong{font-weight:700}
   box-shadow:0 0 0 3px var(--accent-glow);
 }
 
-/* Category tabs */
+/* Category tabs: wrap so labels stay fully visible when Recent appears */
 .picker__tabs{
-  display:flex;gap:4px;padding:10px 14px;
-  overflow-x:auto;scrollbar-width:none;
+  display:flex;flex-wrap:wrap;gap:4px;padding:10px 14px;
+  overflow:visible;
   border-bottom:1px solid var(--border-xlt);flex-shrink:0;
 }
-.picker__tabs::-webkit-scrollbar{display:none}
 .picker__tab{
   padding:5px 13px;border-radius:var(--r-f);
   border:1.5px solid var(--border-xlt);
   font-size:.77rem;font-weight:700;color:var(--t5);
   white-space:nowrap;
+  flex-shrink:0;
   transition:all var(--t);
 }
 .picker__tab:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-xlt)}
