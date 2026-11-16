@@ -4,7 +4,18 @@ from django.urls import reverse
 from .models import BlogPost
 
 
-class StaticViewSitemap(Sitemap):
+class CanonicalOriginSitemap(Sitemap):
+    """Sitemap locs use the SITE_URL origin, never the request host or scheme."""
+
+    protocol = 'https'
+
+    def get_domain(self, site=None):
+        from kitchen.seo import canonical_host
+
+        return canonical_host()
+
+
+class StaticViewSitemap(CanonicalOriginSitemap):
     changefreq = 'weekly'
 
     # home highest; main tools next; blog index; legal lowest (the combo pages are in ComboPageSitemap)
@@ -72,14 +83,13 @@ COMBO_PAGE_URL_NAMES = (
 )
 
 
-class ComboPageSitemap(Sitemap):
+class ComboPageSitemap(CanonicalOriginSitemap):
     """The /emoji-combos/ hub and its category pages, pinned to the public https apex.
 
-    Their canonical tags are pinned to https://emojikitchenhub.com (see
-    ``absolute_site_url``), so the sitemap locs are pinned the same way and
-    always equal the canonicals, whatever host or scheme the request used.
+    Their canonical tags are pinned to SITE_URL (see ``absolute_site_url``), so
+    the sitemap locs are pinned the same way and always equal the canonicals,
+    whatever host or scheme the request used.
     """
-    protocol = 'https'
     changefreq = 'weekly'
 
     PRIORITIES = {
@@ -91,11 +101,6 @@ class ComboPageSitemap(Sitemap):
         'emoji_combos_pink': 0.7,
     }
 
-    def get_domain(self, site=None):
-        from kitchen.seo import CANONICAL_HOST
-
-        return CANONICAL_HOST
-
     def items(self):
         return list(COMBO_PAGE_URL_NAMES)
 
@@ -106,17 +111,9 @@ class ComboPageSitemap(Sitemap):
         return self.PRIORITIES.get(item, 0.6)
 
 
-class BlogPostSitemap(Sitemap):
+class BlogPostSitemap(CanonicalOriginSitemap):
     changefreq = 'monthly'
     priority = 0.6
-    protocol = 'https'
-
-    def get_domain(self, site=None):
-        # Keep sitemap loc identical to the public blog canonical, even when
-        # the request host is www, a staging name, or the test client.
-        from kitchen.seo import CANONICAL_HOST
-
-        return CANONICAL_HOST
 
     def items(self):
         return BlogPost.objects.visible()

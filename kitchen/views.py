@@ -13,6 +13,7 @@ from .combo_counts import distinct_set_count, floor_hundreds
 from .combo_pages import COMBO_PAGES
 from .seo import (
     absolute_media_url, absolute_site_url, article_json_ld, clean_canonical, faq_json_ld, faq_pairs_from_html,
+    site_origin,
 )
 
 
@@ -665,7 +666,7 @@ def robots_txt(request):
         'User-agent: *',
         'Allow: /',
         '',
-        f'Sitemap: {request.scheme}://{request.get_host()}/sitemap.xml',
+        f'Sitemap: {site_origin()}/sitemap.xml',
     ]
     return HttpResponse('\n'.join(lines), content_type='text/plain')
 

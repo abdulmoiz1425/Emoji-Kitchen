@@ -13,8 +13,9 @@ from django.conf import settings
 from django.urls import Resolver404, resolve
 
 # Hosts this project actually serves. Anything else in a stored canonical is ignored.
-# Public page URLs (canonical, og:url, JSON-LD) are built from settings.SITE_URL
-# so a request over http or www cannot change the origin.
+# Public page URLs (canonical, og:url, JSON-LD, sitemap, robots) are built from
+# settings.SITE_URL so a request over http or www cannot change the origin.
+# CANONICAL_HOST is the default host; prefer canonical_host() at runtime.
 CANONICAL_HOST = 'emojikitchenhub.com'
 CANONICAL_SCHEME = 'https'
 _SITE_HOSTS = {CANONICAL_HOST, f'www.{CANONICAL_HOST}'}
@@ -24,6 +25,11 @@ _DEFAULT_SITE_URL = f'{CANONICAL_SCHEME}://{CANONICAL_HOST}'
 def site_origin():
     """Fixed public origin, with no trailing slash. Honours settings.SITE_URL."""
     return (getattr(settings, 'SITE_URL', None) or _DEFAULT_SITE_URL).rstrip('/')
+
+
+def canonical_host():
+    """Host of SITE_URL, defaulting to CANONICAL_HOST."""
+    return (urlparse(site_origin()).hostname or CANONICAL_HOST).lower()
 
 
 def absolute_blog_canonical(slug):

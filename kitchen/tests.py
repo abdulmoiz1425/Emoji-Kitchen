@@ -1927,6 +1927,26 @@ class SiteUrlCanonicalTests(PageTestCase):
         self.assertEqual(page.canonical, 'https://example.test/')
         self.assertEqual(page.meta['og:url'], 'https://example.test/')
 
+    @override_settings(ALLOWED_HOSTS=EXTRA_HOSTS)
+    def test_sitemap_locs_use_the_fixed_https_origin(self):
+        ns = {'s': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+        for kwargs in self.REQUESTS:
+            response = self.client.get('/sitemap.xml', **kwargs)
+            self.assertEqual(response.status_code, 200, kwargs)
+            locs = [u.text for u in ET.fromstring(response.content).findall('s:url/s:loc', ns)]
+            self.assertTrue(locs, kwargs)
+            for loc in locs:
+                self.assertTrue(
+                    loc.startswith('https://emojikitchenhub.com/'),
+                    (loc, kwargs),
+                )
+
+    @override_settings(ALLOWED_HOSTS=EXTRA_HOSTS)
+    def test_robots_txt_sitemap_uses_the_fixed_https_origin(self):
+        for kwargs in self.REQUESTS:
+            text = self.client.get('/robots.txt', **kwargs).content.decode()
+            self.assertIn('Sitemap: https://emojikitchenhub.com/sitemap.xml', text)
+
 
 class ErrorPageSeoTests(TestCase):
     """404/500 pages must be noindex and must not self-canonicalise."""
