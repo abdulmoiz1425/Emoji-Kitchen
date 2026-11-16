@@ -320,6 +320,10 @@ class InternalLinkTests(PageTestCase):
     EXTRA_HOME_GUIDE_SLUGS = (
         'how-to-save-download-emoji-kitchen-stickers',
         'emoji-kitchen-not-working',
+        'emoji-kitchen-instagram',
+        'emoji-kitchen-discord',
+        'emoji-kitchen-on-pc',
+        'emoji-kitchen-google-messages',
     )
 
     @classmethod
@@ -1004,11 +1008,12 @@ EDITOR_NOTES = [   # instructions to the editor in the document; they must never
 class MakerAndGeneratorContentTests(PageTestCase):
     MAKER_H2 = ['What Is an Emoji Maker?', 'How to Make Your Own Emoji', 'Choose Emoji Pairs That Express an Idea',
                 'Emoji Maker vs. Standard Emoji vs. AI Image Generator', 'Can You Make an Emoji From a Photo?',
-                'Can You Create a New Keyboard Emoji?', 'Copying and Sharing Your Emoji', 'Troubleshooting',
-                'Emoji Maker FAQs', 'Create Your Next Emoji Mashup']
-    GENERATOR_H2 = ['What Is an Emoji Generator?', 'How to Use the Emoji Generator', 'How to Choose Better Emoji Combinations',
-                    'Emoji Generator vs. Emoji Keyboard', 'Emoji Generator vs. AI Image Generator',
-                    'Where Can You Use Emoji Mashups?', 'Troubleshooting', 'Emoji Generator FAQs', 'Create an Emoji Mashup']
+                'Can You Create a New Keyboard Emoji?', 'Copying and Sharing Your Custom Emoji', 'Troubleshooting',
+                'Emoji Maker FAQs', 'Create Your Next Custom Emoji']
+    GENERATOR_H2 = ['What Is an Emoji Generator?', 'How to Use the Emoji Generator', 'Get a Random Emoji Mashup',
+                    'How to Choose Better Emoji Combinations', 'Emoji Generator vs. Emoji Keyboard',
+                    'Emoji Generator vs. AI Image Generator', 'Where Can You Use Generated Mashups?',
+                    'Troubleshooting', 'Emoji Generator FAQs', 'Generate Your Next Emoji Mashup']
 
     def assertInOrder(self, html, headings):
         positions = [html.index(f'<h2>{h}</h2>') for h in headings]
@@ -1016,27 +1021,38 @@ class MakerAndGeneratorContentTests(PageTestCase):
 
     def test_titles_and_meta(self):
         maker, generator = self.parse('/emoji-maker/'), self.parse('/emoji-generator/')
-        self.assertEqual(_clean(maker.title), 'Emoji Maker & Builder – Custom Stickers Online')
-        self.assertEqual(maker.meta['description'], 'Use this free emoji maker and emoji builder to combine two compatible emojis into a sticker-style mashup. '
-                         'Preview, copy, or download — no sign-up.')
-        self.assertEqual(_clean(generator.title), 'Emoji Generator – Create Emoji Mashups Online')
-        self.assertEqual(generator.meta['description'], 'Explore emoji combinations with our free online emoji generator. '
-                         'Choose two compatible emojis, preview the mashup, and copy or download the result.')
+        self.assertEqual(_clean(maker.title), 'Free Emoji Maker – Create Your Own Custom Emoji')
+        self.assertEqual(maker.meta['description'],
+                         'Make your own custom emoji sticker in this free emoji maker. '
+                         'Choose two emojis, preview the result, then copy or download it. No sign-up needed.')
+        self.assertEqual(_clean(generator.title), 'Free Emoji Generator – Instant Random Mashups')
+        self.assertEqual(generator.meta['description'],
+                         'Generate instant emoji mashups with this free emoji generator. '
+                         'Press random for a surprise pair, or choose two emojis, then copy or download the sticker.')
 
-        for page in (maker, generator):
-            self.assertLessEqual(len(page.meta['description']), 160)
-            self.assertLessEqual(len(_clean(page.title)), 60)
-            self.assertEqual(page.meta['og:title'], _clean(page.title))
+        for page, path in ((maker, '/emoji-maker/'), (generator, '/emoji-generator/')):
+            title = _clean(page.title)
+            meta = page.meta['description']
+            self.assertLessEqual(len(meta), 160)
+            self.assertLessEqual(len(title), 60)
+            self.assertEqual(len(title), 47 if path == '/emoji-maker/' else 45, path)
+            self.assertEqual(len(meta), 144 if path == '/emoji-maker/' else 153, path)
+            self.assertEqual(page.meta['og:title'], title)
+            self.assertEqual(page.meta['og:description'], meta)
             self.assertEqual(len(page.h1), 1)
+            blob = f'{title} {page.h1[0]} {meta}'.lower()
+            self.assertNotIn('emoji kitchen', blob)
+            self.assertNotIn('emoji mixer', blob)
+            self.assertEqual(page.canonical, 'https://emojikitchenhub.com' + path)
 
     def test_h1s_and_introductions(self):
         maker, generator = self.fetch('/emoji-maker/'), self.fetch('/emoji-generator/')
-        self.assertIn('<h1>Emoji Maker &amp; Builder – Create Custom Stickers Online</h1>', maker)
-        self.assertIn('<h1>Emoji Generator – Create Emoji Mashups Online</h1>', generator)
-        self.assertIn('This online emoji maker and emoji builder lets you combine two compatible emojis into a sticker-style image.', maker)
-        self.assertIn('It does not draw entirely new characters, edit uploaded photos, or create new Unicode keyboard emojis.', maker)
-        self.assertIn('This online emoji generator lets you explore supported combinations and create sticker-style mashups directly in your browser.', generator)
-        self.assertIn('It is not an unrestricted AI image generator and cannot create every possible pairing.', generator)
+        self.assertIn('<h1>Free Emoji Maker – Create Your Own Custom Emoji</h1>', maker)
+        self.assertIn('<h1>Free Emoji Generator – Instant Random Mashups</h1>', generator)
+        self.assertIn('This free emoji maker builds a sticker-style image from two emojis you choose yourself.', maker)
+        self.assertIn('Emoji Kitchen Hub is an unofficial, fan-made website and is not made by Google.', maker)
+        self.assertIn('This free emoji generator creates sticker-style mashups in your browser and can also serve a random supported pair when you want a surprise.', generator)
+        self.assertIn('This generator is part of Emoji Kitchen Hub, an unofficial fan-made site that is not made or endorsed by Google.', generator)
         self.assertNotIn('quick-answer', maker + generator)
 
     def test_section_headings_follow_the_document(self):
@@ -1060,22 +1076,34 @@ class MakerAndGeneratorContentTests(PageTestCase):
                     'How to Generate an Emoji Mix', 'How to Choose a Useful Pair', 'Emoji Mix Ideas to Try']:
             self.assertNotIn(old, generator)
 
-    def test_faqs_are_the_documents_five_each_and_visitor_facing(self):
-        self.assertEqual([f['question'] for f in views.EMOJI_MAKER_FAQS], [
-            'What does an emoji maker do?', 'Can I make my own emoji for free?', 'Does this tool use AI?',
-            'Can I edit individual facial features?', 'Can I make an emoji from a photo?', 'Why does a combination fail?',
-            'Can I use the result in messages?'])
-        self.assertEqual([f['question'] for f in views.EMOJI_GENERATOR_FAQS], [
-            'Is this emoji generator free?', 'Do I need to install an application?', 'Can the generator combine any two emojis?',
-            'Does it create new Unicode emojis?', 'Can I use the generator on a phone?',
-            'Can I generate an emoji from a text prompt?', 'Why does the result look different after sharing?',
-            'Can I combine more than two emojis?'])
+    def test_faqs_are_six_each_and_match_faqpage_json_ld(self):
+        maker_questions = [
+            'What does an emoji maker do?', 'Can I make my own emoji for free?',
+            'Can I customize facial features or upload a photo?', 'Does this emoji maker use AI?',
+            "Why doesn't my emoji combination work?", 'How do I use my custom emoji in messages and apps?',
+        ]
+        generator_questions = [
+            'Is this emoji generator free?', 'How do I generate a random emoji mashup?',
+            'Can the generator combine any two emojis?', 'Is this an AI emoji generator?',
+            'Can I use the emoji generator on my phone or computer?', 'Does it create new keyboard emojis?',
+        ]
+        self.assertEqual([f['question'] for f in views.EMOJI_MAKER_FAQS], maker_questions)
+        self.assertEqual([f['question'] for f in views.EMOJI_GENERATOR_FAQS], generator_questions)
         answers = {f['question']: f['answer'] for f in views.EMOJI_MAKER_FAQS + views.EMOJI_GENERATOR_FAQS}
-        self.assertEqual(answers['Can I make an emoji from a photo?'],
-                         'No. This tool combines existing emoji designs. It does not convert photos into emojis.')
-        self.assertEqual(answers['Can I combine more than two emojis?'], 'No. The tool combines two emojis at a time.')
-        self.assertEqual(self.fetch('/emoji-maker/').count('class="faq-item animate-up"'), 7)
-        self.assertEqual(self.fetch('/emoji-generator/').count('class="faq-item animate-up"'), 8)
+        self.assertEqual(answers['Does this emoji maker use AI?'],
+                         'No. The tool combines existing emoji designs. It does not generate artwork from text prompts.')
+        self.assertEqual(answers['Can I customize facial features or upload a photo?'],
+                         'No. You cannot change eyes, mouths, or other details, and you cannot upload a photograph. You only choose which two emojis to combine.')
+        for path, questions in (('/emoji-maker/', maker_questions), ('/emoji-generator/', generator_questions)):
+            html = self.fetch(path)
+            self.assertEqual(html.count('class="faq-item animate-up"'), 6, path)
+            blocks = [b for b in _ld_blocks(html) if b.get('@type') == 'FAQPage']
+            self.assertEqual(len(blocks), 1, path)
+            entities = [e for e in blocks[0]['mainEntity'] if e.get('@type') == 'Question']
+            self.assertEqual(len(entities), 6, path)
+            self.assertEqual([e['name'] for e in entities], questions)
+            self.assertEqual([e['acceptedAnswer']['text'] for e in entities],
+                             [answers[q] for q in questions])
 
     def test_the_two_pages_no_longer_repeat_each_other(self):
         maker, generator = self.fetch('/emoji-maker/'), self.fetch('/emoji-generator/')
@@ -1096,8 +1124,9 @@ class MakerAndGeneratorContentTests(PageTestCase):
 
     def test_generator_sections_and_wording(self):
         html = self.fetch('/emoji-generator/')
-        self.assertIn('An AI image generator creates new artwork from a written prompt. This tool does not do that.', html)
-        self.assertIn('<h2>Create an Emoji Mashup</h2>', html)
+        self.assertIn('An AI image generator creates artwork from a written prompt. This tool does not.', html)
+        self.assertIn('<h2>Generate Your Next Emoji Mashup</h2>', html)
+        self.assertIn('<h2>Get a Random Emoji Mashup</h2>', html)
         self.assertIn('Generate My Emoji Mix', html)
         self.assertIn('href="/contact/"', html)
         self.assertEqual(html.count('class="step-num"'), 0)
@@ -1144,9 +1173,22 @@ class MakerAndGeneratorContentTests(PageTestCase):
 
     def test_internal_links_from_the_documents_list(self):
         maker, generator = self.body_links('/emoji-maker/'), self.body_links('/emoji-generator/')
-        for target in ['/emoji-keyboard/', '/emoji-combos/', '/emoji-generator/', '/']:
+        for target in [
+            '/emoji-keyboard/', '/emoji-combos/', '/emoji-generator/', '/',
+            '/blog/how-to-save-download-emoji-kitchen-stickers/',
+            '/blog/emoji-kitchen-instagram/',
+            '/blog/emoji-kitchen-discord/',
+            '/blog/emoji-kitchen-iphone/',
+            '/blog/emoji-kitchen-on-pc/',
+        ]:
             self.assertIn(target, maker, f'Maker does not link to {target}')
-        for target in ['/emoji-maker/', '/emoji-keyboard/', '/emoji-combos/']:
+        for target in [
+            '/emoji-maker/', '/emoji-keyboard/', '/emoji-combos/', '/',
+            '/blog/emoji-kitchen-google-messages/',
+            '/blog/emoji-kitchen-gboard/',
+            '/blog/how-to-save-download-emoji-kitchen-stickers/',
+            '/blog/emoji-kitchen-on-pc/',
+        ]:
             self.assertIn(target, generator, f'Generator does not link to {target}')
 
     def test_links_to_the_pc_page_survive_the_rewrite(self):
@@ -1158,6 +1200,16 @@ class MakerAndGeneratorContentTests(PageTestCase):
             html = self.fetch(path)
             for part in ['id="kitchen"', 'id="btn-swap"', 'id="mixer-status"', 'class="explore"', 'id="btn-surprise"']:
                 self.assertIn(part, html, f'{part} missing on {path}')
+
+    def test_blog_closer_links_maker_generator_and_homepage_mixer(self):
+        html = self.fetch('/blog/emoji-kitchen-iphone/')
+        tools = html[html.index('class="blog-detail__tools"'):html.index('</p>', html.index('class="blog-detail__tools"'))]
+        self.assertIn('href="/emoji-maker/"', tools)
+        self.assertIn('href="/emoji-generator/"', tools)
+        self.assertIn('href="/#kitchen"', tools)
+        self.assertIn('emoji maker', tools)
+        self.assertIn('emoji generator', tools)
+        self.assertIn('Emoji Kitchen', tools)
 
 
 # ── Emoji Keyboard and Emoji Keyboard for PC: content from the "Emoji Updates" document ──
@@ -1442,8 +1494,9 @@ class RemainingUpdatesTests(PageTestCase):
         self.assertNotIn('stat__value', html)
         for word in ['60,553', '>Free<', '>Zero<', '>PNG<']:
             self.assertNotIn(word, html)
-        for label in ['Emoji combos', 'Always &amp; forever', 'Sign-up needed', 'Transparent files']:
+        for label in ['Emoji combos', 'Always &amp; forever', 'No sign-up', 'Transparent files']:
             self.assertIn(f'<span class="stat__label">{label}</span>', html)
+        self.assertNotIn('Sign-up needed', html)
 
     def test_home_what_is_section_uses_the_new_explanation(self):
         html = self.fetch('/')
@@ -1460,8 +1513,8 @@ class RemainingUpdatesTests(PageTestCase):
 
     def test_maker_closing_section(self):
         html = self.fetch('/emoji-maker/')
-        self.assertIn('<h2>Create Your Next Emoji Mashup</h2>', html)
-        self.assertIn('Choose two emojis, explore the supported combinations, and copy or download a result that matches your message.', html)
+        self.assertIn('<h2>Create Your Next Custom Emoji</h2>', html)
+        self.assertIn('Choose two emojis, preview the result, and copy or download a sticker that matches your message.', html)
         self.assertIn('>Make My Emoji Mashup</a>', html)
         for old in ['Make Your Next Emoji Mashup', 'Make Your Next Custom Emoji', 'save the combinations you want to use again']:
             self.assertNotIn(old, html)
@@ -1472,7 +1525,7 @@ class RemainingUpdatesTests(PageTestCase):
             for promise in ['save the results that fit your style', 'save the combinations you want to use again',
                             'save your favourites', 'keeps every creation']:
                 self.assertNotIn(promise, html, f'"{promise}" is on {path}')
-        self.assertIn('Choose two emojis, explore the available result, and find a reaction that suits your message.',
+        self.assertIn('Choose two emojis or press random for an instant pair, then copy or download the result.',
                       self.fetch('/emoji-generator/'))
 
     def test_my_combos_wording_stays_accurate(self):

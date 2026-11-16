@@ -1,11 +1,11 @@
 {% extends 'kitchen/base.html' %}
 {% load static %}
 
-{% block title %}Emoji Generator – Create Emoji Mashups Online{% endblock %}
-{% block meta_description %}Explore emoji combinations with our free online emoji generator. Choose two compatible emojis, preview the mashup, and copy or download the result.{% endblock %}
+{% block title %}Free Emoji Generator – Instant Random Mashups{% endblock %}
+{% block meta_description %}Generate instant emoji mashups with this free emoji generator. Press random for a surprise pair, or choose two emojis, then copy or download the sticker.{% endblock %}
 
 {% block extra_head %}
-{% include "kitchen/_social_meta.html" with page_title="Emoji Generator – Create Emoji Mashups Online" page_description="Explore emoji combinations with our free online emoji generator. Choose two compatible emojis, preview the mashup, and copy or download the result." %}
+{% include "kitchen/_social_meta.html" with page_title="Free Emoji Generator – Instant Random Mashups" page_description="Generate instant emoji mashups with this free emoji generator. Press random for a surprise pair, or choose two emojis, then copy or download the sticker." %}
 {% endblock %}
 
 {% block content %}
@@ -15,10 +15,8 @@
   <div class="container container--narrow">
     <div class="section-head section-head--center animate-up">
       <span class="section-badge">✨ Emoji Generator</span>
-      <h1>Emoji Generator – Create Emoji Mashups Online</h1>
-      <p>Looking for a quick way to turn two familiar emojis into a more expressive reaction? This online emoji generator lets you explore supported combinations and create sticker-style mashups directly in your browser.</p>
-      <p>Choose two emojis, check the generated result, and use the available copy or download option to share it. You can experiment with different faces, animals, hearts, foods, and symbols to find a combination that fits your message.</p>
-      <p>The generator works with supported emoji combinations. It is not an unrestricted AI image generator and cannot create every possible pairing.</p>
+      <h1>Free Emoji Generator – Instant Random Mashups</h1>
+      <p>Want an emoji mashup right away, without spending time picking the perfect pair? This free emoji generator creates sticker-style mashups in your browser and can also serve a random supported pair when you want a surprise. You can still choose two emojis yourself, then preview, copy, or download the result. It only works with supported combinations, and it is not an AI image generator.</p>
     </div>
   </div>
 </section>
@@ -32,24 +30,27 @@
     <div class="blog-detail__content">
 
       <h2>What Is an Emoji Generator?</h2>
-      <p>The name covers several different kinds of tool. Some generate text-based emoji art or random emoji strings, some use AI to turn a written prompt into an image, and others combine existing emoji designs into a new picture.</p>
-      <p>This generator belongs to the last group. It focuses on supported sticker-style mashups made from two emojis. For a closer look at what the tool can and cannot create, see the <a href="/emoji-maker/">Emoji Maker</a> guide.</p>
+      <p>The name covers several kinds of tool. Some produce strings of regular emojis or AI artwork from a prompt. This one combines existing emoji designs: pick two supported emojis, or press the random button for an instant pair that already works.</p>
+      <p>This generator is part of Emoji Kitchen Hub, an unofficial fan-made site that is not made or endorsed by Google. For help building a specific custom design, see the <a href="/emoji-maker/">Emoji Maker</a> guide.</p>
 
       <h2>How to Use the Emoji Generator</h2>
       <ol>
-        <li><strong>Select Your First Emoji.</strong> Use the search box or the category tabs in the first picker, then tap the emoji you want.</li>
-        <li><strong>Select a Second Emoji.</strong> Choose from the second picker. The swap button exchanges the two emojis if you want to try them the other way round.</li>
+        <li><strong>Select Your First Emoji.</strong> Use the search box or category tabs in the first picker, then tap the emoji you want.</li>
+        <li><strong>Select a Second Emoji.</strong> Choose from the second picker. The swap button exchanges the two emojis if you want to reverse them.</li>
         <li><strong>Preview the Mashup.</strong> The result appears in the preview box. Press Reset to clear both pickers and start again.</li>
-        <li><strong>Copy or Download the Result.</strong> Copy places the image on your clipboard, and Download saves an image file. Press the 🎲 button for a random supported pair when you want a surprise.</li>
+        <li><strong>Copy or Download the Result.</strong> Copy places the image on your clipboard; Download saves an image file.</li>
       </ol>
+
+      <h2>Get a Random Emoji Mashup</h2>
+      <p>When you are not sure where to start, press the random (dice) button. It loads a supported pair automatically, so you get an instant mashup instead of testing combinations one by one. Copy or download it if you like it, press the button again for another pair, or replace one emoji to steer the idea.</p>
 
       <h2>How to Choose Better Emoji Combinations</h2>
       <h3>Start With One Clear Feeling</h3>
-      <p>Decide what you want the image to communicate. A face can set the emotion, while an animal, object or symbol adds context. Two emojis are enough, and unrelated ideas can make the result harder to understand.</p>
+      <p>Decide what the image should say. A face can set the emotion; an animal, object, or symbol adds context.</p>
       <h3>Experiment With Contrasting Ideas</h3>
-      <p>Try a close match first, then test an unexpected pair if you want a humorous effect. If a pair is unavailable, change one emoji. If several pairs that should work all fail to load, the problem may be technical rather than a limit of those pairs.</p>
+      <p>Try a close match first, then an unexpected pair if you want a humorous effect. If a pair is unavailable, change one emoji.</p>
       <h3>Explore Themed Combinations</h3>
-      <p>These pairs are available in the mixer, so they are a safe place to begin. Open Explore Combinations to load any of them with one tap.</p>
+      <p>These pairs are available in the generator. Open Explore Combinations to load any of them with one tap.</p>
       <ul>
         <li><strong>Reactions:</strong> 😂 + 💀 for "I can't stop laughing", or 🤯 + 🚀 for a mind-blown moment.</li>
         <li><strong>Affection:</strong> 💗 + 🌸 or 💕 + 🌈 for a soft, warm message.</li>
@@ -57,22 +58,19 @@
         <li><strong>Food:</strong> 🍕 + 🔥, 🍩 + 🌈 or 🍿 + 🎬 for snack and movie-night chats.</li>
         <li><strong>Nature:</strong> 🌊 + 🌴, 🌷 + 🦋 or 🌟 + 🌈 for calm, bright captions.</li>
       </ul>
-      <p>Other pairs may work as well. For ready-made text sequences instead of images, browse <a href="/emoji-combos/">Emoji Combos</a>.</p>
+      <p>Other pairs may work as well. For ready-made text sequences, browse <a href="/emoji-combos/">Emoji Combos</a>.</p>
 
       <h2>Emoji Generator vs. Emoji Keyboard</h2>
-      <p>A standard emoji is a Unicode character that you can type into a sentence, while a mashup from this generator is an image. Use the <a href="/emoji-keyboard/">Emoji Keyboard</a> when you need a character for text, a document or a username.</p>
-      <p>Want to type emojis on Windows? Learn the <a href="/emoji-keyboard-for-pc/" style="color:var(--accent-dk);text-decoration:none">Emoji Keyboard Shortcut</a>.</p>
+      <p>A standard emoji is a Unicode character you can type, while a mashup from this generator is an image. Use the <a href="/emoji-keyboard/">Emoji Keyboard</a> when you need a character for text, a document, or a username. On Windows, learn the <a href="/emoji-keyboard-for-pc/" style="color:var(--accent-dk);text-decoration:none">Emoji Keyboard Shortcut</a>.</p>
 
       <h2>Emoji Generator vs. AI Image Generator</h2>
-      <p>An AI image generator creates new artwork from a written prompt. This tool does not do that. It combines two supported emojis, so you choose from existing designs and cannot describe a scene or edit the details.</p>
+      <p>An AI image generator creates artwork from a written prompt. This tool does not. It combines two supported emojis, so you cannot describe a scene or edit the details.</p>
 
-      <h2>Where Can You Use Emoji Mashups?</h2>
-      <p>A mashup may suit a casual message, group chat, community post or social-media design when the destination supports images. Check the preview before you share it so the combination fits the conversation.</p>
-      <p>Compatibility depends on the application. Some apps accept a pasted image, others need the downloaded file attached, and a few may not accept stickers at all.</p>
+      <h2>Where Can You Use Generated Mashups?</h2>
+      <p>Use a generated mashup in a message, group chat, or social post when the app accepts images. You can <a href="/blog/emoji-kitchen-google-messages/" style="text-decoration:underline;text-underline-offset:3px">send one in Google Messages</a>, <a href="/blog/emoji-kitchen-gboard/" style="text-decoration:underline;text-underline-offset:3px">add one in Gboard on Android</a>, <a href="/blog/how-to-save-download-emoji-kitchen-stickers/" style="text-decoration:underline;text-underline-offset:3px">save the sticker</a>, or <a href="/blog/emoji-kitchen-on-pc/" style="text-decoration:underline;text-underline-offset:3px">generate pairs on a computer</a>. Some apps accept a paste; others need the downloaded file.</p>
 
       <h2>Troubleshooting</h2>
-      <p>If no result appears, the pair may not be supported. Change one emoji, or press 🎲 to load a pair that is known to work.</p>
-      <p>If the generator does not load, refresh the page or try another browser. If it still fails, <a href="/contact/">contact us</a> and tell us which browser and device you used.</p>
+      <p>If no result appears, the pair may not be supported. Change one emoji, or press the random button to load a pair that works. If the generator does not load, refresh the page or try another browser. If it still fails, <a href="/contact/">contact us</a> and tell us which browser and device you used.</p>
 
     </div>
   </div>
@@ -109,9 +107,8 @@
 <section class="section" style="padding-top:0">
   <div class="container container--narrow">
     <div class="section-head section-head--center animate-up">
-      <h2>Create an Emoji Mashup</h2>
-      <p>Choose two emojis, explore the available result, and find a reaction that suits your message.</p>
-      <p>Need more ideas? See <a href="{% url 'home' %}#popular" style="text-decoration:underline;text-underline-offset:3px">popular emoji combinations</a> for chats, posts and group conversations.</p>
+      <h2>Generate Your Next Emoji Mashup</h2>
+      <p>Choose two emojis or press random for an instant pair, then copy or download the result. Need more ideas? See <a href="{% url 'home' %}#popular" style="text-decoration:underline;text-underline-offset:3px">popular emoji combinations</a> on the homepage, or create a specific design with the <a href="/emoji-maker/" style="text-decoration:underline;text-underline-offset:3px">Emoji Maker</a>.</p>
       <a href="#kitchen" class="btn btn--primary" style="margin-top:8px">Generate My Emoji Mix ⬆️</a>
     </div>
   </div>

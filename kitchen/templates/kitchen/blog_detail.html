@@ -64,8 +64,9 @@
       </div>
 
       <p class="blog-detail__tools">
-        Try it yourself with the <a href="{% url 'emoji_maker' %}">emoji maker</a> or open
-        <a href="{% url 'home' %}#kitchen">Emoji Kitchen</a> to mix two emojis into a sticker.
+        Try it yourself: create a custom sticker with the <a href="{% url 'emoji_maker' %}">emoji maker</a>,
+        generate a random mashup with the <a href="{% url 'emoji_generator' %}">emoji generator</a>,
+        or open <a href="{% url 'home' %}#kitchen">Emoji Kitchen</a> on the homepage.
       </p>
 
       {% if post.tags.all %}

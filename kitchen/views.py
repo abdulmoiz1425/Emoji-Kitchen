@@ -104,7 +104,7 @@ FEATURES = [
     {
         'icon': '🌐',
         'title': 'Simple Browser-Based Tool',
-        'description': 'Open the mixer in your browser with no app to install. The same mixer also appears on the <a href="/emoji-maker/" style="text-decoration:underline;text-underline-offset:3px">Emoji Maker</a> and <a href="/emoji-generator/" style="text-decoration:underline;text-underline-offset:3px">Emoji Generator</a> pages, each with its own guide.',
+        'description': 'Open the tool in your browser with no app to install. To create and customize your own design, use the <a href="/emoji-maker/" style="text-decoration:underline;text-underline-offset:3px">Emoji Maker</a>. For an instant or random mashup, try the <a href="/emoji-generator/" style="text-decoration:underline;text-underline-offset:3px">Emoji Generator</a>.',
     },
     {
         'icon': '⚡',
@@ -270,63 +270,51 @@ EMOJI_GENERATOR_FAQS = [
         'answer': 'Yes. You can use the generator in your browser at no cost, and no account is needed.',
     },
     {
-        'question': 'Do I need to install an application?',
-        'answer': 'No. The generator runs in your browser. If it does not load, refresh the page or try a different browser.',
+        'question': 'How do I generate a random emoji mashup?',
+        'answer': 'Press the random (dice) button in the generator. It loads a supported pair automatically so you can preview an instant mashup, then copy or download it, or press the button again for another pair.',
     },
     {
         'question': 'Can the generator combine any two emojis?',
-        'answer': 'No. It works only with supported pairs, so some selections will not produce a mashup. Emojis that are greyed out in the second picker have no sticker with your first choice.',
+        'answer': 'No. It works only with supported pairs, so some selections will not produce a mashup. Emojis that are greyed out in the second picker have no sticker with your first choice. The random button always loads a pair that is supported.',
     },
     {
-        'question': 'Does it create new Unicode emojis?',
-        'answer': 'No. The result is an image-style mashup, not a character that you can add to your keyboard. For typing, use the online emoji keyboard.',
+        'question': 'Is this an AI emoji generator?',
+        'answer': 'No. You choose two emojis, or generate a random supported pair, instead of typing a description. The tool is not an AI image generator.',
     },
     {
-        'question': 'Can I use the generator on a phone?',
-        'answer': 'Yes. It works in mobile browsers. If a copied image does not paste into an app, download it and attach the file instead.',
+        'question': 'Can I use the emoji generator on my phone or computer?',
+        'answer': 'Yes. It runs in mobile and desktop browsers, with no app to install. If a copied image does not paste into an app, download it and attach the file instead.',
     },
     {
-        'question': 'Can I generate an emoji from a text prompt?',
-        'answer': 'No. You choose two emojis instead of typing a description, and the tool is not an AI image generator.',
-    },
-    {
-        'question': 'Why does the result look different after sharing?',
-        'answer': 'Apps can resize, compress or convert images, and some show stickers on different backgrounds, so the picture can look slightly different after it is sent.',
-    },
-    {
-        'question': 'Can I combine more than two emojis?',
-        'answer': 'No. The tool combines two emojis at a time.',
+        'question': 'Does it create new keyboard emojis?',
+        'answer': 'No. The result is an image-style mashup, not a character you can add to your keyboard. For typing, use the online emoji keyboard.',
     },
 ]
 
 EMOJI_MAKER_FAQS = [
     {
         'question': 'What does an emoji maker do?',
-        'answer': 'An emoji maker creates emoji-based images. This one combines two compatible emojis into a sticker-style result when the pair is supported.',
+        'answer': 'An emoji maker creates a custom emoji-style image. This one lets you choose two compatible emojis and combine them into a sticker-style result when the pair is supported.',
     },
     {
         'question': 'Can I make my own emoji for free?',
-        'answer': 'Yes. You can mix supported pairs for free in your browser, with no sign-up. The result is a sticker-style image, not a new keyboard emoji.',
+        'answer': 'Yes. You can create a custom sticker from supported pairs in your browser, with no sign-up. The result is an image, not a new keyboard emoji.',
     },
     {
-        'question': 'Does this tool use AI?',
+        'question': 'Can I customize facial features or upload a photo?',
+        'answer': 'No. You cannot change eyes, mouths, or other details, and you cannot upload a photograph. You only choose which two emojis to combine.',
+    },
+    {
+        'question': 'Does this emoji maker use AI?',
         'answer': 'No. The tool combines existing emoji designs. It does not generate artwork from text prompts.',
     },
     {
-        'question': 'Can I edit individual facial features?',
-        'answer': 'No. You cannot change eyes, mouths or other details. You can only choose which two emojis to combine.',
-    },
-    {
-        'question': 'Can I make an emoji from a photo?',
-        'answer': 'No. This tool combines existing emoji designs. It does not convert photos into emojis.',
-    },
-    {
-        'question': 'Why does a combination fail?',
+        'question': "Why doesn't my emoji combination work?",
         'answer': 'Only supported pairs produce a result. If a pair is unavailable, change one emoji. If supported pairs also fail to load, refresh the page and try again.',
     },
     {
-        'question': 'Can I use the result in messages?',
-        'answer': 'Often, yes. Copy the image and paste it into an app that accepts images, or download it and attach it. Applications handle pasted images and stickers differently.',
+        'question': 'How do I use my custom emoji in messages and apps?',
+        'answer': 'Copy the image and paste it into an app that accepts images, or download the file and attach it. Steps differ by app; the Instagram, Discord, iPhone, and PC guides on this site walk through common cases.',
     },
 ]
 
