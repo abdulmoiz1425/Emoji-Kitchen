@@ -50,6 +50,11 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 
 CSRF_TRUSTED_ORIGINS = ['https://emojikitchenhub.com', 'https://www.emojikitchenhub.com']
 
+# Public origin for canonical, og:url, and JSON-LD URLs. Always used instead of
+# the request host or scheme, so http or www cannot leak into those tags.
+# Override with SITE_URL in the environment if needed. A trailing slash is dropped.
+SITE_URL = (os.environ.get('SITE_URL') or 'https://emojikitchenhub.com').strip().rstrip('/') or 'https://emojikitchenhub.com'
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -87,6 +92,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'kitchen.context_processors.google_analytics',
+                'kitchen.context_processors.site_url',
             ],
         },
     },

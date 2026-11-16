@@ -908,7 +908,7 @@ def blog_detail(request, slug):
         'canonical_url': canonical_url,
         'share_image': share_image,
         'article_json_ld': article_json_ld(
-            post, canonical_url, f'{request.scheme}://{request.get_host()}/', share_image),
+            post, canonical_url, absolute_site_url('/'), share_image),
         'post_faqs': [{'question': q, 'answer': a} for q, a in faq_pairs_from_html(post.content)],
     }
     return render(request, 'kitchen/blog_detail.html', context)

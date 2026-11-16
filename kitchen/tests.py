@@ -1863,6 +1863,71 @@ class SiteWideSeoTests(PageTestCase):
             self.assertEqual(page.meta['og:title'], _clean(page.title), path)
 
 
+class SiteUrlCanonicalTests(PageTestCase):
+    """Canonical and og:url use SITE_URL, never the request host or scheme."""
+
+    EXTRA_HOSTS = [
+        'testserver',
+        'emojikitchenhub.com',
+        'www.emojikitchenhub.com',
+        'staging.example.com',
+    ]
+    REQUESTS = (
+        {'HTTP_HOST': 'www.emojikitchenhub.com'},
+        {'HTTP_HOST': 'staging.example.com', 'HTTP_X_FORWARDED_PROTO': 'http'},
+        {'HTTP_HOST': 'emojikitchenhub.com', 'HTTP_X_FORWARDED_PROTO': 'http'},
+    )
+
+    def parse_with(self, path, **kwargs):
+        response = self.client.get(path + '?utm_source=x', **kwargs)
+        self.assertEqual(response.status_code, 200, path)
+        parser = _PageParser()
+        parser.feed(response.content.decode())
+        return parser, response.content.decode()
+
+    @override_settings(ALLOWED_HOSTS=EXTRA_HOSTS)
+    def test_canonical_and_og_url_use_the_fixed_https_origin(self):
+        for path in ['/', PC, '/blog/emoji-kitchen-iphone/']:
+            expected = 'https://emojikitchenhub.com' + path
+            for kwargs in self.REQUESTS:
+                page, html = self.parse_with(path, **kwargs)
+                self.assertEqual(page.canonical, expected, (path, kwargs))
+                self.assertEqual(page.meta['og:url'], expected, (path, kwargs))
+
+    @override_settings(ALLOWED_HOSTS=EXTRA_HOSTS)
+    def test_page_specific_canonical_override_still_wins(self):
+        # 404 clears the whole canonical block, so the default SITE_URL tag is not used.
+        response = self.client.get('/does-not-exist-for-site-url-canonical/', HTTP_HOST='www.emojikitchenhub.com')
+        self.assertEqual(response.status_code, 404)
+        self.assertNotIn('rel="canonical"', response.content.decode())
+        # Blog posts keep their pinned /blog/<slug>/ URL via {% block canonical_href %}.
+        page, _ = self.parse_with('/blog/emoji-kitchen-iphone/', HTTP_HOST='www.emojikitchenhub.com')
+        self.assertEqual(page.canonical, 'https://emojikitchenhub.com/blog/emoji-kitchen-iphone/')
+        # Combo pages still supply their own absolute_site_url override.
+        page, _ = self.parse_with('/emoji-combos/love/', HTTP_HOST='staging.example.com',
+                                  HTTP_X_FORWARDED_PROTO='http')
+        self.assertEqual(page.canonical, 'https://emojikitchenhub.com/emoji-combos/love/')
+
+    @override_settings(ALLOWED_HOSTS=EXTRA_HOSTS, SITE_URL='https://example.test')
+    def test_overridden_site_url_is_honoured(self):
+        page, html = self.parse_with('/', HTTP_HOST='www.emojikitchenhub.com')
+        self.assertEqual(page.canonical, 'https://example.test/')
+        self.assertEqual(page.meta['og:url'], 'https://example.test/')
+        website = [b for b in _ld_blocks(html) if b.get('@type') == 'WebSite']
+        self.assertEqual(website[0]['url'], 'https://example.test')
+        page, html = self.parse_with('/blog/emoji-kitchen-iphone/', HTTP_HOST='staging.example.com')
+        self.assertEqual(page.canonical, 'https://example.test/blog/emoji-kitchen-iphone/')
+        articles = [b for b in _ld_blocks(html) if b.get('@type') == 'BlogPosting']
+        self.assertEqual(articles[0]['publisher']['url'], 'https://example.test/')
+        self.assertEqual(articles[0]['mainEntityOfPage']['@id'], page.canonical)
+
+    @override_settings(ALLOWED_HOSTS=EXTRA_HOSTS, SITE_URL='https://example.test/')
+    def test_trailing_slash_on_site_url_is_stripped(self):
+        page, _ = self.parse_with('/', HTTP_HOST='www.emojikitchenhub.com')
+        self.assertEqual(page.canonical, 'https://example.test/')
+        self.assertEqual(page.meta['og:url'], 'https://example.test/')
+
+
 class ErrorPageSeoTests(TestCase):
     """404/500 pages must be noindex and must not self-canonicalise."""
 

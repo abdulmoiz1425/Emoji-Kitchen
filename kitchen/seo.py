@@ -13,23 +13,31 @@ from django.conf import settings
 from django.urls import Resolver404, resolve
 
 # Hosts this project actually serves. Anything else in a stored canonical is ignored.
+# Public page URLs (canonical, og:url, JSON-LD) are built from settings.SITE_URL
+# so a request over http or www cannot change the origin.
 CANONICAL_HOST = 'emojikitchenhub.com'
 CANONICAL_SCHEME = 'https'
 _SITE_HOSTS = {CANONICAL_HOST, f'www.{CANONICAL_HOST}'}
+_DEFAULT_SITE_URL = f'{CANONICAL_SCHEME}://{CANONICAL_HOST}'
+
+
+def site_origin():
+    """Fixed public origin, with no trailing slash. Honours settings.SITE_URL."""
+    return (getattr(settings, 'SITE_URL', None) or _DEFAULT_SITE_URL).rstrip('/')
 
 
 def absolute_blog_canonical(slug):
     """Public canonical for a blog post: https://emojikitchenhub.com/blog/<slug>/."""
     from django.urls import reverse
 
-    return f'{CANONICAL_SCHEME}://{CANONICAL_HOST}{reverse("blog_detail", kwargs={"slug": slug})}'
+    return f'{site_origin()}{reverse("blog_detail", kwargs={"slug": slug})}'
 
 
 def absolute_site_url(path):
-    """Public absolute URL for a site path, always https on the canonical host."""
+    """Public absolute URL for a site path, always on the SITE_URL origin."""
     if not path.startswith('/'):
         path = '/' + path
-    return f'{CANONICAL_SCHEME}://{CANONICAL_HOST}{path}'
+    return f'{site_origin()}{path}'
 
 
 _META_LABEL = re.compile(r'^\s*meta description:\s*', re.IGNORECASE)
@@ -58,7 +66,7 @@ def clean_canonical(request, explicit_url='', fallback_path='/', current_slug=No
     fallback_path = fallback_path or '/'
     if not fallback_path.startswith('/'):
         fallback_path = '/' + fallback_path
-    fallback = f'{CANONICAL_SCHEME}://{CANONICAL_HOST}{fallback_path}'
+    fallback = f'{site_origin()}{fallback_path}'
 
     raw = (explicit_url or '').strip()
     if not raw:
@@ -95,7 +103,7 @@ def clean_canonical(request, explicit_url='', fallback_path='/', current_slug=No
         # one is a redirect target, not the page itself.
         return fallback
 
-    return f'{CANONICAL_SCHEME}://{CANONICAL_HOST}{path}'
+    return f'{site_origin()}{path}'
 
 
 def _broken_webp_on_disk():
