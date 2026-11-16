@@ -25,6 +25,7 @@ def inbound_link_snippets():
     # in a way that would cycle, and the crawl HTML lives in this file.
     from kitchen.blog_seed_discord import INBOUND_HTML as discord_html
     from kitchen.blog_seed_google_messages import INBOUND_HTML as google_messages_html
+    from kitchen.blog_seed_instagram import INBOUND_HTML as instagram_html
     from kitchen.blog_seed_not_working import INBOUND_HTML as not_working_html
     from kitchen.blog_seed_on_pc import INBOUND_HTML as on_pc_html
 
@@ -33,6 +34,7 @@ def inbound_link_snippets():
     return (
         discord_html,
         google_messages_html,
+        instagram_html,
         not_working_html,
         on_pc_html,
         CRAWL_LINKS_HTML,
