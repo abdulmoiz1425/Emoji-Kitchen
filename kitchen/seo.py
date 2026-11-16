@@ -192,8 +192,13 @@ _DISCLAIMER_ATTR = re.compile(
 )
 
 
+_SPACE_BEFORE_PUNCT = re.compile(r'\s+([.,;:!?)])')
+
+
 def _plain(fragment):
-    return re.sub(r'\s+', ' ', html_lib.unescape(_TAG.sub(' ', fragment))).strip()
+    text = re.sub(r'\s+', ' ', html_lib.unescape(_TAG.sub(' ', fragment))).strip()
+    # Tags become spaces, so "<a>page</a>." would read "page ." in JSON-LD.
+    return _SPACE_BEFORE_PUNCT.sub(r'\1', text)
 
 
 def _strip_outer_tag(block):

@@ -3949,7 +3949,10 @@ _LEGACY_TAG = re.compile(r'<[^>]+>')
 
 
 def _legacy_plain(fragment):
-    return re.sub(r'\s+', ' ', __import__('html').unescape(_LEGACY_TAG.sub(' ', fragment))).strip()
+    text = re.sub(r'\s+', ' ', __import__('html').unescape(_LEGACY_TAG.sub(' ', fragment))).strip()
+    # Same punctuation clean-up as kitchen.seo._plain, so this comparison
+    # isolates the disclaimer change.
+    return re.sub(r'\s+([.,;:!?)])', r'\1', text)
 
 
 def _legacy_faq_pairs(content):
@@ -4104,6 +4107,40 @@ class FaqExtractorDisclaimerTests(SimpleTestCase):
                 'No. It is unofficial and fan-made. It is not affiliated with Google or Apple.',
             )],
         )
+
+
+class FaqPlainTextPunctuationTests(TestCase):
+    """Stripped tags must not leave a space before punctuation in JSON-LD text."""
+
+    def test_no_space_before_punctuation_after_links(self):
+        from kitchen.seo import faq_pairs_from_html
+
+        html = (
+            '<h2>FAQ</h2><h3>Where?</h3>'
+            '<p>See the <a href="/contact/">contact page</a>. Or try '
+            '<a href="/emoji-combos/bio/">emoji combos for bio</a>, '
+            '<strong>Gboard</strong>; <em>it</em>! (<a href="/">mixer</a>)</p>'
+        )
+        (_, answer), = faq_pairs_from_html(html)
+        self.assertEqual(
+            answer,
+            'See the contact page. Or try emoji combos for bio, Gboard; it! ( mixer)',
+        )
+
+    def test_not_working_fixture_answer_and_visible_body_unchanged(self):
+        from kitchen.seo import faq_pairs_from_html
+
+        html = (BLOG_SAMPLES / 'emoji-kitchen-not-working.html').read_text(encoding='utf-8')
+        answers = [a for _, a in faq_pairs_from_html(html)]
+        self.assertFalse(any(re.search(r'\s[.,;:!?)]', a) for a in answers))
+        self.assertTrue(any('contact page.' in a for a in answers))
+        post = BlogPost.objects.create(
+            title='t', slug='emoji-kitchen-not-working', excerpt='e',
+            content=html, status=BlogPost.STATUS_PUBLISHED,
+        )
+        page = self.client.get('/blog/emoji-kitchen-not-working/').content.decode()
+        self.assertIn('contact page</a>.', page)
+        self.assertEqual(BlogPost.objects.get(pk=post.pk).content, html)
 
 
 class FaqSchemaRenderTests(TestCase):
