@@ -4520,13 +4520,15 @@ class FaqSchemaRenderTests(TestCase):
 # ── 17 Nov 2026 on-page: homepage links, meta cap, compressed covers ─────────
 
 from kitchen.blog_covers import (
+    COVER_ASPECT_TOLERANCE,
     COVER_FILES,
-    COVER_HEIGHT,
-    COVER_WIDTH,
+    COVER_LONG_EDGE,
+    COVER_SOURCE_SIZE,
     MAX_COVER_BYTES,
     cover_bytes as fixture_cover_bytes,
     cover_filename as fixture_cover_filename,
     cover_path as fixture_cover_path,
+    expected_cover_size,
 )
 from kitchen.blog_content import POST_UPDATES
 from kitchen.management.commands.fix_blog_meta_descriptions import META_TARGETS
@@ -4646,11 +4648,12 @@ class FixBlogMetaDescriptionsCommandTests(TestCase):
 
 
 class CompressedBlogCoverTests(TestCase):
-    def test_fixture_covers_are_compressed_1200x675_under_200kb(self):
+    def test_fixture_covers_keep_source_aspect_and_stay_under_200kb(self):
         from PIL import Image
         from io import BytesIO
 
         self.assertEqual(len(COVER_FILES), 10)
+        self.assertEqual(set(COVER_FILES), set(COVER_SOURCE_SIZE))
         for slug in COVER_FILES:
             path = fixture_cover_path(slug)
             self.assertTrue(path.is_file(), slug)
@@ -4658,8 +4661,17 @@ class CompressedBlogCoverTests(TestCase):
             self.assertLessEqual(len(data), MAX_COVER_BYTES, f'{slug} is {len(data)} bytes')
             self.assertTrue(fixture_cover_filename(slug).endswith('.webp'), slug)
             image = Image.open(BytesIO(data))
-            self.assertEqual(image.size, (COVER_WIDTH, COVER_HEIGHT), slug)
-            # hashed name uses the unversioned fixture filename plus 8 hex chars
+            width, height = image.size
+            self.assertEqual((width, height), expected_cover_size(slug), slug)
+            self.assertEqual(max(width, height), COVER_LONG_EDGE, slug)
+            src_w, src_h = COVER_SOURCE_SIZE[slug]
+            source_aspect = src_w / src_h
+            actual_aspect = width / height
+            self.assertLessEqual(
+                abs(actual_aspect - source_aspect) / source_aspect,
+                COVER_ASPECT_TOLERANCE,
+                f'{slug} aspect {actual_aspect} vs source {source_aspect}',
+            )
             from kitchen.blog_seed_utils import cover_versioned_filename
             name = cover_versioned_filename(fixture_cover_filename(slug), data)
             self.assertRegex(name, rf'^{re.escape(path.stem)}-[0-9a-f]{{8}}\.webp$')
@@ -4714,3 +4726,15 @@ class CompressedBlogCoverTests(TestCase):
         for slug in COVER_FILES:
             post = BlogPost.objects.get(slug=slug)
             self.assertEqual(post.updated_at, updated[slug], slug)
+
+        # og:image:width / og:image:height are optional; if present they must
+        # match the attached cover.
+        for slug in COVER_FILES:
+            html = self.client.get(f'/blog/{slug}/').content.decode()
+            width, height = expected_cover_size(slug)
+            og_w = re.search(r'property="og:image:width" content="([^"]*)"', html)
+            og_h = re.search(r'property="og:image:height" content="([^"]*)"', html)
+            if og_w:
+                self.assertEqual(og_w.group(1), str(width), slug)
+            if og_h:
+                self.assertEqual(og_h.group(1), str(height), slug)

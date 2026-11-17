@@ -23,7 +23,7 @@ from kitchen.models import BlogPost
 
 class Command(BaseCommand):
     help = (
-        'Attach compressed 1200x675 WebP covers under content-hashed names '
+        'Attach compressed WebP covers (long edge 1200, source aspect) under content-hashed names '
         '(dry run unless --apply is given).'
     )
 
