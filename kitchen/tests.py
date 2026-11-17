@@ -2991,6 +2991,280 @@ class InstagramBlogSeedTests(TestCase):
         )
 
 
+
+class ThanksgivingBlogSeedTests(TestCase):
+    SLUG = 'thanksgiving-emoji-combos'
+    CANONICAL = 'https://emojikitchenhub.com/blog/thanksgiving-emoji-combos/'
+    RELATED = (
+        'how-to-save-download-emoji-kitchen-stickers',
+        'emoji-kitchen-google-messages',
+        'emoji-kitchen-gboard',
+        'emoji-kitchen-iphone',
+        'emoji-kitchen-whatsapp',
+        'emoji-kitchen-instagram',
+        'emoji-kitchen-discord',
+        'emoji-kitchen-not-working',
+    )
+    MIXER_HREFS = (
+        '/?emoji1=%F0%9F%8D%81&emoji2=%F0%9F%98%8A#kitchen',
+        '/?emoji1=%F0%9F%8D%82&emoji2=%F0%9F%A5%B0#kitchen',
+        '/?emoji1=%F0%9F%8D%81&emoji2=%F0%9F%98%8D#kitchen',
+        '/?emoji1=%F0%9F%8D%82&emoji2=%F0%9F%98%8B#kitchen',
+        '/?emoji1=%F0%9F%8D%97&emoji2=%F0%9F%98%8B#kitchen',
+        '/?emoji1=%F0%9F%8D%82&emoji2=%F0%9F%98%B4#kitchen',
+    )
+    EXPECTED_HREFS = (
+        '/',
+        '/emoji-combos/',
+        '/emoji-combos/aesthetic/',
+        '/emoji-combos/cute/',
+        '/emoji-combos/bio/',
+        '/emoji-combos/christmas/',
+        '/blog/how-to-save-download-emoji-kitchen-stickers/',
+        '/blog/emoji-kitchen-google-messages/',
+        '/blog/emoji-kitchen-gboard/',
+        '/blog/emoji-kitchen-iphone/',
+        '/blog/emoji-kitchen-whatsapp/',
+        '/blog/emoji-kitchen-instagram/',
+        '/blog/emoji-kitchen-discord/',
+        '/blog/emoji-kitchen-not-working/',
+        '/emoji-maker/',
+        '/emoji-generator/',
+    ) + MIXER_HREFS
+
+    def setUp(self):
+        self.tmp = tempfile.mkdtemp()
+        self.addCleanup(lambda: __import__('shutil').rmtree(self.tmp, ignore_errors=True))
+        self._media = override_settings(MEDIA_ROOT=self.tmp)
+        self._media.enable()
+        self.addCleanup(self._media.disable)
+        for slug in self.RELATED:
+            BlogPost.objects.create(
+                title=slug,
+                slug=slug,
+                excerpt='x',
+                content='<p>Related guide.</p>',
+                status=BlogPost.STATUS_PUBLISHED,
+                seo_title=slug,
+                seo_description='d' * 90,
+            )
+
+    def test_dry_run_writes_nothing(self):
+        call_command('seed_thanksgiving_blog_post', stdout=io.StringIO())
+        self.assertFalse(BlogPost.objects.filter(slug=self.SLUG).exists())
+
+    def test_apply_creates_post_with_schema_cover_meta_and_unofficial_wording(self):
+        from io import BytesIO
+        from PIL import Image
+        from kitchen.blog_covers import MAX_COVER_BYTES, expected_cover_size
+        from kitchen.blog_seed_thanksgiving import (
+            COVER_FILENAME,
+            FIELDS,
+            OG_FILENAME,
+            cover_bytes,
+            og_bytes,
+        )
+        from kitchen.blog_seed_utils import cover_versioned_filename
+        from kitchen.seo import faq_pairs_from_html
+
+        call_command('seed_thanksgiving_blog_post', '--apply', stdout=io.StringIO())
+        self.assertEqual(BlogPost.objects.filter(slug=self.SLUG).count(), 1)
+        post = BlogPost.objects.get(slug=self.SLUG)
+        self.assertEqual(post.title, FIELDS['title'])
+        self.assertEqual(post.status, BlogPost.STATUS_PUBLISHED)
+        self.assertEqual(post.canonical_url, self.CANONICAL)
+        self.assertLessEqual(len(post.seo_description), 150)
+        self.assertLessEqual(len(post.excerpt), 150)
+        self.assertEqual(post.seo_description, FIELDS['seo_description'])
+        self.assertEqual(post.excerpt, FIELDS['excerpt'])
+        self.assertIn('unofficial, fan-made', post.content)
+        self.assertIn('not run by Google', post.content)
+        self.assertIn('href="/"', post.content)
+        self.assertIn('has no mashups for 🦃, 🥧, 🎃, 🌽, or 🙏', post.content)
+
+        self.assertTrue(post.featured_image)
+        self.assertEqual(
+            post.featured_image.name,
+            'blog/featured/' + cover_versioned_filename(COVER_FILENAME, cover_bytes()),
+        )
+        self.assertTrue(post.og_image)
+        self.assertEqual(
+            post.og_image.name,
+            'blog/og/' + cover_versioned_filename(OG_FILENAME, og_bytes()),
+        )
+        post.featured_image.open('rb')
+        try:
+            webp = post.featured_image.read()
+        finally:
+            post.featured_image.close()
+        post.og_image.open('rb')
+        try:
+            jpg = post.og_image.read()
+        finally:
+            post.og_image.close()
+        self.assertEqual(webp, cover_bytes())
+        self.assertEqual(jpg, og_bytes())
+        self.assertLessEqual(len(webp), MAX_COVER_BYTES)
+        self.assertLessEqual(len(jpg), MAX_COVER_BYTES)
+        width, height = expected_cover_size(self.SLUG)
+        self.assertEqual(width, 1200)
+        self.assertEqual(height, 675)
+        webp_im = Image.open(BytesIO(webp))
+        jpg_im = Image.open(BytesIO(jpg))
+        self.assertEqual(webp_im.size, (width, height))
+        self.assertEqual(jpg_im.size, (width, height))
+        self.assertEqual(jpg_im.format, 'JPEG')
+
+        pairs = faq_pairs_from_html(post.content)
+        self.assertEqual(len(pairs), 6)
+        self.assertFalse(any(_FAQ_DISCLAIMER_RE.search(a) for _, a in pairs))
+        mashup_answer = next(a for q, a in pairs if 'mashup' in q.lower())
+        self.assertIn('have no Emoji Kitchen mashups', mashup_answer)
+        self.assertNotIn('Try pairing 🦃', post.content)
+
+        html = self.client.get(f'/blog/{self.SLUG}/').content.decode()
+        blocks = [
+            json.loads(match.group(1))
+            for match in re.finditer(
+                r'<script type="application/ld\+json">(.*?)</script>', html, re.DOTALL
+            )
+        ]
+        types = {b.get('@type') for b in blocks}
+        self.assertIn('BlogPosting', types)
+        self.assertIn('FAQPage', types)
+        faq = next(b for b in blocks if b.get('@type') == 'FAQPage')
+        self.assertEqual(len(faq['mainEntity']), 6)
+        answers = [e['acceptedAnswer']['text'] for e in faq['mainEntity']]
+        self.assertFalse(any(_FAQ_DISCLAIMER_RE.search(a) for a in answers))
+        self.assertTrue(answers[-1].endswith('the available pairs can differ.'))
+        self.assertIn('rel="canonical"', html)
+        self.assertIn(self.CANONICAL, html)
+        og = re.search(r'property="og:image" content="([^"]+)"', html)
+        self.assertIsNotNone(og)
+        self.assertTrue(og.group(1).endswith('.jpg'), og.group(1))
+        self.assertIn(cover_versioned_filename(OG_FILENAME, og_bytes()), og.group(1))
+        self.assertEqual(
+            re.search(r'property="og:image:width" content="([^"]*)"', html).group(1),
+            '1200',
+        )
+        self.assertEqual(
+            re.search(r'property="og:image:height" content="([^"]*)"', html).group(1),
+            '675',
+        )
+        self.assertEqual(
+            re.search(r'property="og:image:type" content="([^"]*)"', html).group(1),
+            'image/jpeg',
+        )
+        on_page = re.search(r'<div class="blog-detail__cover">\s*<img\b([^>]*)>', html)
+        self.assertIsNotNone(on_page)
+        self.assertTrue(re.search(r'src="([^"]+)"', on_page.group(1)).group(1).endswith('.webp'))
+
+    def test_apply_is_idempotent(self):
+        call_command('seed_thanksgiving_blog_post', '--apply', stdout=io.StringIO())
+        first = BlogPost.objects.get(slug=self.SLUG)
+        first_pk = first.pk
+        first_content = first.content
+        first_updated = first.updated_at
+        first.featured_image.open('rb')
+        try:
+            first_cover = first.featured_image.read()
+        finally:
+            first.featured_image.close()
+        first.og_image.open('rb')
+        try:
+            first_og = first.og_image.read()
+        finally:
+            first.og_image.close()
+        first_cover_name = first.featured_image.name
+        first_og_name = first.og_image.name
+
+        call_command('seed_thanksgiving_blog_post', '--apply', stdout=io.StringIO())
+        self.assertEqual(BlogPost.objects.filter(slug=self.SLUG).count(), 1)
+        again = BlogPost.objects.get(slug=self.SLUG)
+        self.assertEqual(again.pk, first_pk)
+        self.assertEqual(again.content, first_content)
+        self.assertEqual(again.updated_at, first_updated)
+        self.assertEqual(again.featured_image.name, first_cover_name)
+        self.assertEqual(again.og_image.name, first_og_name)
+        again.featured_image.open('rb')
+        try:
+            self.assertEqual(again.featured_image.read(), first_cover)
+        finally:
+            again.featured_image.close()
+        again.og_image.open('rb')
+        try:
+            self.assertEqual(again.og_image.read(), first_og)
+        finally:
+            again.og_image.close()
+
+    def test_internal_links_resolve_mixer_pairs_exist_and_sitemap_gains_the_post(self):
+        from urllib.parse import parse_qs, unquote, urlparse
+        from kitchen.views import combo_image_url
+
+        before = self.client.get('/sitemap.xml')
+        self.assertEqual(before.status_code, 200)
+        ns = {'s': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+        locs_before = [u.text for u in ET.fromstring(before.content).findall('s:url/s:loc', ns)]
+        self.assertNotIn(self.CANONICAL, locs_before)
+
+        call_command('seed_thanksgiving_blog_post', '--apply', stdout=io.StringIO())
+        post = BlogPost.objects.get(slug=self.SLUG)
+        hrefs = {href.replace('&amp;', '&') for href in re.findall(r'href="([^"]+)"', post.content)}
+        self.assertEqual(hrefs, set(self.EXPECTED_HREFS))
+        for href in sorted(hrefs):
+            path = href.split('#')[0]
+            self.assertEqual(self.client.get(path).status_code, 200, href)
+        self.assertEqual(self.client.get(f'/blog/{self.SLUG}/').status_code, 200)
+
+        mixer = [href for href in hrefs if href.startswith('/?emoji1=')]
+        self.assertEqual(len(mixer), 6)
+        for href in mixer:
+            query = parse_qs(urlparse(href).query)
+            self.assertTrue(
+                combo_image_url(unquote(query['emoji1'][0]), unquote(query['emoji2'][0])),
+                href,
+            )
+
+        response = self.client.get('/sitemap.xml')
+        self.assertEqual(response.status_code, 200)
+        locs = [u.text for u in ET.fromstring(response.content).findall('s:url/s:loc', ns)]
+        self.assertIn(self.CANONICAL, locs)
+        self.assertEqual(len(locs), len(locs_before) + 1)
+
+    def test_combo_pages_link_to_the_post_and_the_homepage_does_not(self):
+        call_command('seed_thanksgiving_blog_post', '--apply', stdout=io.StringIO())
+        christmas = self.client.get('/emoji-combos/christmas/').content.decode()
+        self.assertIn('/blog/thanksgiving-emoji-combos/', christmas)
+        self.assertIn('Thanksgiving emoji combos', christmas)
+        hub = self.client.get('/emoji-combos/').content.decode()
+        self.assertIn('/blog/thanksgiving-emoji-combos/', hub)
+        home = self.client.get('/').content.decode()
+        self.assertNotIn('/blog/thanksgiving-emoji-combos/', home)
+
+    def test_publishing_the_post_pings_indexnow_once(self):
+        from kitchen import indexnow
+        with mock.patch.object(indexnow, 'submit_urls', wraps=indexnow.submit_urls) as submit:
+            with mock.patch.object(indexnow.requests, 'post') as posted:
+                with mock.patch.object(indexnow.threading, 'Thread', side_effect=_run_thread_inline):
+                    with override_settings(INDEXNOW_ENABLED=True, DEBUG=False):
+                        with self.captureOnCommitCallbacks(execute=True):
+                            call_command('seed_thanksgiving_blog_post', '--apply', stdout=io.StringIO())
+        submitted = [url for call in submit.call_args_list for url in call.args[0]]
+        self.assertIn(self.CANONICAL, submitted)
+        posted.assert_called()
+
+        submit.reset_mock()
+        posted.reset_mock()
+        with mock.patch.object(indexnow, 'submit_urls', wraps=indexnow.submit_urls) as submit2:
+            with mock.patch.object(indexnow.requests, 'post') as posted2:
+                with mock.patch.object(indexnow.threading, 'Thread', side_effect=_run_thread_inline):
+                    with override_settings(INDEXNOW_ENABLED=True, DEBUG=False):
+                        with self.captureOnCommitCallbacks(execute=True):
+                            call_command('seed_thanksgiving_blog_post', '--apply', stdout=io.StringIO())
+        self.assertEqual(submit2.call_count, 0)
+        posted2.assert_not_called()
+
+
 # ── Blog seed inbound-suffix helpers ──────────────────────────────────────────
 
 class BlogSeedUtilsTests(SimpleTestCase):
@@ -4320,6 +4594,7 @@ AFFECTED_FAQ_FIXTURES = (
     'emoji-kitchen-instagram.html',
     'emoji-kitchen-not-working.html',
     'emoji-kitchen-on-pc.html',
+    'thanksgiving-emoji-combos.html',
 )
 
 # Counts from the previous extractor; the fix must not drop or invent questions.
@@ -4335,6 +4610,7 @@ FAQ_FIXTURE_COUNTS = {
     'emoji-kitchen-samsung.html': 9,
     'emoji-kitchen-whatsapp.html': 7,
     'how-to-save-download-emoji-kitchen-stickers.html': 6,
+    'thanksgiving-emoji-combos.html': 6,
 }
 
 # Legal footer language that must not appear in any extracted answer.
@@ -4546,6 +4822,7 @@ def _all_seed_meta_descriptions():
     from kitchen.blog_seed_not_working import FIELDS as not_working_fields
     from kitchen.blog_seed_on_pc import FIELDS as on_pc_fields
     from kitchen.blog_seed_save_download import FIELDS as save_fields
+    from kitchen.blog_seed_thanksgiving import FIELDS as thanksgiving_fields
 
     values = {
         'emoji-kitchen-on-pc': on_pc_fields['seo_description'],
@@ -4555,6 +4832,7 @@ def _all_seed_meta_descriptions():
         'emoji-kitchen-instagram': ig_fields['seo_description'],
         'emoji-kitchen-iphone': iphone_fields['seo_description'],
         'how-to-save-download-emoji-kitchen-stickers': save_fields['seo_description'],
+        'thanksgiving-emoji-combos': thanksgiving_fields['seo_description'],
     }
     for slug, plan in POST_UPDATES.items():
         values[f'blog_content:{slug}'] = plan['fields']['seo_description']
@@ -4570,6 +4848,7 @@ def _all_seed_excerpts():
     from kitchen.blog_seed_not_working import FIELDS as not_working_fields
     from kitchen.blog_seed_on_pc import FIELDS as on_pc_fields
     from kitchen.blog_seed_save_download import FIELDS as save_fields
+    from kitchen.blog_seed_thanksgiving import FIELDS as thanksgiving_fields
 
     values = {
         'emoji-kitchen-on-pc': on_pc_fields['excerpt'],
@@ -4579,6 +4858,7 @@ def _all_seed_excerpts():
         'emoji-kitchen-instagram': ig_fields['excerpt'],
         'emoji-kitchen-iphone': iphone_fields['excerpt'],
         'how-to-save-download-emoji-kitchen-stickers': save_fields['excerpt'],
+        'thanksgiving-emoji-combos': thanksgiving_fields['excerpt'],
     }
     for slug, plan in POST_UPDATES.items():
         values[f'blog_content:{slug}'] = plan['fields']['excerpt']
@@ -4715,7 +4995,7 @@ class CompressedBlogCoverTests(TestCase):
         from PIL import Image
         from io import BytesIO
 
-        self.assertEqual(len(COVER_FILES), 10)
+        self.assertEqual(len(COVER_FILES), 11)
         self.assertEqual(set(COVER_FILES), set(COVER_SOURCE_SIZE))
         for slug in COVER_FILES:
             path = fixture_cover_path(slug)
@@ -4780,7 +5060,7 @@ class CompressedBlogCoverTests(TestCase):
 
         first = io.StringIO()
         call_command('compress_blog_covers', '--apply', stdout=first)
-        self.assertIn('Updated 10', first.getvalue())
+        self.assertIn('Updated 11', first.getvalue())
         updated = {}
         for slug in COVER_FILES:
             post = BlogPost.objects.get(slug=slug)

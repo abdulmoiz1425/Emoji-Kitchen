@@ -1,6 +1,6 @@
 """Compressed, content-hashed blog cover fixtures.
 
-Eight 16:9 covers are 1200x675 WebP. The iPhone and WhatsApp covers keep
+Nine 16:9 covers are 1200x675 WebP. The iPhone and WhatsApp covers keep
 their native 3:2 ratio at 1200x800, with no letterbox or crop. All files
 are under 200 KB. A matching JPEG of the same dimensions is stored
 alongside each WebP for ``og:image``. Management commands attach the
@@ -27,6 +27,7 @@ COVER_FILES = {
     'emoji-kitchen-discord': 'emoji-kitchen-discord-cover.webp',
     'emoji-kitchen-google-messages': 'emoji-kitchen-google-messages-cover.webp',
     'emoji-kitchen-instagram': 'emoji-kitchen-instagram-cover.webp',
+    'thanksgiving-emoji-combos': 'thanksgiving-emoji-combos-cover.webp',
 }
 
 # Native pixel size of the original artwork, used to keep aspect ratio.
@@ -39,6 +40,7 @@ COVER_SOURCE_SIZE = {
     'emoji-kitchen-discord': (1672, 941),
     'emoji-kitchen-google-messages': (1672, 941),
     'emoji-kitchen-instagram': (1672, 941),
+    'thanksgiving-emoji-combos': (1672, 941),
     'emoji-kitchen-iphone': (1536, 1024),
     'emoji-kitchen-whatsapp': (1536, 1024),
 }

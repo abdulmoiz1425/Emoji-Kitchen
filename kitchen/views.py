@@ -735,6 +735,21 @@ def emoji_generator(request):
     return render(request, 'kitchen/emoji_generator.html', context)
 
 
+THANKSGIVING_POST_SLUG = 'thanksgiving-emoji-combos'
+THANKSGIVING_COMBO_CTA = (
+    'Hosting Thanksgiving first? Copy '
+    '<a href="/blog/thanksgiving-emoji-combos/">Thanksgiving emoji combos</a>. '
+)
+
+
+def thanksgiving_blog_is_published():
+    """True when the Thanksgiving blog post is live, so combo pages can link to it."""
+    return BlogPost.objects.filter(
+        slug=THANKSGIVING_POST_SLUG,
+        status=BlogPost.STATUS_PUBLISHED,
+    ).exists()
+
+
 def emoji_combos_hub_copy(count):
     """Title and meta for /emoji-combos/. A '100+' style number is used only when the real count supports it."""
     floor = floor_hundreds(count)
@@ -756,6 +771,7 @@ def emoji_combos(request):
         'page_title': page_title,
         'page_meta': page_meta,
         'combo_count': combo_count,
+        'thanksgiving_post_live': thanksgiving_blog_is_published(),
     }
     return render(request, 'kitchen/emoji_combos.html', context)
 
@@ -825,6 +841,8 @@ def emoji_combos_category(request, slug):
     page = COMBO_PAGES.get(slug)
     if page is None:
         raise Http404('No such emoji combo page')
+    if slug == 'christmas' and thanksgiving_blog_is_published():
+        page = {**page, 'siblings_cta': THANKSGIVING_COMBO_CTA + page['siblings_cta']}
     combos, combo_count = category_combos(page)
     url_name = f'emoji_combos_{slug}'
     context = {
