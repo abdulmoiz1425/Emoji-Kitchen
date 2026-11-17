@@ -12,12 +12,12 @@ FIELDS = {
     'title': 'Emoji Kitchen Not Working? 9 Fixes to Try',
     'excerpt': (
         'Emoji Kitchen not showing up or not pasting? Try these simple fixes for Gboard, '
-        'Google Search, and the Emoji Kitchen Hub mixer on Android, iPhone, and desktop.'
+        'Google Search, and the mixer on Android, iPhone, and desktop.'
     ),
     'seo_title': 'Emoji Kitchen Not Working? 9 Fixes to Try',
     'seo_description': (
         'Emoji Kitchen not showing up or not pasting? Try these simple fixes for Gboard, '
-        'Google Search, and the Emoji Kitchen Hub mixer on Android, iPhone, and desktop.'
+        'Google Search, and the mixer on Android, iPhone, and desktop.'
     ),
     'focus_keyword_title': 'emoji kitchen not working',
     'focus_keyword_description': 'emoji kitchen not working',
@@ -51,7 +51,7 @@ INBOUND_HTML = (
 
 _DATA_DIR = Path(__file__).resolve().parent / 'tests_data' / 'blog'
 CONTENT_PATH = _DATA_DIR / f'{SLUG}.html'
-COVER_FILENAME = f'{SLUG}-cover.png'
+COVER_FILENAME = f'{SLUG}-cover.webp'
 COVER_PATH = _DATA_DIR / COVER_FILENAME
 
 

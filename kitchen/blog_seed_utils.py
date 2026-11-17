@@ -114,17 +114,23 @@ def cover_versioned_filename(cover_filename, image_bytes):
 
 
 def _is_this_cover_name(stored_name, cover_filename):
-    """True when ``stored_name`` is this post's unversioned or versioned cover."""
+    """True when ``stored_name`` is this post's unversioned or versioned cover.
+
+    The stem must match. The extension may be the current fixture extension
+    or a legacy ``.png`` / ``.webp``, so a format change still clears a stale
+    ``og_image``.
+    """
     if not stored_name:
         return False
     base = Path(stored_name).name
     stem = Path(cover_filename).stem
-    ext = Path(cover_filename).suffix or '.png'
-    if base == Path(cover_filename).name:
-        return True
-    prefix = f'{stem}-'
-    if base.startswith(prefix) and base.endswith(ext) and len(base) == len(prefix) + 8 + len(ext):
-        return True
+    exts = {Path(cover_filename).suffix or '.png', '.png', '.webp'}
+    for ext in exts:
+        if base == f'{stem}{ext}':
+            return True
+        prefix = f'{stem}-'
+        if base.startswith(prefix) and base.endswith(ext) and len(base) == len(prefix) + 8 + len(ext):
+            return True
     return False
 
 

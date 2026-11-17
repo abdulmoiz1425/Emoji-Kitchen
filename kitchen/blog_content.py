@@ -67,8 +67,8 @@ POST_UPDATES = {
             'excerpt': "Learn how Google's Emoji Kitchen through Gboard differs from Samsung Keyboard, how to select the "
                        'relevant keyboard and what to check when combination suggestions are missing.',
             'seo_title': 'How to Use Emoji Kitchen on Samsung Galaxy Phones',
-            'seo_description': "Learn the difference between Gboard and Samsung Keyboard, how to access Google's Emoji "
-                               'Kitchen on a Galaxy phone, and how to troubleshoot missing suggestions.',
+            'seo_description': "Learn how Gboard differs from Samsung Keyboard, how to use Google's Emoji "
+                               'Kitchen on a Galaxy phone, and how to fix missing suggestions.',
         },
         'operations': [
             ('introduction and quick answer', partial(bu.replace_intro, lead=1, new_blocks=[
@@ -109,8 +109,8 @@ POST_UPDATES = {
                        'practical guidance for checking results, saving images where supported and sharing them with '
                        'compatible applications.',
             'seo_title': 'How to Use Emoji Kitchen on iPhone',
-            'seo_description': 'Learn how to explore supported emoji mashups on iPhone through a browser-based workflow, '
-                               'then understand how to save or share the result where supported.',
+            'seo_description': 'Learn how to explore supported emoji mashups on iPhone in a browser, '
+                               'then how to save or share the result where supported.',
         },
         'operations': [
             ('introduction and quick answer', partial(bu.replace_intro, lead=0, new_blocks=[
@@ -147,8 +147,8 @@ POST_UPDATES = {
             'excerpt': 'Learn how to share supported emoji mashups in WhatsApp, understand the difference between text '
                        'characters and image-based stickers, and troubleshoot copying or attachment problems.',
             'seo_title': 'How to Share Emoji Kitchen Stickers in WhatsApp',
-            'seo_description': 'Learn how to share supported emoji mashups in WhatsApp, understand the difference between '
-                               'text and image-based stickers, and troubleshoot sharing problems.',
+            'seo_description': 'Learn how to share supported emoji mashups in WhatsApp, the difference between '
+                               'text and image stickers, and how to fix sharing problems.',
         },
         'operations': [
             ('introduction and quick answer', partial(bu.replace_intro, lead=1, new_blocks=[

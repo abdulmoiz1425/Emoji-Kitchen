@@ -16,8 +16,8 @@ FIELDS = {
     ),
     'seo_title': 'How to Save and Download Emoji Kitchen Stickers',
     'seo_description': (
-        'Learn how to save and download Emoji Kitchen stickers as images, copy mashups when '
-        'paste fails, and share them in chats or social apps on phone or desktop.'
+        'Learn how to save and download Emoji Kitchen stickers as images, copy a mashup when '
+        'paste fails, and share it in chats or social apps.'
     ),
     'focus_keyword_title': 'save download emoji kitchen stickers',
     'focus_keyword_description': 'save download emoji kitchen stickers',
@@ -31,7 +31,7 @@ FIELDS = {
 
 _DATA_DIR = Path(__file__).resolve().parent / 'tests_data' / 'blog'
 CONTENT_PATH = _DATA_DIR / f'{SLUG}.html'
-COVER_FILENAME = f'{SLUG}-cover.png'
+COVER_FILENAME = f'{SLUG}-cover.webp'
 COVER_PATH = _DATA_DIR / COVER_FILENAME
 
 

@@ -12,12 +12,12 @@ FIELDS = {
     'title': 'How to Use Emoji Kitchen Stickers on Discord',
     'excerpt': (
         'Want Emoji Kitchen mashups on Discord? Learn how to send them as images, add them as '
-        'custom server emoji or stickers, and fix paste and upload problems.'
+        'custom server emoji or stickers, and fix paste problems.'
     ),
     'seo_title': 'How to Use Emoji Kitchen Stickers on Discord',
     'seo_description': (
         'Want Emoji Kitchen mashups on Discord? Learn how to send them as images, add them as '
-        'custom server emoji or stickers, and fix paste and upload problems.'
+        'custom server emoji or stickers, and fix paste problems.'
     ),
     'focus_keyword_title': 'emoji kitchen discord',
     'focus_keyword_description': 'emoji kitchen discord',
@@ -29,7 +29,7 @@ FIELDS = {
     'og_title': 'How to Use Emoji Kitchen Stickers on Discord',
     'og_description': (
         'Want Emoji Kitchen mashups on Discord? Learn how to send them as images, add them as '
-        'custom server emoji or stickers, and fix paste and upload problems.'
+        'custom server emoji or stickers, and fix paste problems.'
     ),
     'canonical_url': 'https://emojikitchenhub.com/blog/emoji-kitchen-discord/',
 }
@@ -52,7 +52,7 @@ INBOUND_HTML = (
 
 _DATA_DIR = Path(__file__).resolve().parent / 'tests_data' / 'blog'
 CONTENT_PATH = _DATA_DIR / f'{SLUG}.html'
-COVER_FILENAME = f'{SLUG}-cover.png'
+COVER_FILENAME = f'{SLUG}-cover.webp'
 COVER_PATH = _DATA_DIR / COVER_FILENAME
 
 

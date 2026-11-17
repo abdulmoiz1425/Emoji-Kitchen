@@ -50,7 +50,7 @@ INBOUND_HTML = (
 
 _DATA_DIR = Path(__file__).resolve().parent / 'tests_data' / 'blog'
 CONTENT_PATH = _DATA_DIR / f'{SLUG}.html'
-COVER_FILENAME = f'{SLUG}-cover.png'
+COVER_FILENAME = f'{SLUG}-cover.webp'
 COVER_PATH = _DATA_DIR / COVER_FILENAME
 
 

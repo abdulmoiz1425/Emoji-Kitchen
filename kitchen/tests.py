@@ -966,8 +966,9 @@ class HomePageContentTests(PageTestCase):
                      'id="kitchen"', 'class="explore"']:
             self.assertIn(kept, html)
 
-    def test_home_links_the_six_live_device_guides(self):
+    def test_home_links_the_live_device_and_chat_guides(self):
         html = self.home()
+        section = html[html.index('<h2>How to Use Emoji Kitchen on Any Device</h2>'):html.index('Share Emoji Kitchen Stickers with Friends')]
         for href in [
             '/blog/emoji-kitchen-iphone/',
             '/blog/how-to-save-download-emoji-kitchen-stickers/',
@@ -975,10 +976,16 @@ class HomePageContentTests(PageTestCase):
             '/blog/emoji-kitchen-samsung/',
             '/blog/emoji-kitchen-whatsapp/',
             '/blog/emoji-kitchen-not-working/',
+            '/blog/emoji-kitchen-on-pc/',
+            '/blog/emoji-kitchen-discord/',
+            '/blog/emoji-kitchen-google-messages/',
+            '/blog/emoji-kitchen-instagram/',
         ]:
-            self.assertIn(f'href="{href}"', html)
-        self.assertNotIn('/blog/emoji-kitchen-on-pc/', html)
-        self.assertNotIn('/blog/emoji-kitchen-discord/', html)
+            self.assertIn(f'href="{href}"', section)
+        self.assertIn('how to use Emoji Kitchen on a PC', section)
+        self.assertIn('Google Messages', section)
+        self.assertIn('Instagram', section)
+        self.assertIn('custom Discord emoji', section)
 
     def test_homepage_faq_json_ld_has_eleven_questions(self):
         html = self.home()
@@ -2230,7 +2237,12 @@ class NotWorkingBlogSeedTests(TestCase):
         self.assertIn('unofficial, fan-made', post.content)
         self.assertIn('not run by Google', post.content)
         self.assertTrue(post.featured_image)
-        self.assertTrue(post.featured_image.name.endswith('emoji-kitchen-not-working-cover.png'))
+        from kitchen.blog_seed_utils import cover_versioned_filename
+        from kitchen.blog_seed_not_working import COVER_FILENAME, cover_bytes
+        self.assertEqual(
+            post.featured_image.name,
+            'blog/featured/' + cover_versioned_filename(COVER_FILENAME, cover_bytes()),
+        )
         self.assertEqual(
             post.canonical_url,
             'https://emojikitchenhub.com/blog/emoji-kitchen-not-working/',
@@ -2344,7 +2356,12 @@ class OnPcBlogSeedTests(TestCase):
         self.assertIn('href="/emoji-keyboard-for-pc/"', post.content)
         self.assertIn('href="/"', post.content)
         self.assertTrue(post.featured_image)
-        self.assertTrue(post.featured_image.name.endswith('emoji-kitchen-on-pc-cover.png'))
+        from kitchen.blog_seed_utils import cover_versioned_filename
+        from kitchen.blog_seed_on_pc import COVER_FILENAME, cover_bytes
+        self.assertEqual(
+            post.featured_image.name,
+            'blog/featured/' + cover_versioned_filename(COVER_FILENAME, cover_bytes()),
+        )
         self.assertEqual(
             post.canonical_url,
             'https://emojikitchenhub.com/blog/emoji-kitchen-on-pc/',
@@ -2442,9 +2459,12 @@ class SaveDownloadBlogSeedTests(TestCase):
         self.assertEqual(post.status, BlogPost.STATUS_PUBLISHED)
         self.assertIn('unofficial, fan-made', post.content)
         self.assertTrue(post.featured_image)
-        self.assertTrue(post.featured_image.name.endswith(
-            'how-to-save-download-emoji-kitchen-stickers-cover.png'
-        ))
+        from kitchen.blog_seed_utils import cover_versioned_filename
+        from kitchen.blog_seed_save_download import COVER_FILENAME, cover_bytes
+        self.assertEqual(
+            post.featured_image.name,
+            'blog/featured/' + cover_versioned_filename(COVER_FILENAME, cover_bytes()),
+        )
 
     def test_apply_twice_leaves_updated_at_and_content_unchanged(self):
         call_command('seed_save_download_blog_post', '--apply', stdout=io.StringIO())
@@ -2512,7 +2532,12 @@ class DiscordBlogSeedTests(TestCase):
         self.assertIn('not run by Google', post.content)
         self.assertIn('href="/"', post.content)
         self.assertTrue(post.featured_image)
-        self.assertTrue(post.featured_image.name.endswith('emoji-kitchen-discord-cover.png'))
+        from kitchen.blog_seed_utils import cover_versioned_filename
+        from kitchen.blog_seed_discord import COVER_FILENAME, cover_bytes
+        self.assertEqual(
+            post.featured_image.name,
+            'blog/featured/' + cover_versioned_filename(COVER_FILENAME, cover_bytes()),
+        )
         self.assertEqual(
             post.canonical_url,
             'https://emojikitchenhub.com/blog/emoji-kitchen-discord/',
@@ -4490,3 +4515,202 @@ class FaqSchemaRenderTests(TestCase):
         self.assertFalse(any(_FAQ_DISCLAIMER_RE.search(answer) for answer in answers))
         # The body in the database is unchanged; only the schema is cleaned.
         self.assertEqual(BlogPost.objects.get(pk=post.pk).content, stored)
+
+
+# ── 17 Nov 2026 on-page: homepage links, meta cap, compressed covers ─────────
+
+from kitchen.blog_covers import (
+    COVER_FILES,
+    COVER_HEIGHT,
+    COVER_WIDTH,
+    MAX_COVER_BYTES,
+    cover_bytes as fixture_cover_bytes,
+    cover_filename as fixture_cover_filename,
+    cover_path as fixture_cover_path,
+)
+from kitchen.blog_content import POST_UPDATES
+from kitchen.management.commands.fix_blog_meta_descriptions import META_TARGETS
+
+
+def _all_seed_meta_descriptions():
+    """seo_description values that seed or update commands would write."""
+    from kitchen.blog_seed_discord import FIELDS as discord_fields
+    from kitchen.blog_seed_google_messages import FIELDS as gm_fields
+    from kitchen.blog_seed_instagram import FIELDS as ig_fields
+    from kitchen.blog_seed_iphone import FIELDS as iphone_fields
+    from kitchen.blog_seed_not_working import FIELDS as not_working_fields
+    from kitchen.blog_seed_on_pc import FIELDS as on_pc_fields
+    from kitchen.blog_seed_save_download import FIELDS as save_fields
+
+    values = {
+        'emoji-kitchen-on-pc': on_pc_fields['seo_description'],
+        'emoji-kitchen-not-working': not_working_fields['seo_description'],
+        'emoji-kitchen-discord': discord_fields['seo_description'],
+        'emoji-kitchen-google-messages': gm_fields['seo_description'],
+        'emoji-kitchen-instagram': ig_fields['seo_description'],
+        'emoji-kitchen-iphone': iphone_fields['seo_description'],
+        'how-to-save-download-emoji-kitchen-stickers': save_fields['seo_description'],
+    }
+    for slug, plan in POST_UPDATES.items():
+        values[f'blog_content:{slug}'] = plan['fields']['seo_description']
+    return values
+
+
+class SeededBlogMetaDescriptionTests(SimpleTestCase):
+    def test_every_seeded_meta_description_is_at_most_150_characters(self):
+        values = _all_seed_meta_descriptions()
+        self.assertGreaterEqual(len(values), 10)
+        for key, description in values.items():
+            length = len(description)
+            self.assertLessEqual(
+                length,
+                150,
+                f'{key} is {length} characters: {description}',
+            )
+            self.assertGreaterEqual(length, 120, key)
+
+
+class FixBlogMetaDescriptionsCommandTests(TestCase):
+    OLD_ON_PC = (
+        'Want Emoji Kitchen on your computer? Learn how to make, download, and share emoji '
+        'mashups on Windows PC, Mac, and Chromebook using a browser, no phone needed.'
+    )
+    OLD_NOT_WORKING = (
+        'Emoji Kitchen not showing up or not pasting? Try these simple fixes for Gboard, '
+        'Google Search, and the Emoji Kitchen Hub mixer on Android, iPhone, and desktop.'
+    )
+    OLD_SAMSUNG = (
+        "Learn the difference between Gboard and Samsung Keyboard, how to access Google's Emoji "
+        'Kitchen on a Galaxy phone, and how to troubleshoot missing suggestions.'
+    )
+
+    def setUp(self):
+        self.posts = {}
+        specs = {
+            'emoji-kitchen-on-pc': self.OLD_ON_PC,
+            'emoji-kitchen-not-working': self.OLD_NOT_WORKING,
+            'emoji-kitchen-samsung': self.OLD_SAMSUNG,
+        }
+        for slug, old in specs.items():
+            self.posts[slug] = BlogPost.objects.create(
+                title=slug,
+                slug=slug,
+                excerpt=old,
+                seo_description=old,
+                og_description=old,
+                content='<p>Body</p>',
+                status=BlogPost.STATUS_PUBLISHED,
+            )
+
+    def test_dry_run_writes_nothing(self):
+        before = {
+            slug: (post.seo_description, post.excerpt, post.og_description, post.updated_at, post.pk)
+            for slug, post in self.posts.items()
+        }
+        out = io.StringIO()
+        call_command('fix_blog_meta_descriptions', stdout=out)
+        output = out.getvalue()
+        self.assertIn('DRY RUN', output)
+        for slug, (seo, excerpt, og, updated, pk) in before.items():
+            post = BlogPost.objects.get(slug=slug)
+            self.assertEqual(post.pk, pk)
+            self.assertEqual(post.seo_description, seo)
+            self.assertEqual(post.excerpt, excerpt)
+            self.assertEqual(post.og_description, og)
+            self.assertEqual(post.updated_at, updated)
+
+    def test_apply_trims_only_the_target_fields_and_rerun_is_a_noop(self):
+        first = io.StringIO()
+        call_command('fix_blog_meta_descriptions', '--apply', stdout=first)
+        self.assertIn('Updated 3', first.getvalue())
+        for slug, desired in META_TARGETS.items():
+            post = BlogPost.objects.get(slug=slug)
+            for field, value in desired.items():
+                self.assertEqual(getattr(post, field), value, f'{slug}.{field}')
+            self.assertLessEqual(len(post.meta_description), 150, slug)
+
+        # Samsung excerpt is left alone.
+        samsung = BlogPost.objects.get(slug='emoji-kitchen-samsung')
+        self.assertEqual(samsung.excerpt, self.OLD_SAMSUNG)
+
+        updated = {slug: BlogPost.objects.get(slug=slug).updated_at for slug in META_TARGETS}
+        pks = {slug: BlogPost.objects.get(slug=slug).pk for slug in META_TARGETS}
+
+        again = io.StringIO()
+        call_command('fix_blog_meta_descriptions', '--apply', stdout=again)
+        self.assertIn('No meta descriptions need fixing', again.getvalue())
+        for slug in META_TARGETS:
+            post = BlogPost.objects.get(slug=slug)
+            self.assertEqual(post.pk, pks[slug])
+            self.assertEqual(post.updated_at, updated[slug])
+
+
+class CompressedBlogCoverTests(TestCase):
+    def test_fixture_covers_are_compressed_1200x675_under_200kb(self):
+        from PIL import Image
+        from io import BytesIO
+
+        self.assertEqual(len(COVER_FILES), 10)
+        for slug in COVER_FILES:
+            path = fixture_cover_path(slug)
+            self.assertTrue(path.is_file(), slug)
+            data = fixture_cover_bytes(slug)
+            self.assertLessEqual(len(data), MAX_COVER_BYTES, f'{slug} is {len(data)} bytes')
+            self.assertTrue(fixture_cover_filename(slug).endswith('.webp'), slug)
+            image = Image.open(BytesIO(data))
+            self.assertEqual(image.size, (COVER_WIDTH, COVER_HEIGHT), slug)
+            # hashed name uses the unversioned fixture filename plus 8 hex chars
+            from kitchen.blog_seed_utils import cover_versioned_filename
+            name = cover_versioned_filename(fixture_cover_filename(slug), data)
+            self.assertRegex(name, rf'^{re.escape(path.stem)}-[0-9a-f]{{8}}\.webp$')
+
+    def test_compress_command_is_idempotent_and_writes_hashed_names(self):
+        from kitchen.blog_seed_utils import cover_versioned_filename
+
+        tmp = tempfile.mkdtemp()
+        self.addCleanup(lambda: __import__('shutil').rmtree(tmp, ignore_errors=True))
+        media = override_settings(MEDIA_ROOT=tmp)
+        media.enable()
+        self.addCleanup(media.disable)
+
+        for slug in COVER_FILES:
+            BlogPost.objects.create(
+                title=slug,
+                slug=slug,
+                excerpt='x',
+                content='<p>Body</p>',
+                status=BlogPost.STATUS_PUBLISHED,
+                seo_description='d' * 90,
+            )
+
+        dry = io.StringIO()
+        call_command('compress_blog_covers', stdout=dry)
+        self.assertIn('DRY RUN', dry.getvalue())
+        for slug in COVER_FILES:
+            self.assertFalse(BlogPost.objects.get(slug=slug).featured_image)
+
+        first = io.StringIO()
+        call_command('compress_blog_covers', '--apply', stdout=first)
+        self.assertIn('Updated 10', first.getvalue())
+        updated = {}
+        for slug in COVER_FILES:
+            post = BlogPost.objects.get(slug=slug)
+            desired = cover_versioned_filename(
+                fixture_cover_filename(slug), fixture_cover_bytes(slug)
+            )
+            self.assertEqual(post.featured_image.name, f'blog/featured/{desired}', slug)
+            self.assertFalse(post.og_image)
+            post.featured_image.open('rb')
+            try:
+                self.assertEqual(post.featured_image.read(), fixture_cover_bytes(slug), slug)
+            finally:
+                post.featured_image.close()
+            self.assertLessEqual(post.featured_image.size, MAX_COVER_BYTES, slug)
+            updated[slug] = post.updated_at
+
+        again = io.StringIO()
+        call_command('compress_blog_covers', '--apply', stdout=again)
+        self.assertIn('No covers need updating', again.getvalue())
+        for slug in COVER_FILES:
+            post = BlogPost.objects.get(slug=slug)
+            self.assertEqual(post.updated_at, updated[slug], slug)

@@ -12,12 +12,12 @@ FIELDS = {
     'title': 'How to Use Emoji Kitchen on PC, Mac, and Chromebook',
     'excerpt': (
         'Want Emoji Kitchen on your computer? Learn how to make, download, and share emoji '
-        'mashups on Windows PC, Mac, and Chromebook using a browser, no phone needed.'
+        'mashups on a Windows PC, Mac, or Chromebook in a browser.'
     ),
     'seo_title': 'How to Use Emoji Kitchen on PC, Mac, and Chromebook',
     'seo_description': (
         'Want Emoji Kitchen on your computer? Learn how to make, download, and share emoji '
-        'mashups on Windows PC, Mac, and Chromebook using a browser, no phone needed.'
+        'mashups on a Windows PC, Mac, or Chromebook in a browser.'
     ),
     'focus_keyword_title': 'emoji kitchen on pc',
     'focus_keyword_description': 'emoji kitchen on pc',
@@ -28,7 +28,7 @@ FIELDS = {
     'og_title': 'How to Use Emoji Kitchen on PC, Mac, and Chromebook',
     'og_description': (
         'Want Emoji Kitchen on your computer? Learn how to make, download, and share emoji '
-        'mashups on Windows PC, Mac, and Chromebook using a browser, no phone needed.'
+        'mashups on a Windows PC, Mac, or Chromebook in a browser.'
     ),
     'canonical_url': 'https://emojikitchenhub.com/blog/emoji-kitchen-on-pc/',
 }
@@ -51,7 +51,7 @@ INBOUND_HTML = (
 
 _DATA_DIR = Path(__file__).resolve().parent / 'tests_data' / 'blog'
 CONTENT_PATH = _DATA_DIR / f'{SLUG}.html'
-COVER_FILENAME = f'{SLUG}-cover.png'
+COVER_FILENAME = f'{SLUG}-cover.webp'
 COVER_PATH = _DATA_DIR / COVER_FILENAME
 
 
