@@ -12,8 +12,8 @@ SLUG = 'emoji-kitchen-iphone'
 FIELDS = {
     'title': 'How to Use Emoji Kitchen on iPhone',
     'excerpt': (
-        'Make sticker-style emoji mashups on iPhone in Safari or Chrome. Learn the browser '
-        'workflow, when Gboard helps, how to copy or download results, and how to fix common issues.'
+        'Make sticker-style Emoji Kitchen mashups on iPhone in Safari or Chrome. Learn the '
+        'browser workflow, how to copy or download results, and common fixes.'
     ),
     'seo_title': 'How to Use Emoji Kitchen on iPhone (Browser Guide)',
     'seo_description': (

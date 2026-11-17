@@ -1179,8 +1179,11 @@ strong{font-weight:700}
 .blog-detail__meta{margin-bottom:24px}
 .blog-detail__cover{
   border-radius:var(--r-md);overflow:hidden;margin-bottom:28px;
+  background:var(--accent-xlt);
 }
-.blog-detail__cover img{width:100%;display:block;object-fit:cover;max-height:420px}
+.blog-detail__cover img{
+  width:100%;max-width:100%;height:auto;display:block;object-fit:contain;
+}
 .blog-detail__content{
   font-size:1rem;color:var(--t7);line-height:1.85;
 }

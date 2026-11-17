@@ -11,8 +11,8 @@ SLUG = 'how-to-save-download-emoji-kitchen-stickers'
 FIELDS = {
     'title': 'How to Save and Download Emoji Kitchen Stickers',
     'excerpt': (
-        'Learn how to save and download sticker-style mashups as images, what to do when '
-        'clipboard paste fails, and how to share them in chats or social apps on phone or desktop.'
+        'Learn how to save and download Emoji Kitchen mashups as images, what to do when '
+        'paste fails, and how to share them in chats or social apps.'
     ),
     'seo_title': 'How to Save and Download Emoji Kitchen Stickers',
     'seo_description': (

@@ -179,3 +179,61 @@ def assign_versioned_cover(post, image_bytes, cover_filename):
         storage.delete(dest)
     post.featured_image.save(desired, ContentFile(image_bytes), save=False)
     return post.featured_image.name
+
+
+
+def featured_is_current(post, image_bytes, cover_filename):
+    """True when featured_image already has these bytes under the versioned name."""
+    if not post or not post.featured_image:
+        return False
+    desired = cover_versioned_filename(cover_filename, image_bytes)
+    if Path(post.featured_image.name).name != desired:
+        return False
+    try:
+        post.featured_image.open('rb')
+        try:
+            current = post.featured_image.read()
+        finally:
+            post.featured_image.close()
+    except (FileNotFoundError, OSError, ValueError):
+        return False
+    return current == image_bytes
+
+
+def og_is_current(post, image_bytes, og_filename):
+    """True when og_image already has these bytes under the versioned name."""
+    if not post or not post.og_image:
+        return False
+    desired = cover_versioned_filename(og_filename, image_bytes)
+    if Path(post.og_image.name).name != desired:
+        return False
+    try:
+        post.og_image.open('rb')
+        try:
+            current = post.og_image.read()
+        finally:
+            post.og_image.close()
+    except (FileNotFoundError, OSError, ValueError):
+        return False
+    return current == image_bytes
+
+
+def assign_versioned_og_image(post, image_bytes, og_filename):
+    """Attach ``image_bytes`` as og_image under the versioned JPEG name.
+
+    Does not call ``post.save()`` and does not touch ``featured_image``.
+    Older seeds that call ``assign_versioned_cover`` leave a ``.jpg``
+    og_image alone, because leftover-copy detection only matches
+    ``.png`` / ``.webp``.
+    """
+    desired = cover_versioned_filename(og_filename, image_bytes)
+    storage = post.og_image.storage
+    dest = post.og_image.field.generate_filename(post, desired)
+
+    if post.og_image:
+        post.og_image.delete(save=False)
+
+    if storage.exists(dest):
+        storage.delete(dest)
+    post.og_image.save(desired, ContentFile(image_bytes), save=False)
+    return post.og_image.name

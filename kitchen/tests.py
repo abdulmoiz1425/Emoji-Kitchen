@@ -4529,6 +4529,9 @@ from kitchen.blog_covers import (
     cover_filename as fixture_cover_filename,
     cover_path as fixture_cover_path,
     expected_cover_size,
+    og_bytes as fixture_og_bytes,
+    og_filename as fixture_og_filename,
+    og_path as fixture_og_path,
 )
 from kitchen.blog_content import POST_UPDATES
 from kitchen.management.commands.fix_blog_meta_descriptions import META_TARGETS
@@ -4558,6 +4561,30 @@ def _all_seed_meta_descriptions():
     return values
 
 
+def _all_seed_excerpts():
+    """excerpt values that seed or update commands would write."""
+    from kitchen.blog_seed_discord import FIELDS as discord_fields
+    from kitchen.blog_seed_google_messages import FIELDS as gm_fields
+    from kitchen.blog_seed_instagram import FIELDS as ig_fields
+    from kitchen.blog_seed_iphone import FIELDS as iphone_fields
+    from kitchen.blog_seed_not_working import FIELDS as not_working_fields
+    from kitchen.blog_seed_on_pc import FIELDS as on_pc_fields
+    from kitchen.blog_seed_save_download import FIELDS as save_fields
+
+    values = {
+        'emoji-kitchen-on-pc': on_pc_fields['excerpt'],
+        'emoji-kitchen-not-working': not_working_fields['excerpt'],
+        'emoji-kitchen-discord': discord_fields['excerpt'],
+        'emoji-kitchen-google-messages': gm_fields['excerpt'],
+        'emoji-kitchen-instagram': ig_fields['excerpt'],
+        'emoji-kitchen-iphone': iphone_fields['excerpt'],
+        'how-to-save-download-emoji-kitchen-stickers': save_fields['excerpt'],
+    }
+    for slug, plan in POST_UPDATES.items():
+        values[f'blog_content:{slug}'] = plan['fields']['excerpt']
+    return values
+
+
 class SeededBlogMetaDescriptionTests(SimpleTestCase):
     def test_every_seeded_meta_description_is_at_most_150_characters(self):
         values = _all_seed_meta_descriptions()
@@ -4568,6 +4595,18 @@ class SeededBlogMetaDescriptionTests(SimpleTestCase):
                 length,
                 150,
                 f'{key} is {length} characters: {description}',
+            )
+            self.assertGreaterEqual(length, 120, key)
+
+    def test_every_seeded_excerpt_is_at_most_150_characters(self):
+        values = _all_seed_excerpts()
+        self.assertGreaterEqual(len(values), 10)
+        for key, excerpt in values.items():
+            length = len(excerpt)
+            self.assertLessEqual(
+                length,
+                150,
+                f'{key} is {length} characters: {excerpt}',
             )
             self.assertGreaterEqual(length, 120, key)
 
@@ -4585,21 +4624,46 @@ class FixBlogMetaDescriptionsCommandTests(TestCase):
         "Learn the difference between Gboard and Samsung Keyboard, how to access Google's Emoji "
         'Kitchen on a Galaxy phone, and how to troubleshoot missing suggestions.'
     )
+    OLD_GBOARD_EXCERPT = (
+        'Learn how to access Emoji Kitchen through Gboard on supported Android devices, choose '
+        'available emoji combinations and troubleshoot missing suggestions. For iPhone or '
+        'WhatsApp-specific instructions, see the relevant dedicated guide.'
+    )
+    OLD_WHATSAPP_EXCERPT = (
+        'Learn how to share supported emoji mashups in WhatsApp, understand the difference '
+        'between text characters and image-based stickers, and troubleshoot copying or '
+        'attachment problems.'
+    )
+    OLD_IPHONE_EXCERPT = (
+        'Make sticker-style emoji mashups on iPhone in Safari or Chrome. Learn the browser '
+        'workflow, when Gboard helps, how to copy or download results, and how to fix common issues.'
+    )
+    OLD_SAVE_EXCERPT = (
+        'Learn how to save and download sticker-style mashups as images, what to do when '
+        'clipboard paste fails, and how to share them in chats or social apps on phone or desktop.'
+    )
 
     def setUp(self):
         self.posts = {}
-        specs = {
+        long_excerpts = {
             'emoji-kitchen-on-pc': self.OLD_ON_PC,
             'emoji-kitchen-not-working': self.OLD_NOT_WORKING,
             'emoji-kitchen-samsung': self.OLD_SAMSUNG,
+            'emoji-kitchen-gboard': self.OLD_GBOARD_EXCERPT,
+            'emoji-kitchen-whatsapp': self.OLD_WHATSAPP_EXCERPT,
+            'emoji-kitchen-iphone': self.OLD_IPHONE_EXCERPT,
+            'how-to-save-download-emoji-kitchen-stickers': self.OLD_SAVE_EXCERPT,
         }
-        for slug, old in specs.items():
+        for slug in META_TARGETS:
+            old = long_excerpts.get(slug, 'x' * 80)
             self.posts[slug] = BlogPost.objects.create(
                 title=slug,
                 slug=slug,
                 excerpt=old,
-                seo_description=old,
-                og_description=old,
+                seo_description=old if slug in {
+                    'emoji-kitchen-on-pc', 'emoji-kitchen-not-working', 'emoji-kitchen-samsung',
+                } else 'd' * 90,
+                og_description=old if slug == 'emoji-kitchen-on-pc' else '',
                 content='<p>Body</p>',
                 status=BlogPost.STATUS_PUBLISHED,
             )
@@ -4624,23 +4688,22 @@ class FixBlogMetaDescriptionsCommandTests(TestCase):
     def test_apply_trims_only_the_target_fields_and_rerun_is_a_noop(self):
         first = io.StringIO()
         call_command('fix_blog_meta_descriptions', '--apply', stdout=first)
-        self.assertIn('Updated 3', first.getvalue())
+        self.assertRegex(first.getvalue(), r'Updated \d+')
         for slug, desired in META_TARGETS.items():
             post = BlogPost.objects.get(slug=slug)
             for field, value in desired.items():
                 self.assertEqual(getattr(post, field), value, f'{slug}.{field}')
-            self.assertLessEqual(len(post.meta_description), 150, slug)
-
-        # Samsung excerpt is left alone.
-        samsung = BlogPost.objects.get(slug='emoji-kitchen-samsung')
-        self.assertEqual(samsung.excerpt, self.OLD_SAMSUNG)
+            if 'seo_description' in desired:
+                self.assertLessEqual(len(post.meta_description), 150, slug)
+            if 'excerpt' in desired:
+                self.assertLessEqual(len(post.excerpt), 150, slug)
 
         updated = {slug: BlogPost.objects.get(slug=slug).updated_at for slug in META_TARGETS}
         pks = {slug: BlogPost.objects.get(slug=slug).pk for slug in META_TARGETS}
 
         again = io.StringIO()
         call_command('fix_blog_meta_descriptions', '--apply', stdout=again)
-        self.assertIn('No meta descriptions need fixing', again.getvalue())
+        self.assertIn('No meta descriptions or excerpts need fixing', again.getvalue())
         for slug in META_TARGETS:
             post = BlogPost.objects.get(slug=slug)
             self.assertEqual(post.pk, pks[slug])
@@ -4676,7 +4739,19 @@ class CompressedBlogCoverTests(TestCase):
             name = cover_versioned_filename(fixture_cover_filename(slug), data)
             self.assertRegex(name, rf'^{re.escape(path.stem)}-[0-9a-f]{{8}}\.webp$')
 
+            jpg_path = fixture_og_path(slug)
+            self.assertTrue(jpg_path.is_file(), slug)
+            jpg = fixture_og_bytes(slug)
+            self.assertLessEqual(len(jpg), MAX_COVER_BYTES, f'{slug} og jpg is {len(jpg)} bytes')
+            self.assertTrue(fixture_og_filename(slug).endswith('.jpg'), slug)
+            jpg_image = Image.open(BytesIO(jpg))
+            self.assertEqual(jpg_image.format, 'JPEG', slug)
+            self.assertEqual(jpg_image.size, (width, height), slug)
+            jpg_name = cover_versioned_filename(fixture_og_filename(slug), jpg)
+            self.assertRegex(jpg_name, rf'^{re.escape(jpg_path.stem)}-[0-9a-f]{{8}}\.jpg$')
+
     def test_compress_command_is_idempotent_and_writes_hashed_names(self):
+        from kitchen import indexnow
         from kitchen.blog_seed_utils import cover_versioned_filename
 
         tmp = tempfile.mkdtemp()
@@ -4699,7 +4774,9 @@ class CompressedBlogCoverTests(TestCase):
         call_command('compress_blog_covers', stdout=dry)
         self.assertIn('DRY RUN', dry.getvalue())
         for slug in COVER_FILES:
-            self.assertFalse(BlogPost.objects.get(slug=slug).featured_image)
+            post = BlogPost.objects.get(slug=slug)
+            self.assertFalse(post.featured_image)
+            self.assertFalse(post.og_image)
 
         first = io.StringIO()
         call_command('compress_blog_covers', '--apply', stdout=first)
@@ -4707,34 +4784,126 @@ class CompressedBlogCoverTests(TestCase):
         updated = {}
         for slug in COVER_FILES:
             post = BlogPost.objects.get(slug=slug)
-            desired = cover_versioned_filename(
+            desired_webp = cover_versioned_filename(
                 fixture_cover_filename(slug), fixture_cover_bytes(slug)
             )
-            self.assertEqual(post.featured_image.name, f'blog/featured/{desired}', slug)
-            self.assertFalse(post.og_image)
+            desired_jpg = cover_versioned_filename(
+                fixture_og_filename(slug), fixture_og_bytes(slug)
+            )
+            self.assertEqual(post.featured_image.name, f'blog/featured/{desired_webp}', slug)
+            self.assertEqual(post.og_image.name, f'blog/og/{desired_jpg}', slug)
             post.featured_image.open('rb')
             try:
                 self.assertEqual(post.featured_image.read(), fixture_cover_bytes(slug), slug)
             finally:
                 post.featured_image.close()
+            post.og_image.open('rb')
+            try:
+                self.assertEqual(post.og_image.read(), fixture_og_bytes(slug), slug)
+            finally:
+                post.og_image.close()
             self.assertLessEqual(post.featured_image.size, MAX_COVER_BYTES, slug)
+            self.assertLessEqual(post.og_image.size, MAX_COVER_BYTES, slug)
             updated[slug] = post.updated_at
 
-        again = io.StringIO()
-        call_command('compress_blog_covers', '--apply', stdout=again)
+            html = self.client.get(f'/blog/{slug}/').content.decode()
+            width, height = expected_cover_size(slug)
+            og = re.search(r'property="og:image" content="([^"]+)"', html)
+            tw = re.search(r'name="twitter:image" content="([^"]+)"', html)
+            self.assertIsNotNone(og, slug)
+            self.assertIsNotNone(tw, slug)
+            self.assertTrue(og.group(1).endswith('.jpg'), og.group(1))
+            self.assertTrue(tw.group(1).endswith('.jpg'), tw.group(1))
+            self.assertIn(desired_jpg, og.group(1), slug)
+            self.assertIn(desired_jpg, tw.group(1), slug)
+            og_w = re.search(r'property="og:image:width" content="([^"]*)"', html)
+            og_h = re.search(r'property="og:image:height" content="([^"]*)"', html)
+            og_t = re.search(r'property="og:image:type" content="([^"]*)"', html)
+            self.assertIsNotNone(og_w, slug)
+            self.assertIsNotNone(og_h, slug)
+            self.assertIsNotNone(og_t, slug)
+            self.assertEqual(og_w.group(1), str(width), slug)
+            self.assertEqual(og_h.group(1), str(height), slug)
+            self.assertEqual(og_t.group(1), 'image/jpeg', slug)
+
+            on_page = re.search(
+                r'<div class="blog-detail__cover">\s*<img\b([^>]*)>',
+                html,
+            )
+            self.assertIsNotNone(on_page, slug)
+            attrs = on_page.group(1)
+            src = re.search(r'src="([^"]+)"', attrs)
+            self.assertIsNotNone(src, slug)
+            self.assertTrue(src.group(1).endswith('.webp'), src.group(1))
+            self.assertIn(desired_webp, src.group(1), slug)
+            self.assertIn(f'width="{width}"', attrs, slug)
+            self.assertIn(f'height="{height}"', attrs, slug)
+
+            blocks = [
+                json.loads(match.group(1))
+                for match in re.finditer(
+                    r'<script type="application/ld\+json">(.*?)</script>', html, re.DOTALL
+                )
+            ]
+            blog = next(b for b in blocks if b.get('@type') == 'BlogPosting')
+            image = blog['image']
+            if isinstance(image, list):
+                image = image[0]
+            if isinstance(image, dict):
+                self.assertEqual(image.get('width'), width, slug)
+                self.assertEqual(image.get('height'), height, slug)
+                image_url = image.get('url') or image.get('@id') or ''
+            else:
+                image_url = image
+            self.assertIn(desired_jpg, image_url, slug)
+
+        with mock.patch.object(indexnow, 'submit_urls', wraps=indexnow.submit_urls) as submit:
+            with mock.patch.object(indexnow.requests, 'post') as posted:
+                with override_settings(INDEXNOW_ENABLED=True, DEBUG=False):
+                    with self.captureOnCommitCallbacks(execute=True):
+                        again = io.StringIO()
+                        call_command('compress_blog_covers', '--apply', stdout=again)
         self.assertIn('No covers need updating', again.getvalue())
+        self.assertEqual(submit.call_count, 0)
+        posted.assert_not_called()
         for slug in COVER_FILES:
             post = BlogPost.objects.get(slug=slug)
             self.assertEqual(post.updated_at, updated[slug], slug)
 
-        # og:image:width / og:image:height are optional; if present they must
-        # match the attached cover.
-        for slug in COVER_FILES:
-            html = self.client.get(f'/blog/{slug}/').content.decode()
-            width, height = expected_cover_size(slug)
-            og_w = re.search(r'property="og:image:width" content="([^"]*)"', html)
-            og_h = re.search(r'property="og:image:height" content="([^"]*)"', html)
-            if og_w:
-                self.assertEqual(og_w.group(1), str(width), slug)
-            if og_h:
-                self.assertEqual(og_h.group(1), str(height), slug)
+    def test_assign_versioned_cover_leaves_a_jpeg_og_image_in_place(self):
+        from django.core.files.base import ContentFile
+        from kitchen.blog_seed_utils import (
+            assign_versioned_cover,
+            assign_versioned_og_image,
+            cover_versioned_filename,
+        )
+
+        tmp = tempfile.mkdtemp()
+        self.addCleanup(lambda: __import__('shutil').rmtree(tmp, ignore_errors=True))
+        media = override_settings(MEDIA_ROOT=tmp)
+        media.enable()
+        self.addCleanup(media.disable)
+
+        slug = 'emoji-kitchen-iphone'
+        post = BlogPost.objects.create(
+            title=slug,
+            slug=slug,
+            excerpt='x',
+            content='<p>Body</p>',
+            status=BlogPost.STATUS_PUBLISHED,
+            seo_description='d' * 90,
+        )
+        assign_versioned_cover(post, fixture_cover_bytes(slug), fixture_cover_filename(slug))
+        assign_versioned_og_image(post, fixture_og_bytes(slug), fixture_og_filename(slug))
+        post.save()
+        og_name = post.og_image.name
+        self.assertTrue(og_name.endswith('.jpg'))
+
+        assign_versioned_cover(post, fixture_cover_bytes(slug), fixture_cover_filename(slug))
+        post.save()
+        post = BlogPost.objects.get(slug=slug)
+        self.assertEqual(post.og_image.name, og_name)
+        desired_jpg = cover_versioned_filename(
+            fixture_og_filename(slug), fixture_og_bytes(slug)
+        )
+        self.assertEqual(Path(post.og_image.name).name, desired_jpg)

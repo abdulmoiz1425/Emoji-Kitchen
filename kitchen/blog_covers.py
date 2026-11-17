@@ -2,8 +2,10 @@
 
 Eight 16:9 covers are 1200x675 WebP. The iPhone and WhatsApp covers keep
 their native 3:2 ratio at 1200x800, with no letterbox or crop. All files
-are under 200 KB. Management commands attach them with
-``assign_versioned_cover`` so the public URL changes, caches bust, and
+are under 200 KB. A matching JPEG of the same dimensions is stored
+alongside each WebP for ``og:image``. Management commands attach the
+WebP as the on-page cover and the JPEG as ``og_image`` under
+content-hashed names, so the public URL changes, caches bust, and
 IndexNow sees a filename change.
 """
 
@@ -56,6 +58,18 @@ def cover_filename(slug):
 
 def cover_bytes(slug):
     return cover_path(slug).read_bytes()
+
+
+def og_filename(slug):
+    return Path(COVER_FILES[slug]).with_suffix('.jpg').name
+
+
+def og_path(slug):
+    return _DATA_DIR / og_filename(slug)
+
+
+def og_bytes(slug):
+    return og_path(slug).read_bytes()
 
 
 def expected_cover_size(slug):

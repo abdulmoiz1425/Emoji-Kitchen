@@ -150,6 +150,28 @@ def absolute_media_url(request, image):
     return request.build_absolute_uri(image.url)
 
 
+def share_image_meta(request, image):
+    """Return (url, width, height, mime) for a usable ImageField, or blanks."""
+    url = absolute_media_url(request, image)
+    if not url:
+        return '', None, None, ''
+    width = height = None
+    try:
+        width, height = image.width, image.height
+    except (FileNotFoundError, OSError, ValueError, AttributeError):
+        pass
+    name = (getattr(image, 'name', '') or '').lower()
+    if name.endswith('.jpg') or name.endswith('.jpeg'):
+        mime = 'image/jpeg'
+    elif name.endswith('.webp'):
+        mime = 'image/webp'
+    elif name.endswith('.png'):
+        mime = 'image/png'
+    else:
+        mime = ''
+    return url, width, height, mime
+
+
 def clean_post_html(html):
     """Remove broken <img> tags from stored post HTML. Other markup is kept."""
     if not html:
@@ -305,7 +327,7 @@ def faq_pairs_from_html(content):
     return []
 
 
-def article_json_ld(post, page_url, site_url, image_url=''):
+def article_json_ld(post, page_url, site_url, image_url='', image_width=None, image_height=None):
     """BlogPosting data built only from fields the page already shows."""
     data = {
         '@context': 'https://schema.org',
@@ -320,6 +342,14 @@ def article_json_ld(post, page_url, site_url, image_url=''):
         'inLanguage': 'en',
     }
     if image_url:
-        data['image'] = [image_url]
+        if image_width and image_height:
+            data['image'] = {
+                '@type': 'ImageObject',
+                'url': image_url,
+                'width': int(image_width),
+                'height': int(image_height),
+            }
+        else:
+            data['image'] = [image_url]
     return json_ld(data)
 

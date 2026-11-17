@@ -12,7 +12,7 @@ from .models import BlogPost
 from .combo_counts import distinct_set_count, floor_hundreds
 from .combo_pages import COMBO_PAGES
 from .seo import (
-    absolute_media_url, absolute_site_url, article_json_ld, clean_canonical, faq_json_ld, faq_pairs_from_html,
+    absolute_media_url, absolute_site_url, article_json_ld, clean_canonical, faq_json_ld, faq_pairs_from_html, share_image_meta,
     site_origin,
 )
 
@@ -890,14 +890,21 @@ def blog_detail(request, slug):
         post.get_absolute_url(),
         current_slug=post.slug,
     )
-    share_image = absolute_media_url(request, post.og_image_display)
+    share_image, share_w, share_h, share_type = share_image_meta(
+        request, post.og_image_display
+    )
     context = {
         'post': post,
         'related_posts': related_posts,
         'canonical_url': canonical_url,
         'share_image': share_image,
+        'share_image_width': share_w,
+        'share_image_height': share_h,
+        'share_image_type': share_type,
         'article_json_ld': article_json_ld(
-            post, canonical_url, absolute_site_url('/'), share_image),
+            post, canonical_url, absolute_site_url('/'), share_image,
+            image_width=share_w, image_height=share_h,
+        ),
         'post_faqs': [{'question': q, 'answer': a} for q, a in faq_pairs_from_html(post.content)],
     }
     return render(request, 'kitchen/blog_detail.html', context)

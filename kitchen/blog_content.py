@@ -20,8 +20,7 @@ POST_UPDATES = {
         'fields': {
             'title': 'How to Use Emoji Kitchen in Gboard on Android',
             'excerpt': 'Learn how to access Emoji Kitchen through Gboard on supported Android devices, choose available '
-                       'emoji combinations and troubleshoot missing suggestions. For iPhone or WhatsApp-specific '
-                       'instructions, see the relevant dedicated guide.',
+                       'combinations, and troubleshoot missing suggestions.',
             'seo_title': 'How to Use Emoji Kitchen in Gboard on Android',
             'seo_description': 'Learn how to use Emoji Kitchen through Gboard on Android, find supported emoji mashups '
                                'and troubleshoot missing sticker suggestions.',
@@ -64,8 +63,8 @@ POST_UPDATES = {
     'emoji-kitchen-samsung': {
         'fields': {
             'title': 'How to Use Emoji Kitchen on Samsung Galaxy Phones',
-            'excerpt': "Learn how Google's Emoji Kitchen through Gboard differs from Samsung Keyboard, how to select the "
-                       'relevant keyboard and what to check when combination suggestions are missing.',
+            'excerpt': "Learn how Gboard's Emoji Kitchen differs from Samsung Keyboard, how to pick the right keyboard, "
+                       'and what to check when suggestions are missing.',
             'seo_title': 'How to Use Emoji Kitchen on Samsung Galaxy Phones',
             'seo_description': "Learn how Gboard differs from Samsung Keyboard, how to use Google's Emoji "
                                'Kitchen on a Galaxy phone, and how to fix missing suggestions.',
@@ -105,9 +104,8 @@ POST_UPDATES = {
     'emoji-kitchen-iphone': {
         'fields': {
             'title': 'How to Use Emoji Kitchen on iPhone',
-            'excerpt': 'Learn how to explore supported emoji mashups on iPhone through a browser-based workflow. Find '
-                       'practical guidance for checking results, saving images where supported and sharing them with '
-                       'compatible applications.',
+            'excerpt': 'Learn how to explore Emoji Kitchen mashups on iPhone in a browser, check results, save images '
+                       'where supported, and share them in compatible apps.',
             'seo_title': 'How to Use Emoji Kitchen on iPhone',
             'seo_description': 'Learn how to explore supported emoji mashups on iPhone in a browser, '
                                'then how to save or share the result where supported.',
@@ -144,8 +142,8 @@ POST_UPDATES = {
     'emoji-kitchen-whatsapp': {
         'fields': {
             'title': 'How to Share Emoji Kitchen Stickers in WhatsApp',
-            'excerpt': 'Learn how to share supported emoji mashups in WhatsApp, understand the difference between text '
-                       'characters and image-based stickers, and troubleshoot copying or attachment problems.',
+            'excerpt': 'Learn how to share Emoji Kitchen mashups in WhatsApp as image stickers, how they differ from '
+                       'text emoji, and how to fix copy or attachment problems.',
             'seo_title': 'How to Share Emoji Kitchen Stickers in WhatsApp',
             'seo_description': 'Learn how to share supported emoji mashups in WhatsApp, the difference between '
                                'text and image stickers, and how to fix sharing problems.',
