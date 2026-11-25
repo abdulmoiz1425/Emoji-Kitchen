@@ -1,0 +1,151 @@
+{% extends 'kitchen/base.html' %}
+{% load static mood_tags %}
+
+{% block title %}Emoji Combo Finder: Emojis for Your Mood{% endblock %}
+{% block meta_description %}Describe how you feel and get emoji combos made for your mood. Copy ready-made sets, fresh mixes and Emoji Kitchen sticker ideas in one tap.{% endblock %}
+{% block meta_robots %}{% if text %}<meta name="robots" content="noindex, follow" />{% endif %}{% endblock %}
+{% block canonical_href %}{{ canonical_url }}{% endblock %}
+
+{% block extra_head %}
+{% include "kitchen/_social_meta.html" with page_title="Emoji Combo Finder: Emojis for Your Mood" page_description="Describe how you feel and get emoji combos made for your mood. Copy ready-made sets, fresh mixes and Emoji Kitchen sticker ideas in one tap." page_url=canonical_url %}
+{% endblock %}
+
+{% block content %}
+
+<!-- ══════════════════════════════════════════════════════════ INTRO ══ -->
+<section class="section mood-intro">
+  <div class="container container--narrow">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">💭 Mood finder</span>
+      <h1>Find an Emoji Combo for Your Mood</h1>
+      <p>Tell us how you feel in a few words and get emoji combos to match. Tap any set to copy it as text, or copy it as a picture, then paste it into a bio, a caption or a chat.</p>
+    </div>
+    {% mood_form input_id="mood-input" value=text %}
+  </div>
+</section>
+
+{% if result %}
+<!-- ═══════════════════════════════════════════════════════ RESULTS ══ -->
+<section class="section mood-results" id="results" style="padding-top:0" data-copy-grid>
+  <div class="container">
+
+    <div class="mood-detected" aria-live="polite">
+      {% if result.matched %}
+      <span class="mood-detected__lead">We picked up:</span>
+      {% for m in result.moods %}<span class="mood-pill"><span aria-hidden="true">{{ m.icon }}</span> {{ m.label }} <small>{{ m.tagline }}</small></span>
+      {% endfor %}
+      {% else %}
+      <p class="mood-detected__none">We could not read a clear mood from “{{ result.text }}”, so here are all-round feel-good picks. Try a few feeling words, like <em>tired but happy</em>, or tap a mood button above.</p>
+      {% endif %}
+    </div>
+
+    <h2 class="mood-h">Top picks for you</h2>
+    <div class="mood-grid">
+      {% for c in result.picks %}<div class="combo-card">
+        <span class="combo-card__emoji">{{ c.emoji }}</span>
+        <span class="combo-card__label">{{ c.label }}</span>
+        <button type="button" class="combo-card__copy" data-combo="{{ c.emoji }}">📋 Copy</button>
+        <button type="button" class="mood-imgbtn" data-combo-image="{{ c.emoji }}">🖼️ Copy image</button>
+      </div>
+      {% endfor %}
+    </div>
+
+    <div class="mood-h-row">
+      <h2 class="mood-h">Made for your mood</h2>
+      <a class="btn btn--outline btn--sm mood-shuffle" href="{{ shuffle_url }}#results" rel="nofollow">🔀 Shuffle for new ones</a>
+    </div>
+    <div class="mood-grid">
+      {% for c in result.generated %}<div class="combo-card">
+        <span class="combo-card__emoji">{{ c.emoji }}</span>
+        <span class="combo-card__label">{{ c.label }}</span>
+        <button type="button" class="combo-card__copy" data-combo="{{ c.emoji }}">📋 Copy</button>
+        <button type="button" class="mood-imgbtn" data-combo-image="{{ c.emoji }}">🖼️ Copy image</button>
+      </div>
+      {% endfor %}
+    </div>
+
+    {% if result.library %}
+    <h2 class="mood-h">More ready-made sets that fit</h2>
+    <div class="mood-grid">
+      {% for c in result.library %}<div class="combo-card">
+        <span class="combo-card__emoji">{{ c.emoji }}</span>
+        <span class="combo-card__label">{{ c.label }} · <a href="{{ c.url }}">{{ c.page }}</a></span>
+        <button type="button" class="combo-card__copy" data-combo="{{ c.emoji }}">📋 Copy</button>
+        <button type="button" class="mood-imgbtn" data-combo-image="{{ c.emoji }}">🖼️ Copy image</button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if result.mashups %}
+    <h2 class="mood-h">Emoji mashup images for your mood</h2>
+    <p class="mood-note">Prefer a picture over text? These pairs have an Emoji Kitchen mashup image. Copy it into a chat or download it.</p>
+    <div class="mood-mashups" data-sticker-version="{{ sticker_version }}">
+      {% for m in result.mashups %}<div class="mood-mashup-card" data-emoji1="{{ m.first }}" data-emoji2="{{ m.second }}" data-image="{{ m.image }}">
+        <img class="mood-mashup-card__img" src="{{ m.image }}" width="112" height="112" loading="lazy" alt="{{ m.first }} and {{ m.second }} emoji mashup" />
+        <span class="mood-mashup-card__pair" aria-hidden="true">{{ m.first }} + {{ m.second }}</span>
+        <div class="mood-mashup-card__actions">
+          <button type="button" class="mood-imgbtn mood-imgbtn--solid" data-mashup-action="copy">🖼️ Copy image</button>
+          <button type="button" class="mood-imgbtn" data-mashup-action="download">⬇️ Download image</button>
+          <a class="mood-mashup" href="{{ m.href }}">Open in mixer</a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endif %}
+
+<!-- ════════════════════════════════════════════════════ ARTICLE BODY ══ -->
+<section class="section" style="padding-top:{% if result %}16px{% else %}0{% endif %}">
+  <div class="container container--narrow">
+    <div class="blog-detail__content">
+
+      <h2>How the Mood Finder Works</h2>
+      <p>Write a short sentence about how you feel. The finder looks for feeling words and common phrases, understands simple negatives such as “not happy”, and notices when you mention more than one mood, like “tired but excited”. It then gives you a few hand-picked sets, builds new ones by mixing emojis from your moods, and shows matching sets from the rest of the site.</p>
+      <p>It is a word-matching tool rather than an AI chatbot, so it works best with plain feeling words. Tap <strong>Shuffle</strong> to get a fresh batch of new combos for the same mood.</p>
+
+      <h2>Tips for Better Results</h2>
+      <ul>
+        <li>Use simple feeling words: tired, happy, nervous, in love, hungry, excited.</li>
+        <li>Mention two moods to blend them, for example “stressed but hopeful”.</li>
+        <li>Paste an emoji such as 😭 or 🥳 into the box and it will count as a hint.</li>
+        <li>Want text sets only? Browse <a href="{% url 'emoji_combos' %}">emoji combos</a> by theme, or open the <a href="{% url 'ready_made_emoji_combo' %}">Ready Made Emoji Combo</a> page.</li>
+      </ul>
+      <p>To mix two emojis into one sticker, open <a href="{% url 'home' %}#kitchen">Emoji Kitchen</a>. You can also draw your own with the <a href="{% url 'emoji_art_editor' %}">emoji art editor</a>.</p>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ FAQ ══ -->
+<section class="section faq-section">
+  <div class="container">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">❓ Help &amp; support</span>
+      <h2>Frequently Asked Questions</h2>
+      <p>Common questions about the emoji mood finder.</p>
+    </div>
+    <div class="faq-list">
+      {% for item in faqs %}
+      <details class="faq-item animate-up" style="--delay:{{ forloop.counter0 }}0ms">
+        <summary class="faq-item__q">
+          <span>{{ item.question }}</span>
+          <span class="faq-item__chevron">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </summary>
+        <div class="faq-item__a"><p>{{ item.answer }}</p></div>
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'kitchen/js/combo_copy.js' %}" defer></script>
+<script src="{% static 'kitchen/js/combo_image.js' %}" defer></script>
+{% endblock %}

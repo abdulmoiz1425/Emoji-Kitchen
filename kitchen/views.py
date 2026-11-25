@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import random as _random
 
@@ -6,15 +7,21 @@ from django.contrib.sitemaps.views import sitemap as django_sitemap
 from django.shortcuts import render, get_object_or_404
 from django.http import JsonResponse, HttpResponse, Http404
 from django.urls import reverse
-from urllib.parse import quote
+from urllib.parse import quote, urlencode
 
 from .models import BlogPost
 from .combo_counts import distinct_set_count, floor_hundreds
 from .combo_pages import COMBO_PAGES
+from . import mood as mood_engine
+from . import stickers
+from .combo_search import clean_query, matching_tag_pages, search_sets
+from .combo_tags import TAG_PAGES
 from .seo import (
     absolute_media_url, absolute_site_url, article_json_ld, clean_canonical, faq_json_ld, faq_pairs_from_html, share_image_meta,
     site_origin,
 )
+
+logger = logging.getLogger(__name__)
 
 
 # ── Emoji combo lookup ──────────────────────────────────────────────────────────
@@ -88,7 +95,10 @@ FAQS = [
     },
     {
         'question': 'Can I download my emoji mashup?',
-        'answer': 'Yes. When a supported result appears, use the Download button to save it as an image (PNG) file.',
+        'answer': 'Yes. When a supported result appears, use the Download image button. It saves your mashup as a 512 × 512 image '
+                  'with a see-through background and a white outline (a WebP file under 100 KB), which also works in WhatsApp and Telegram '
+                  'sticker apps. If an app does not accept WebP, use the PNG link under the buttons. Copy image pastes the picture straight into a '
+                  'chat, and on phones Send image opens the share menu.',
     },
     {
         'question': 'Can I save favourite combinations?',
@@ -114,7 +124,7 @@ FEATURES = [
     {
         'icon': '📋',
         'title': 'Copy and Download Options',
-        'description': 'Copy the result to paste into apps that accept images, or download it as an image file. If pasting does not work in an app, download the image and attach it instead.',
+        'description': 'Copy the result to paste into apps that accept images, or download it as a sticker file. If pasting does not work in an app, download the sticker and attach it instead.',
     },
     {
         'icon': '🔍',
@@ -176,7 +186,7 @@ POPULAR_COMBOS = [
     {
         'icon': '🌸',
         'title': 'Aesthetic Combinations',
-        'description': 'Focus on a calm look or matching theme. Try stars, moons, flowers, clouds, hearts, and simple faces — ideal for captions, profile posts, gentle messages, or picture-based social content.',
+        'description': 'Focus on a calm look or matching theme. Try stars, moons, flowers, clouds, hearts, and simple faces. They suit captions, profile posts, gentle messages, or picture-based social content.',
         'bg': '#EDE7F6',
         'border': '#CE93D8',
         'examples': ['🌸', '⭐', '🌙', '🌈'],
@@ -248,7 +258,7 @@ EMOJI_COMBOS_PAGE_FAQS = [
     },
     {
         'question': 'When should I use an emoji combo instead of one emoji?',
-        'answer': 'Use a short combo when one character does not carry the mood you want—for example a soft reply, a bio accent, or a caption decoration. Keep the set short enough to read on a phone.',
+        'answer': 'Use a short combo when one character does not carry the mood you want, for example a soft reply, a bio accent, or a caption decoration. Keep the set short enough to read on a phone.',
     },
     {
         'question': 'How do I copy and paste emoji combos on iPhone or Android?',
@@ -350,7 +360,7 @@ CUTE_EMOJI_COMBOS_FAQS = [
     },
     {
         'question': 'Are these emoji sets free to use?',
-        'answer': 'The text combinations on this page can be copied without signing up. Individual Unicode characters are not owned by anyone — copying a sequence does not make it a new official emoji.',
+        'answer': 'The text combinations on this page can be copied without signing up. Individual Unicode characters are not owned by anyone, and copying a sequence does not make it a new official emoji.',
     },
     {
         'question': 'What is the difference between an emoji combination and an Emoji Kitchen sticker?',
@@ -530,7 +540,7 @@ FUNNY_EMOJI_COMBOS_FAQS = [
     },
     {
         'question': 'What are Gen Z funny emoji combos?',
-        'answer': 'Gen Z combinations often use exaggeration, irony and dramatic reactions — like 😭😭💀 for "I am crying laughing", 💀📴 for "this ended me", or ✨🧠🌈 for delulu mode. Meanings can shift quickly with context.',
+        'answer': 'Gen Z combinations often use exaggeration, irony and dramatic reactions, like 😭😭💀 for "I am crying laughing", 💀📴 for "this ended me", or ✨🧠🌈 for delulu mode. Meanings can shift quickly with context.',
     },
     {
         'question': 'How many emojis should a funny combination have?',
@@ -602,7 +612,7 @@ LOVE_EMOJI_COMBOS_FAQS = [
     },
     {
         'question': 'Which emoji sets should I send to my boyfriend?',
-        'answer': 'Try 🫵💙🫶, 🤍🫂🔐, or Boyfriend 🧸💙🔐. Choose a style that matches how you normally speak to him — soft, playful, or romantic all work.',
+        'answer': 'Try 🫵💙🫶, 🤍🫂🔐, or Boyfriend 🧸💙🔐. Choose a style that matches how you normally speak to him. Soft, playful, or romantic all work.',
     },
     {
         'question': 'Which romantic combinations work for a girlfriend?',
@@ -735,6 +745,126 @@ def emoji_generator(request):
     return render(request, 'kitchen/emoji_generator.html', context)
 
 
+EMOJI_ART_EDITOR_FAQS = [
+    {
+        'question': 'What is an emoji art editor?',
+        'answer': 'It is a grid where you place emojis one cell at a time to build a picture, then copy the picture as text. '
+                  'Each row of the grid becomes one line of emojis.',
+    },
+    {
+        'question': 'How do I copy my emoji art into a message?',
+        'answer': 'Press Copy, open the app you want to use, and paste. The art pastes as ordinary text with one line per row, '
+                  'so it works best in apps that keep line breaks and use a similar width for every emoji.',
+    },
+    {
+        'question': 'Why does my emoji art look crooked after pasting?',
+        'answer': 'Some apps change the spacing or wrap long lines. Try a smaller grid, choose a different empty-cell character, '
+                  'or paste into a place that does not reflow text.',
+    },
+    {
+        'question': 'Can I pick up an emoji I already drew?',
+        'answer': 'Yes. Hold Ctrl (or Cmd on a Mac) and click a filled cell to make that emoji your brush.',
+    },
+    {
+        'question': 'Is my drawing saved or uploaded?',
+        'answer': 'No. The editor runs in your browser and nothing is sent to the server. Copy or download your art before you close the page.',
+    },
+]
+
+DOT_ART_GENERATOR_FAQS = [
+    {
+        'question': 'What is dot art?',
+        'answer': 'Dot art is a picture made from Braille characters. Each character holds a small grid of raised dots, '
+                  'so a block of them can show an image as plain text.',
+    },
+    {
+        'question': 'How do I turn a picture into dot art?',
+        'answer': 'Choose an image, pick a mode and size, then copy the result. Dither keeps shading, Threshold gives a '
+                  'black-and-white look, and Line art traces the edges.',
+    },
+    {
+        'question': 'Is my image uploaded to a server?',
+        'answer': 'No. The picture is read and converted in your browser, and it never leaves your device.',
+    },
+    {
+        'question': 'Why do some apps show the dot art with gaps or the wrong width?',
+        'answer': 'Apps use different fonts, and some collapse blank Braille characters. Keep the option that avoids blank '
+                  'characters switched on, and try a smaller width if lines wrap.',
+    },
+    {
+        'question': 'Which pictures work best?',
+        'answer': 'Simple images with strong contrast, such as a logo, a face or a silhouette, convert most clearly. '
+                  'Raise the contrast slider for flat or dark photos.',
+    },
+]
+
+
+MOOD_FAQS = [
+    {
+        'question': 'How does the emoji mood finder work?',
+        'answer': 'It reads the feeling words in what you write, such as tired, excited or heartbroken, and matches them to '
+                  'emoji sets. It then mixes the emojis of those moods into fresh combos and adds ready-made sets from this site.',
+    },
+    {
+        'question': 'Is the mood finder an AI chatbot?',
+        'answer': 'No. It is a simple word-matching tool, so it is fast and gives the same answer for the same words. '
+                  'It understands common feelings and phrases but not every sentence.',
+    },
+    {
+        'question': 'Can I describe more than one feeling?',
+        'answer': 'Yes. Try something like "tired but happy it is Friday". The finder picks up to three moods and blends their emojis.',
+    },
+    {
+        'question': 'Is what I type saved?',
+        'answer': 'What you type is used only to build the results and is not stored in the site database or linked to you.',
+    },
+    {
+        'question': 'Why did it not recognise my mood?',
+        'answer': 'It may not know the word you used. Try a simpler feeling word, or tap one of the mood buttons. '
+                  'When nothing matches, it shows friendly all-round picks instead.',
+    },
+]
+
+
+def emoji_combos_mood(request):
+    """Describe a mood, get emoji combos. The page without a query is indexable; result pages are not."""
+    text = mood_engine.clean_text(request.GET.get('mood', ''))
+    try:
+        shuffle = int(request.GET.get('shuffle', '0'))
+    except ValueError:
+        shuffle = 0
+    shuffle = max(0, min(shuffle, mood_engine.MAX_SHUFFLE))
+    result = mood_engine.find_combos(text, shuffle) if text else None
+    context = {
+        'faqs': MOOD_FAQS,
+        'canonical_url': absolute_site_url(reverse('emoji_combos_mood')),
+        'text': text,
+        'result': result,
+        'sticker_version': stickers.STICKER_VERSION,
+    }
+    if result:
+        result['mashups'] = mashup_links(result['mashups'])
+        next_shuffle = shuffle + 1 if shuffle < mood_engine.MAX_SHUFFLE else 0
+        context['shuffle_url'] = f"{reverse('emoji_combos_mood')}?{urlencode({'mood': text, 'shuffle': next_shuffle})}"
+    return render(request, 'kitchen/emoji_combos_mood.html', context)
+
+
+def emoji_art_editor(request):
+    context = {
+        'faqs': EMOJI_ART_EDITOR_FAQS,
+        'canonical_url': absolute_site_url(reverse('emoji_art_editor')),
+    }
+    return render(request, 'kitchen/emoji_art_editor.html', context)
+
+
+def dot_art_generator(request):
+    context = {
+        'faqs': DOT_ART_GENERATOR_FAQS,
+        'canonical_url': absolute_site_url(reverse('dot_art_generator')),
+    }
+    return render(request, 'kitchen/dot_art_generator.html', context)
+
+
 THANKSGIVING_POST_SLUG = 'thanksgiving-emoji-combos'
 THANKSGIVING_COMBO_CTA = (
     'Hosting Thanksgiving first? Copy '
@@ -750,11 +880,35 @@ def thanksgiving_blog_is_published():
     ).exists()
 
 
-def emoji_combos_hub_copy(count):
-    """Title and meta for /emoji-combos/. A '100+' style number is used only when the real count supports it."""
+READY_MADE_TEMPLATE = 'ready_made_emoji_combo.html'
+
+EMOJI_COMBOS_HUB_TITLE = 'Emoji Combos: Browse Categories and Ready Made Sets'
+EMOJI_COMBOS_HUB_META = (
+    'Browse emoji combos by theme: cute, aesthetic, love, funny, pink, birthday and more. '
+    'Open the Ready Made Emoji Combo page to copy sets in one tap.'
+)
+
+# (url name, label, one-line blurb) for the theme links on the /emoji-combos/ hub.
+EMOJI_COMBOS_HUB_CATEGORIES = [
+    ('emoji_combos_cute', 'Cute', 'Animals, bows, flowers and soft faces.'),
+    ('emoji_combos_aesthetic', 'Aesthetic', 'Sets built around one mood or palette.'),
+    ('emoji_combos_love', 'Love', 'Hearts and flowers for romantic messages.'),
+    ('emoji_combos_funny', 'Funny', 'Unexpected faces and reactions for chats.'),
+    ('emoji_combos_pink', 'Pink', 'Pink hearts, bows and pastel sets.'),
+    ('emoji_combos_birthday', 'Birthday', 'Wishes, party sets and belated notes.'),
+    ('emoji_combos_friendship', 'Friendship', 'Sets for besties and group chats.'),
+    ('emoji_combos_sad', 'Sad', 'Rainy and heartbreak sets for low moods.'),
+    ('emoji_combos_dark', 'Dark', 'Gothic, witchy and dark academia looks.'),
+    ('emoji_combos_christmas', 'Christmas', 'Cozy, festive and funny holiday sets.'),
+    ('emoji_combos_bio', 'Bio', 'Sets sorted by interest for your profile.'),
+]
+
+
+def ready_made_emoji_combo_copy(count):
+    """Title and meta for /ready-made-emoji-combo/. A '100+' style number is used only when the real count supports it."""
     floor = floor_hundreds(count)
     lead = f'{floor}+ ' if floor else ''
-    title = f'{lead}Emoji Combos to Copy & Paste: Cute, Love, Funny'
+    title = f'Ready Made Emoji Combo: {lead}Sets to Copy & Paste'
     meta = (
         f'Tap to copy {lead}emoji combos for bios, captions and chats: cute, aesthetic, love, funny and pink sets. '
         'Want an image? Mix emojis with Emoji Kitchen.'
@@ -763,17 +917,36 @@ def emoji_combos_hub_copy(count):
 
 
 def emoji_combos(request):
-    combo_count = distinct_set_count('emoji_combos.html')
-    page_title, page_meta = emoji_combos_hub_copy(combo_count)
+    """Short hub: links to the Ready Made Emoji Combo page and to every theme page."""
+    context = {
+        'canonical_url': absolute_site_url(reverse('emoji_combos')),
+        'page_title': EMOJI_COMBOS_HUB_TITLE,
+        'page_meta': EMOJI_COMBOS_HUB_META,
+        'categories': [
+            {'href': reverse(url_name), 'label': label, 'blurb': blurb}
+            for url_name, label, blurb in EMOJI_COMBOS_HUB_CATEGORIES
+        ],
+        'keywords': [
+            {'href': reverse('emoji_combos_tag', kwargs={'slug': slug}), 'label': page['label'],
+             'icon': page['badge'].split(' ', 1)[0]}
+            for slug, page in TAG_PAGES.items()
+        ],
+    }
+    return render(request, 'kitchen/emoji_combos.html', context)
+
+
+def ready_made_emoji_combo(request):
+    combo_count = distinct_set_count(READY_MADE_TEMPLATE)
+    page_title, page_meta = ready_made_emoji_combo_copy(combo_count)
     context = {
         'faqs': EMOJI_COMBOS_PAGE_FAQS,
-        'canonical_url': absolute_site_url(reverse('emoji_combos')),
+        'canonical_url': absolute_site_url(reverse('ready_made_emoji_combo')),
         'page_title': page_title,
         'page_meta': page_meta,
         'combo_count': combo_count,
         'thanksgiving_post_live': thanksgiving_blog_is_published(),
     }
-    return render(request, 'kitchen/emoji_combos.html', context)
+    return render(request, f'kitchen/{READY_MADE_TEMPLATE}', context)
 
 
 def emoji_combos_love(request):
@@ -827,7 +1000,7 @@ def mashup_links(pairs):
     for first, second in pairs:
         if combo_image_url(first, second):
             href = f'/?emoji1={quote(first)}&emoji2={quote(second)}#kitchen'
-            links.append({'first': first, 'second': second, 'href': href})
+            links.append({'first': first, 'second': second, 'href': href, 'image': combo_image_url(first, second)})
     return links
 
 
@@ -843,12 +1016,16 @@ def emoji_combos_category(request, slug):
         raise Http404('No such emoji combo page')
     if slug == 'christmas' and thanksgiving_blog_is_published():
         page = {**page, 'siblings_cta': THANKSGIVING_COMBO_CTA + page['siblings_cta']}
+    return render_combo_page(request, page, reverse(f'emoji_combos_{slug}'))
+
+
+def render_combo_page(request, page, path):
+    """Render a data-driven combo page (category or keyword) with the shared copy-and-filter tool."""
     combos, combo_count = category_combos(page)
-    url_name = f'emoji_combos_{slug}'
     context = {
         'page': page,
         'faqs': [{'question': q, 'answer': a} for q, a in page['faqs']],
-        'canonical_url': absolute_site_url(reverse(url_name)),
+        'canonical_url': absolute_site_url(path),
         'combos': combos,
         'combos_json': combos,
         'combo_count': combo_count,
@@ -857,6 +1034,31 @@ def emoji_combos_category(request, slug):
         'mashups': mashup_links(page['mashups']),
     }
     return render(request, 'kitchen/emoji_combos_category.html', context)
+
+
+def emoji_combos_tag(request, slug):
+    """Keyword page, e.g. /emoji-combos/kawaii/. Unknown keywords are a normal 404."""
+    page = TAG_PAGES.get(slug)
+    if page is None:
+        raise Http404('No such emoji combo keyword')
+    return render_combo_page(request, page, reverse('emoji_combos_tag', kwargs={'slug': slug}))
+
+
+def emoji_combos_search(request):
+    """Search every copyable set on the site. Results pages are kept out of the index."""
+    query = clean_query(request.GET.get('q', ''))
+    results, total = search_sets(query)
+    context = {
+        'canonical_url': absolute_site_url(reverse('emoji_combos_search')),
+        'query': query,
+        'results': results,
+        'total': total,
+        'shown': len(results),
+        'tag_links': matching_tag_pages(query),
+        'suggestions': [{'label': p['label'], 'href': reverse('emoji_combos_tag', kwargs={'slug': s})}
+                        for s, p in list(TAG_PAGES.items())[:8]],
+    }
+    return render(request, 'kitchen/emoji_combos_search.html', context)
 
 
 def emoji_keyboard(request):
@@ -872,6 +1074,11 @@ def emoji_keyboard_for_pc(request):
         'faq_json_ld': _faq_json_ld(EMOJI_KEYBOARD_PC_FAQS),
     }
     return render(request, 'kitchen/emoji_keyboard_for_pc.html', context)
+
+
+def emoji_kitchen_guide(request):
+    context = {'canonical_url': absolute_site_url(reverse('emoji_kitchen_guide'))}
+    return render(request, 'kitchen/emoji_kitchen_guide.html', context)
 
 
 def blog(request):
@@ -957,6 +1164,38 @@ def get_combo(request):
         )
 
     return JsonResponse({'urls': urls, 'emoji1': emoji1, 'emoji2': emoji2})
+
+
+def get_sticker(request):
+    """Download a supported mashup as a sticker: 512 x 512, transparent, white outline (WebP by default)."""
+    if request.method != 'GET':
+        return JsonResponse({'error': 'GET only'}, status=405)
+    emoji1 = request.GET.get('emoji1', '').strip()
+    emoji2 = request.GET.get('emoji2', '').strip()
+    fmt = request.GET.get('format', 'webp').strip().lower()
+
+    if not emoji1 or not emoji2:
+        return JsonResponse({'error': 'Two emojis required'}, status=400)
+    if len(emoji1) > 32 or len(emoji2) > 32:
+        return JsonResponse({'error': 'Invalid emoji characters'}, status=400)
+    if fmt not in stickers.FORMATS:
+        return JsonResponse({'error': 'format must be webp or png'}, status=400)
+
+    url = combo_image_url(emoji1, emoji2)
+    if not url:
+        return JsonResponse({'error': 'No Emoji Kitchen mashup exists for this pair'}, status=404)
+
+    try:
+        data = stickers.make_sticker(url, fmt)
+    except stickers.StickerError as exc:
+        logger.warning('Sticker failed for %s + %s: %s', emoji1, emoji2, exc)
+        return JsonResponse({'error': 'Could not make the sticker. Please try again.'}, status=502)
+
+    first, second = sorted([_emoji_to_codepoints(emoji1), _emoji_to_codepoints(emoji2)])
+    response = HttpResponse(data, content_type=f'image/{fmt}')
+    response['Content-Disposition'] = f'attachment; filename="emoji-kitchen-sticker-{first}-{second}.{fmt}"'
+    response['Cache-Control'] = 'public, max-age=86400'
+    return response
 
 
 def get_combos_for_emoji(request):

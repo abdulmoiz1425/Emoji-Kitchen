@@ -1,0 +1,153 @@
+{% extends 'kitchen/base.html' %}
+{% load static %}
+
+{% block title %}Image to Dot Art Generator (Braille Text Art){% endblock %}
+{% block meta_description %}Turn any image into Braille dot art with this free online generator. Choose dither, threshold or line art, then copy the text to paste anywhere.{% endblock %}
+{% block canonical_href %}{{ canonical_url }}{% endblock %}
+
+{% block extra_head %}
+{% include "kitchen/_social_meta.html" with page_title="Image to Dot Art Generator (Braille Text Art)" page_description="Turn any image into Braille dot art with this free online generator. Choose dither, threshold or line art, then copy the text to paste anywhere." page_url=canonical_url %}
+{% endblock %}
+
+{% block content %}
+
+<!-- ══════════════════════════════════════════════════════════ INTRO ══ -->
+<section class="section" style="padding-bottom:0">
+  <div class="container container--narrow">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">⣿ Dot Art Generator</span>
+      <h1>Image to Dot Art Generator</h1>
+      <p>Turn a picture into dot art: text made of Braille characters that you can copy and paste into a bio, a caption or a chat. Choose an image, pick a style, and adjust the sliders until it looks right.</p>
+      <p>Your image is converted in your browser and never uploaded. For emoji-based art instead, try the <a href="{% url 'emoji_art_editor' %}">emoji art editor</a>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════════════════════ GENERATOR ══ -->
+<section class="section" id="da-tool" style="padding-top:28px;padding-bottom:0">
+  <div class="container">
+    <div class="tool-panel animate-up" id="da-app">
+      <div class="tool-panel__header">
+        <span class="tool-panel__title">⣿ Make dot art</span>
+        <span class="tool-status" id="da-status" role="status" aria-live="polite"></span>
+      </div>
+
+      <div class="da-layout">
+        <div class="da-controls">
+          <h3 class="da-h">1. Choose an image</h3>
+          <label class="da-drop" id="da-drop" for="da-file">
+            <span>Drop an image here or <u>browse</u></span>
+            <small>PNG, JPG, WebP or GIF, up to 15 MB</small>
+            <input type="file" id="da-file" accept="image/*" hidden />
+          </label>
+          <img id="da-preview" class="da-preview" alt="Your chosen image" hidden />
+
+          <h3 class="da-h">2. Settings</h3>
+          <div class="da-row">
+            <label for="da-mode">Mode</label>
+            <select id="da-mode" class="ea-select">
+              <option value="dither" selected>Dither (keeps shading)</option>
+              <option value="threshold">Threshold (black and white)</option>
+              <option value="lines">Line art (traces edges)</option>
+            </select>
+          </div>
+          <div class="da-row">
+            <label for="da-width">Size <small>(characters wide)</small></label>
+            <input type="range" id="da-width" min="20" max="160" step="2" value="60" />
+            <output id="da-width-out">60</output>
+          </div>
+          <div class="da-row" id="da-threshold-row">
+            <label for="da-threshold">Threshold <small>(darker to lighter)</small></label>
+            <input type="range" id="da-threshold" min="20" max="235" step="1" value="128" />
+            <output id="da-threshold-out">128</output>
+          </div>
+          <div class="da-row" id="da-edge-row" hidden>
+            <label for="da-edge">Lines <small>(fewer to more)</small></label>
+            <input type="range" id="da-edge" min="20" max="235" step="1" value="150" />
+            <output id="da-edge-out">150</output>
+          </div>
+          <div class="da-row">
+            <label for="da-contrast">Contrast boost</label>
+            <input type="range" id="da-contrast" min="-100" max="100" step="5" value="0" />
+            <output id="da-contrast-out">0</output>
+          </div>
+          <div class="da-row da-row--check">
+            <label><input type="checkbox" id="da-invert" /> Invert (swap dots and blanks)</label>
+          </div>
+          <div class="da-row da-row--check">
+            <label><input type="checkbox" id="da-solid" checked /> Avoid blank characters <small>(some apps strip them)</small></label>
+          </div>
+
+          <button type="button" class="btn btn--primary" id="da-generate">Generate dot art</button>
+        </div>
+
+        <div class="da-results" id="da-results" hidden>
+          <h3 class="da-h">3. Result</h3>
+          <div class="da-actions">
+            <button type="button" class="btn btn--primary btn--sm" id="da-copy">📋 Copy dot art</button>
+            <button type="button" class="btn btn--outline btn--sm" id="da-txt">💾 Download .txt</button>
+            <button type="button" class="btn btn--outline btn--sm" id="da-full">⛶ View fullscreen</button>
+          </div>
+          <p class="da-meta" id="da-meta"></p>
+          <div class="da-stage"><pre class="da-output" id="da-output" aria-label="Dot art result"></pre></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════ ARTICLE BODY ══ -->
+<section class="section" style="padding-top:40px">
+  <div class="container container--narrow">
+    <div class="blog-detail__content">
+
+      <h2>How Dot Art Works</h2>
+      <p>Each Braille character is a small block of up to eight dots arranged in two columns and four rows. The generator turns your image into a grid of light and dark points, then packs every block of two by four points into one character. A whole picture becomes a few lines of text.</p>
+
+      <h2>Choosing a Mode</h2>
+      <ul>
+        <li><strong>Dither</strong> keeps shading by mixing dots, so photos look closer to the original.</li>
+        <li><strong>Threshold</strong> makes everything either dot or blank, which suits logos and silhouettes.</li>
+        <li><strong>Line art</strong> traces the edges in the picture and ignores flat areas.</li>
+      </ul>
+
+      <h2>Getting a Better Result</h2>
+      <p>Start with a clear picture that has a strong subject. Raise the contrast for dull photos, move the threshold if the result is too dark or too light, and use Invert when you plan to paste onto a dark background.</p>
+      <p>A width of 40 to 80 characters fits most chat boxes and bios. Larger sizes show more detail but may wrap in narrow places.</p>
+
+      <h2>Where to Paste It</h2>
+      <p>Dot art pastes as plain text, so it works in bios, captions and many chats. Fonts differ between apps, so check the preview before you post. For emoji pictures, use the <a href="{% url 'emoji_art_editor' %}">emoji art editor</a>, or browse ready-made <a href="{% url 'emoji_combos' %}">emoji combos</a>.</p>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ FAQ ══ -->
+<section class="section faq-section">
+  <div class="container">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">❓ Help &amp; support</span>
+      <h2>Frequently Asked Questions</h2>
+      <p>Common questions about dot art.</p>
+    </div>
+    <div class="faq-list">
+      {% for item in faqs %}
+      <details class="faq-item animate-up" style="--delay:{{ forloop.counter0 }}0ms">
+        <summary class="faq-item__q">
+          <span>{{ item.question }}</span>
+          <span class="faq-item__chevron">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </summary>
+        <div class="faq-item__a"><p>{{ item.answer }}</p></div>
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'kitchen/js/dot_art_generator.js' %}" defer></script>
+{% endblock %}

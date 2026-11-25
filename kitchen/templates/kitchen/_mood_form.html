@@ -1,0 +1,15 @@
+<form class="mood-form" action="{{ action }}" method="get" role="search" aria-label="Find an emoji combo for your mood">
+  <label class="mood-form__label" for="{{ input_id }}">💭 Find an emoji combo according to your mood</label>
+  <div class="mood-form__row">
+    <input id="{{ input_id }}" name="mood" type="text" class="mood-form__input" value="{{ value }}" maxlength="{{ max_length }}"
+           placeholder="Explain your mood, e.g. tired but happy it's Friday" autocomplete="off" autocapitalize="sentences"
+           enterkeyhint="search" required />
+    <button type="submit" class="btn btn--primary mood-form__btn">Find my combo ✨</button>
+  </div>
+  {% if chips %}
+  <div class="mood-chips" role="group" aria-label="Or pick a mood">
+    {% for chip in chips %}<a class="mood-chip" href="{{ chip.href }}">{{ chip.icon }} {{ chip.label }}</a>
+    {% endfor %}
+  </div>
+  {% endif %}
+</form>

@@ -9,8 +9,8 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id={{ GA_MEASUREMENT_ID }}"></script>
   <script>window.dataLayer = window.dataLayer || []; function gtag(){dataLayer.push(arguments);} gtag('js', new Date()); gtag('config', '{{ GA_MEASUREMENT_ID }}');</script>
   {% endif %}
-  <title>{% block title %}Emoji Kitchen — Mix Two Emojis into One{% endblock %}</title>
-  <meta name="description" content="{% block meta_description %}Emoji Kitchen helps you mix two emojis into one custom sticker. Choose two icons, view the result, then copy or download your favourite mashup — free, fast, no sign-up.{% endblock %}" />
+  <title>{% block title %}Emoji Kitchen: Mix Two Emojis into One{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}Emoji Kitchen helps you mix two emojis into one custom sticker. Choose two icons, view the result, then copy or download your favourite mashup. Free, fast, no sign-up.{% endblock %}" />
   {% block meta_robots %}{% endblock %}
   {% block canonical %}<link rel="canonical" href="{% block canonical_href %}{{ SITE_URL }}{{ request.path }}{% endblock %}" />{% endblock %}
   <script type="application/ld+json">
@@ -58,9 +58,18 @@
           <li><a href="{% url 'emoji_combos_aesthetic' %}">✨ Aesthetic Emoji</a></li>
           <li><a href="{% url 'emoji_combos_funny' %}">😂 Funny Emoji</a></li>
           <li><a href="{% url 'emoji_combos_pink' %}">🩷 Pink Emoji</a></li>
+          <li><a href="{% url 'emoji_art_editor' %}">🎨 Emoji Art Editor</a></li>
+          <li><a href="{% url 'dot_art_generator' %}">⣿ Dot Art Generator</a></li>
         </ul>
       </li>
       <li><a href="{% url 'blog' %}">Blog</a></li>
+      <li class="nav__item nav__item--dropdown nav__item--others">
+        <button type="button" class="nav__others" id="nav-others-btn" aria-haspopup="true" aria-expanded="false" aria-controls="nav-others-menu">Others</button>
+        <ul class="nav__dropdown-menu" id="nav-others-menu" aria-labelledby="nav-others-btn">
+          <li><a href="{% url 'ready_made_emoji_combo' %}">🎭 Ready Made Emoji Combos</a></li>
+          <li><a href="{% url 'emoji_kitchen_guide' %}">📖 Emoji Kitchen Guide</a></li>
+        </ul>
+      </li>
     </ul>
     <a class="nav__cta btn btn--primary btn--sm" href="{% url 'home' %}#kitchen">
       Open Kitchen 🍳
@@ -81,7 +90,12 @@
     <a href="{% url 'emoji_combos_aesthetic' %}" class="nav__drawer-link nav__drawer-sublink" data-close-drawer>✨ Aesthetic Emoji</a>
     <a href="{% url 'emoji_combos_funny' %}" class="nav__drawer-link nav__drawer-sublink" data-close-drawer>😂 Funny Emoji</a>
     <a href="{% url 'emoji_combos_pink' %}" class="nav__drawer-link nav__drawer-sublink" data-close-drawer>🩷 Pink Emoji</a>
+    <a href="{% url 'emoji_art_editor' %}" class="nav__drawer-link nav__drawer-sublink" data-close-drawer>🎨 Emoji Art Editor</a>
+    <a href="{% url 'dot_art_generator' %}" class="nav__drawer-link nav__drawer-sublink" data-close-drawer>⣿ Dot Art Generator</a>
     <a href="{% url 'blog' %}"         class="nav__drawer-link" data-close-drawer>📝 Blog</a>
+    <span class="nav__drawer-heading">Others</span>
+    <a href="{% url 'ready_made_emoji_combo' %}" class="nav__drawer-link nav__drawer-sublink" data-close-drawer>🎭 Ready Made Emoji Combos</a>
+    <a href="{% url 'emoji_kitchen_guide' %}" class="nav__drawer-link nav__drawer-sublink" data-close-drawer>📖 Emoji Kitchen Guide</a>
   </div>
 </header>
 

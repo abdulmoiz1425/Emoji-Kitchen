@@ -1,6 +1,7 @@
 from django.contrib.sitemaps import Sitemap
 from django.urls import reverse
 
+from .combo_tags import TAG_PAGES
 from .models import BlogPost
 
 
@@ -25,7 +26,11 @@ class StaticViewSitemap(CanonicalOriginSitemap):
         'emoji_generator': 0.9,
         'emoji_keyboard': 0.9,
         'emoji_keyboard_for_pc': 0.9,
+        'emoji_art_editor': 0.8,
+        'dot_art_generator': 0.8,
+        'emoji_combos_mood': 0.8,
         'blog': 0.8,
+        'emoji_kitchen_guide': 0.7,
         'privacy': 0.3,
         'terms': 0.3,
         'contact': 0.3,
@@ -41,7 +46,11 @@ class StaticViewSitemap(CanonicalOriginSitemap):
             'emoji_generator',
             'emoji_keyboard',
             'emoji_keyboard_for_pc',
+            'emoji_art_editor',
+            'dot_art_generator',
+            'emoji_combos_mood',
             'blog',
+            'emoji_kitchen_guide',
             'privacy',
             'terms',
             'contact',
@@ -69,6 +78,7 @@ class StaticViewSitemap(CanonicalOriginSitemap):
 # Url names of the emoji combo hub and category pages, in sitemap order.
 COMBO_PAGE_URL_NAMES = (
     'emoji_combos',
+    'ready_made_emoji_combo',
     'emoji_combos_love',
     'emoji_combos_cute',
     'emoji_combos_aesthetic',
@@ -94,6 +104,7 @@ class ComboPageSitemap(CanonicalOriginSitemap):
 
     PRIORITIES = {
         'emoji_combos': 0.9,
+        'ready_made_emoji_combo': 0.9,
         'emoji_combos_love': 0.7,
         'emoji_combos_cute': 0.7,
         'emoji_combos_aesthetic': 0.7,
@@ -102,9 +113,13 @@ class ComboPageSitemap(CanonicalOriginSitemap):
     }
 
     def items(self):
-        return list(COMBO_PAGE_URL_NAMES)
+        # Fixed pages by url name, then one ('emoji_combos_tag', slug) entry per keyword page.
+        return list(COMBO_PAGE_URL_NAMES) + [('emoji_combos_tag', slug) for slug in TAG_PAGES]
 
     def location(self, item):
+        if isinstance(item, tuple):
+            name, slug = item
+            return reverse(name, kwargs={'slug': slug})
         return reverse(item)
 
     def priority(self, item):

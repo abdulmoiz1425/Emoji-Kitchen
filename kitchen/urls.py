@@ -16,7 +16,10 @@ urlpatterns = [
     path('', views.home, name='home'),
     path('emoji-maker/', views.emoji_maker, name='emoji_maker'),
     path('emoji-generator/', views.emoji_generator, name='emoji_generator'),
+    path('emoji-art-editor/', views.emoji_art_editor, name='emoji_art_editor'),
+    path('dot-art-generator/', views.dot_art_generator, name='dot_art_generator'),
     path('emoji-combos/', views.emoji_combos, name='emoji_combos'),
+    path('ready-made-emoji-combo/', views.ready_made_emoji_combo, name='ready_made_emoji_combo'),
     path('emoji-combos/love/', views.emoji_combos_love, name='emoji_combos_love'),
     path('emoji-combos/cute/', views.emoji_combos_cute, name='emoji_combos_cute'),
     path('emoji-combos/aesthetic/', views.emoji_combos_aesthetic, name='emoji_combos_aesthetic'),
@@ -28,6 +31,10 @@ urlpatterns = [
     path('emoji-combos/bio/', views.emoji_combos_category, {'slug': 'bio'}, name='emoji_combos_bio'),
     path('emoji-combos/dark/', views.emoji_combos_category, {'slug': 'dark'}, name='emoji_combos_dark'),
     path('emoji-combos/christmas/', views.emoji_combos_category, {'slug': 'christmas'}, name='emoji_combos_christmas'),
+    path('emoji-combos/search/', views.emoji_combos_search, name='emoji_combos_search'),
+    path('emoji-combos/mood/', views.emoji_combos_mood, name='emoji_combos_mood'),
+    # Keyword pages. Every fixed page above is matched first; a slug that is not a known keyword is a 404.
+    path('emoji-combos/<slug:slug>/', views.emoji_combos_tag, name='emoji_combos_tag'),
     path('emoji-keyboard/', views.emoji_keyboard, name='emoji_keyboard'),
     path('emoji-keyboard-for-pc/', views.emoji_keyboard_for_pc, name='emoji_keyboard_for_pc'),
     path('robots.txt', views.robots_txt, name='robots_txt'),
@@ -39,6 +46,7 @@ urlpatterns = [
     path('disclaimer/', views.disclaimer, name='disclaimer'),
     path('about-us/', views.about, name='about'),
     path('cookie-policy/', views.cookie_policy, name='cookie_policy'),
+    path('emoji-kitchen-guide/', views.emoji_kitchen_guide, name='emoji_kitchen_guide'),
     path('blog/', views.blog, name='blog'),
     # Exact legacy blog path must come before blog/<slug>/ or it 404s as a missing post.
     path(
@@ -48,6 +56,7 @@ urlpatterns = [
     ),
     path('blog/<slug:slug>/', views.blog_detail, name='blog_detail'),
     path('api/combo/', views.get_combo, name='get_combo'),
+    path('api/sticker/', views.get_sticker, name='get_sticker'),
     path('api/combos-for/', views.get_combos_for_emoji, name='get_combos_for_emoji'),
     path('api/supported-emojis/', views.get_supported_emojis, name='get_supported_emojis'),
     path('api/random-combo/', views.get_random_combo, name='get_random_combo'),

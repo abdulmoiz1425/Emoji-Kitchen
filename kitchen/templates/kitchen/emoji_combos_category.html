@@ -171,7 +171,7 @@
         .then(() => {
           btn.textContent = '✅ Copied!';
           setTimeout(() => { btn.textContent = '📋 Copy'; }, 1800);
-          if (window.showToast) window.showToast('Copied ✓ — paste it anywhere!', '{{ page.badge|slice:":1" }}');
+          if (window.showToast) window.showToast('Copied! Paste it anywhere.', '{{ page.badge|slice:":1" }}');
         })
         .catch(() => fallback(combo, btn));
     } else {

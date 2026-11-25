@@ -199,7 +199,7 @@ function renderCombos() {
   combos.forEach((combo, idx) => {
     const card = document.createElement('div');
     card.className = 'combo-card';
-    card.setAttribute('title', `${combo.emoji1} + ${combo.emoji2} — click to reload`);
+    card.setAttribute('title', `${combo.emoji1} + ${combo.emoji2} (click to reload)`);
 
     card.innerHTML = `
       <button class="combo-card__del" aria-label="Remove combo" title="Remove">×</button>
@@ -339,7 +339,7 @@ function renderGrid(panel, emojis) {
     msg.className = 'picker__empty';
     const isRecent = getActiveTab(panel) === 'Recent';
     msg.textContent = isRecent
-      ? 'No recent emojis yet — pick one!'
+      ? 'No recent emojis yet. Pick one!'
       : 'No emojis match your search.';
     grid.appendChild(msg);
     return;
@@ -507,7 +507,7 @@ async function loadAllCombosFor(emoji) {
     if (slot1Emoji === emoji) setStatus(`Could not check which emojis work with ${emoji}. Please try again.`, 'error');
     // Stay in gallery view — show error inside gallery, not in result box
     galleryLoadingEl.style.display = 'none';
-    comboGalleryGrid.innerHTML = '<p class="picker__empty">Could not load combos — try again.</p>';
+    comboGalleryGrid.innerHTML = '<p class="picker__empty">Could not load combos. Try again.</p>';
   }
 }
 
@@ -531,7 +531,7 @@ function showCombosGallery(combos) {
   combos.forEach(({ emoji2, url }) => {
     const card = document.createElement('button');
     card.className = 'gallery-card';
-    card.title = `${slot1Emoji} + ${emoji2} — click to select`;
+    card.title = `${slot1Emoji} + ${emoji2} (click to select)`;
     card.setAttribute('aria-label', `Combo: ${slot1Emoji} + ${emoji2}`);
 
     const img = document.createElement('img');
@@ -696,7 +696,7 @@ async function cookCombo() {
       showState('error');
       setStatus(`${first} + ${second} has no sticker.`, 'error');
       offerAlternativesForPair(first, second);
-      window.showToast("Combo not found — try another pair!", '😕', true);
+      window.showToast("Combo not found. Try another pair!", '😕', true);
     }
   } catch (err) {
     if (id !== cookToken) return;
@@ -805,7 +805,7 @@ async function handleSurprise(retriesLeft = 3) {
   } catch (err) {
     console.error('Surprise failed:', err);
     showState('error');
-    window.showToast('Could not load a combo — try again!', '⚠️', true);
+    window.showToast('Could not load a combo. Try again!', '⚠️', true);
   } finally {
     btnSurprise.disabled = false;
   }
@@ -832,58 +832,244 @@ btnReset.addEventListener('click', () => {
   showState('idle');
 });
 
-// ── Download ──────────────────────────────────────────────────────────────
-btnDownload.addEventListener('click', async () => {
-  if (!comboUrl) return;
+// ── Sticker: download, copy and send ──────────────────────────────────────
+// The server builds the sticker (512 × 512, see-through background, white outline, grey edge and soft shadow).
+// WebP is the format sticker apps import; PNG is what chats accept when an image is pasted or shared.
+const btnDownloadPng   = document.getElementById('btn-download-png');
+const btnDownloadLabel = document.getElementById('btn-download-label');
+const btnCopyLabel     = document.getElementById('btn-copy-label');
+const btnSend          = document.getElementById('btn-send');
+const btnSendLabel     = document.getElementById('btn-send-label');
+
+// Anonymous usage counts (which button, and whether it worked) so the owner can see how stickers are used.
+// Only the action and its outcome are sent: never the emojis, and nothing the visitor typed.
+function trackSticker(action, outcome) {
+  try {
+    if (typeof window.gtag === 'function') window.gtag('event', `sticker_${action}`, { outcome });
+  } catch (err) { /* analytics must never break the page */ }
+}
+
+async function fetchSticker(format) {
+  const first = slot1Emoji;
+  const second = slot2Emoji;
+  if (!first || !second) throw new Error('No pair selected');
+  const params = new URLSearchParams({ emoji1: first, emoji2: second, format });
+  // The version changes whenever the sticker's look does, so a browser never reuses an outdated cached sticker.
+  if (btnDownload.dataset.stickerVersion) params.set('v', btnDownload.dataset.stickerVersion);
+  const res = await fetch(`/api/sticker/?${params}`);
+  if (!res.ok) throw new Error(`Sticker request failed (${res.status})`);
+  const match = (res.headers.get('Content-Disposition') || '').match(/filename="([^"]+)"/);
+  return { blob: await res.blob(), filename: match ? match[1] : `emoji-kitchen-sticker.${format}` };
+}
+
+function saveBlob(blob, filename) {
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = filename;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+}
+
+async function savePlainImage() {
   try {
     const res = await fetch(comboUrl, { mode: 'cors' });
     if (!res.ok) throw new Error('Image fetch failed');
-    const blob = await res.blob();
-    const objectUrl = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = objectUrl;
-    link.download = 'emoji_mashup.png';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(objectUrl);
+    saveBlob(await res.blob(), 'emoji_mashup.png');
     window.showToast('Downloading your mashup!', '⬇️');
   } catch (err) {
     console.error('Download failed, opening image:', err);
     window.open(comboUrl, '_blank', 'noopener');
-    window.showToast('Opened the image — long-press or save it from there', '⬇️', true);
+    window.showToast('Opened the image. Long-press it to save.', '⬇️', true);
   }
-});
+}
 
-// ── Copy mashup image ────────────────────────────────────────────────────
+// Download: WebP is the default; the PNG link is for apps that do not take WebP. If the sticker service is
+// unavailable, the plain mashup image is saved instead so the visitor still gets a file.
+async function downloadSticker(format) {
+  if (!comboUrl) return;
+  if (!slot1Emoji || !slot2Emoji) {
+    await savePlainImage();
+    trackSticker('download', 'fallback_image');
+    return;
+  }
+
+  const idleLabel = btnDownloadLabel ? btnDownloadLabel.textContent : '';
+  btnDownload.disabled = true;                       // also disables the PNG link, so a second tap cannot start another
+  if (btnDownloadLabel) btnDownloadLabel.textContent = 'Making image…';
+  try {
+    const { blob, filename } = await fetchSticker(format);
+    saveBlob(blob, filename);
+    window.showToast(format === 'png' ? 'Image saved as PNG!' : 'Image saved!', '⬇️');
+    trackSticker('download', format);
+  } catch (err) {
+    console.error('Sticker download failed, saving the plain image:', err);
+    window.showToast('Sticker service unavailable. Saving the image instead.', '⚠️', true);
+    await savePlainImage();
+    trackSticker('download', 'fallback_image');
+  } finally {
+    if (btnDownloadLabel) btnDownloadLabel.textContent = idleLabel;
+    btnDownload.disabled = !comboUrl;                // a Reset during the download must not leave it enabled
+  }
+}
+
+btnDownload.addEventListener('click', () => downloadSticker('webp'));
+
+if (btnDownloadPng) {
+  // The PNG link follows the main button: enabled only when there is a result to download.
+  const mirrorDisabled = () => { btnDownloadPng.disabled = btnDownload.disabled; };
+  new MutationObserver(mirrorDisabled).observe(btnDownload, { attributes: true, attributeFilter: ['disabled'] });
+  mirrorDisabled();
+  btnDownloadPng.addEventListener('click', () => downloadSticker('png'));
+}
+
+// Send: opens the phone's share menu with the sticker attached, so it can go to any app.
+// A phone only opens its share menu straight after a tap, so a build that starts after the tap can be refused.
+// The sticker is therefore prepared quietly a moment after a result appears, and the tap shares a file that is ready.
+const PREFETCH_DELAY_MS = 700;                       // skip pairs the visitor is only flicking past
+const readyStickerFiles = new Map();                 // "emoji|emoji" -> File
+const pendingStickerFiles = new Map();               // "emoji|emoji" -> Promise<File>
+let prefetchTimer = null;
+
+const stickerPairKey = () => `${slot1Emoji}|${slot2Emoji}`;
+
+// Can this browser share a file of this type? An empty file of that type is enough to ask.
+function canShareType(type, name) {
+  try {
+    if (typeof navigator.share !== 'function' || typeof navigator.canShare !== 'function') return false;
+    return navigator.canShare({ files: [new File([''], name, { type })] });
+  } catch (err) {
+    return false;
+  }
+}
+
+const canShareFiles = () => canShareType('image/png', 'sticker.png');
+
+// WebP is the sticker format: Telegram treats a WebP file as a sticker and sticker apps expect it, while chat apps
+// treat a PNG as a photo. So the sticker is shared as WebP wherever the browser allows it, and as PNG everywhere else.
+const stickerShareFormat = canShareType('image/webp', 'sticker.webp') ? 'webp' : 'png';
+
+function prepareStickerFile() {
+  if (!slot1Emoji || !slot2Emoji) return null;
+  const key = stickerPairKey();
+  if (readyStickerFiles.has(key)) return Promise.resolve(readyStickerFiles.get(key));
+  if (pendingStickerFiles.has(key)) return pendingStickerFiles.get(key);
+  const promise = fetchSticker(stickerShareFormat)
+    .then(({ blob }) => {
+      const file = new File([blob], `emoji-kitchen-sticker.${stickerShareFormat}`, { type: `image/${stickerShareFormat}` });
+      readyStickerFiles.set(key, file);
+      if (readyStickerFiles.size > 8) readyStickerFiles.delete(readyStickerFiles.keys().next().value);
+      return file;
+    })
+    .finally(() => pendingStickerFiles.delete(key));
+  pendingStickerFiles.set(key, promise);
+  return promise;
+}
+
+async function sendSticker() {
+  if (!comboUrl) return;
+  let file = readyStickerFiles.get(stickerPairKey());
+  const wasReady = Boolean(file);
+  const idleLabel = btnSendLabel ? btnSendLabel.textContent : '';
+  try {
+    if (!file) {
+      btnSend.disabled = true;
+      if (btnSendLabel) btnSendLabel.textContent = 'Preparing…';
+      file = await prepareStickerFile();
+    }
+    if (!navigator.canShare({ files: [file] })) throw new Error('This device cannot share that file');
+    await navigator.share({ files: [file] });
+    trackSticker('send', 'shared');
+  } catch (err) {
+    if (err && err.name === 'AbortError') {          // the visitor closed the share menu
+      trackSticker('send', 'cancelled');
+      return;
+    }
+    if (err && err.name === 'NotAllowedError' && !wasReady) {
+      // The file took a moment to build, so the phone no longer counted this as a tap. It is ready now.
+      window.showToast('Your image is ready. Tap Send image again.', '✅');
+      trackSticker('send', 'not_ready');
+      return;
+    }
+    console.error('Could not open the share menu, downloading instead:', err);
+    window.showToast("Couldn't open the share menu. Downloading the image instead.", '⚠️', true);
+    trackSticker('send', 'download_fallback');
+    await downloadSticker(stickerShareFormat);
+  } finally {
+    if (btnSendLabel) btnSendLabel.textContent = idleLabel;
+    btnSend.disabled = !comboUrl;
+  }
+}
+
+if (btnSend && canShareFiles()) {
+  btnSend.hidden = false;                            // only shown where the browser can share files
+  const scheduleStickerPrefetch = () => {
+    clearTimeout(prefetchTimer);
+    if (btnDownload.disabled) return;
+    prefetchTimer = setTimeout(() => {
+      const preparing = prepareStickerFile();
+      if (preparing) preparing.catch(() => {});      // a failed background build is retried when the visitor taps
+    }, PREFETCH_DELAY_MS);
+  };
+  const syncSend = () => {
+    btnSend.disabled = btnDownload.disabled;
+    scheduleStickerPrefetch();
+  };
+  new MutationObserver(syncSend).observe(btnDownload, { attributes: true, attributeFilter: ['disabled'] });
+  // Every new result swaps the result image. Loading a saved combo does that without toggling the buttons,
+  // so watching the image as well means that pair's sticker is prepared too.
+  if (resultImg) new MutationObserver(scheduleStickerPrefetch).observe(resultImg, { attributes: true, attributeFilter: ['src'] });
+  syncSend();
+  btnSend.addEventListener('click', sendSticker);
+}
+
+// ── Copy the image ────────────────────────────────────────────────────────
+// Pastes into chats that accept images. The finished image (with its outline) is copied. If the image service
+// is down, the plain mashup image is copied instead. The two emojis are never copied as text: the button only
+// ever puts a picture on the clipboard, and says so plainly when the browser cannot do that.
+// Browsers only allow image copying on https pages (and localhost), so a phone opening a plain http address
+// gets the explanation below instead of a silent text copy.
 btnCopy.addEventListener('click', async () => {
   if (!comboUrl) return;
+  const idleLabel = btnCopyLabel ? btnCopyLabel.textContent : '';
 
-  if (navigator.clipboard?.write && window.ClipboardItem) {
-    try {
-      await navigator.clipboard.write([
-        new ClipboardItem({
-          'image/png': fetch(comboUrl, { mode: 'cors' }).then(res => {
-            if (!res.ok) throw new Error('Image fetch failed');
-            return res.blob();
-          }),
-        }),
-      ]);
-      window.showToast('Mashup copied — paste it anywhere!', '✅');
-      return;
-    } catch (err) {
-      console.error('Image copy failed, falling back to text:', err);
+  if (!(navigator.clipboard?.write && window.ClipboardItem)) {
+    if (window.isSecureContext === false) {
+      window.showToast('Copying an image needs a secure (https) page. Use Download image instead.', '⚠️', true);
+      trackSticker('copy', 'needs_https');
+    } else {
+      window.showToast("This browser can't copy images. Use Download image instead.", '⚠️', true);
+      trackSticker('copy', 'unsupported');
     }
+    return;
   }
 
-  // Fallback for browsers without image-clipboard support
-  const text = slot1Emoji + slot2Emoji;
-  if (navigator.clipboard?.writeText) {
-    navigator.clipboard.writeText(text)
-      .then(() => window.showToast(`Image copy isn't supported here — copied ${text} instead`, '⚠️', true))
-      .catch(() => fallbackCopy(text));
-  } else {
-    fallbackCopy(text);
+  let copied = 'sticker';
+  // The promise is created inside the tap (Safari needs that) and the clipboard waits for it to finish.
+  const pngBlob = fetchSticker('png')
+    .then(({ blob }) => blob)
+    .catch(async err => {
+      console.error('Image copy failed, copying the plain image:', err);
+      copied = 'plain_image';
+      const res = await fetch(comboUrl, { mode: 'cors' });
+      if (!res.ok) throw new Error('Image fetch failed');
+      return res.blob();
+    });
+  btnCopy.disabled = true;
+  if (btnCopyLabel) btnCopyLabel.textContent = 'Copying…';
+  try {
+    await navigator.clipboard.write([new ClipboardItem({ 'image/png': pngBlob })]);
+    window.showToast('Image copied. Paste it into a chat!', '✅');
+    trackSticker('copy', copied);
+  } catch (err) {
+    console.error('Image copy failed:', err);
+    window.showToast("Couldn't copy the image. Use Download image instead.", '⚠️', true);
+    trackSticker('copy', 'failed');
+  } finally {
+    if (btnCopyLabel) btnCopyLabel.textContent = idleLabel;
+    btnCopy.disabled = !comboUrl;
   }
 });
 
@@ -895,9 +1081,9 @@ function fallbackCopy(text) {
   ta.select();
   try {
     document.execCommand('copy');
-    window.showToast(`${text} copied — paste anywhere!`, '✅');
+    window.showToast(`${text} copied. Paste it anywhere!`, '✅');
   } catch {
-    window.showToast('Copy failed — try selecting the emojis manually', '⚠️', true);
+    window.showToast('Copy failed. Try selecting the emojis manually.', '⚠️', true);
   }
   document.body.removeChild(ta);
 }

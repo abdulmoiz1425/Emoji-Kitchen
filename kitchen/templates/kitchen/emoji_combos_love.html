@@ -781,7 +781,7 @@
     });
 
     if (!visible.length) {
-      grid.innerHTML = '<div class="combo-empty">No combos found — try a different search or category.</div>';
+      grid.innerHTML = '<div class="combo-empty">No combos found. Try a different search or category.</div>';
       return;
     }
 
@@ -801,7 +801,7 @@
             .then(() => {
               btn.textContent = '✅ Copied!';
               setTimeout(() => { btn.textContent = '📋 Copy'; }, 1800);
-              if (window.showToast) window.showToast('Copied — paste it anywhere!', '💕');
+              if (window.showToast) window.showToast('Copied! Paste it anywhere.', '💕');
             })
             .catch(() => fallback(combo, btn));
         } else {

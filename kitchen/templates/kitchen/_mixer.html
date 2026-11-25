@@ -86,17 +86,21 @@
             <img id="result-img" class="mixer__result-img" hidden alt="Emoji mashup result" title="Your emoji mashup" />
             <div id="result-error" class="result-state" hidden>
               <span class="result-state__icon">😕</span>
-              <span class="result-state__label">No combo found —<br>try another pair!</span>
+              <span class="result-state__label">No combo found.<br>Try another pair!</span>
             </div>
           </div>
           <div class="cook__actions">
-            <button class="btn btn--outline btn--sm" id="btn-copy" disabled title="Copy emojis as text">
+            <button class="btn btn--outline btn--sm" id="btn-copy" disabled title="Copy the image, then paste it into a chat">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              Copy
+              <span id="btn-copy-label">Copy image</span>
             </button>
-            <button class="btn btn--primary btn--sm" id="btn-download" disabled title="Download mashup as PNG">
+            <button class="btn btn--primary btn--sm" id="btn-download" data-sticker-version="2" disabled title="Download the image: 512 × 512 WebP with a see-through background">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-              Download
+              <span id="btn-download-label">Download image</span>
+            </button>
+            <button class="btn btn--outline btn--sm" id="btn-send" hidden disabled title="Send the image to WhatsApp, Telegram or any other app">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+              <span id="btn-send-label">Send image</span>
             </button>
             <button class="btn btn--outline btn--sm" id="btn-share" disabled title="Copy a shareable link to this combo">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
@@ -104,6 +108,8 @@
             </button>
             <button class="btn btn--ghost btn--sm" id="btn-reset" title="Clear selection">↺ Reset</button>
           </div>
+          <p class="cook__dlnote">Saved as a 512 × 512 image with a see-through background and a white outline. It also works in WhatsApp and Telegram sticker apps. <strong>Copy image</strong> pastes it into a chat.
+            <button type="button" class="linklike" id="btn-download-png" disabled>Need a PNG instead?</button></p>
         </div>
 
         <!-- RIGHT PICKER -->
@@ -131,7 +137,7 @@
           <span class="my-combos__count" id="combos-count">0</span>
         </div>
         <div class="my-combos__header-actions">
-          <p class="my-combos__hint">Saved favourites and recent mixes — click one to reload it. Share copies a link with both emojis.</p>
+          <p class="my-combos__hint">Saved favourites and recent mixes. Click one to reload it. Share copies a link with both emojis.</p>
           <button class="btn btn--ghost btn--sm" id="btn-clear-combos">Clear all</button>
         </div>
       </div>

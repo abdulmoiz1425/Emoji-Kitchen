@@ -1,0 +1,158 @@
+{% extends 'kitchen/base.html' %}
+{% load static %}
+
+{% block title %}Emoji Art Maker: Draw and Copy Emoji Art Online{% endblock %}
+{% block meta_description %}Draw emoji art on a grid with this free online editor. Pick emojis, fill and erase, undo, crop, then copy the art as text to paste in any chat.{% endblock %}
+{% block canonical_href %}{{ canonical_url }}{% endblock %}
+
+{% block extra_head %}
+{% include "kitchen/_social_meta.html" with page_title="Emoji Art Maker: Draw and Copy Emoji Art Online" page_description="Draw emoji art on a grid with this free online editor. Pick emojis, fill and erase, undo, crop, then copy the art as text to paste in any chat." page_url=canonical_url %}
+{% endblock %}
+
+{% block content %}
+
+<!-- ══════════════════════════════════════════════════════════ INTRO ══ -->
+<section class="section" style="padding-bottom:0">
+  <div class="container container--narrow">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">🎨 Emoji Art Editor</span>
+      <h1>Make Emoji Art</h1>
+      <p>Draw a picture out of emojis on a grid, then copy it as text and paste it into a bio, a caption or a chat. Pick an emoji, click or drag across the grid, and use undo, fill, crop and padding to tidy it up.</p>
+      <p>The editor runs in your browser, so nothing you draw is uploaded. Want ready-made sets instead? Browse <a href="{% url 'emoji_combos' %}">emoji combos</a>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════════════ EDITOR ══ -->
+<section class="section" id="ea-tool" style="padding-top:28px;padding-bottom:0">
+  <div class="container">
+    <div class="tool-panel animate-up" id="ea-app">
+      <div class="tool-panel__header">
+        <span class="tool-panel__title">🎨 Draw with emojis</span>
+        <span class="tool-status" id="ea-status" role="status" aria-live="polite"></span>
+      </div>
+
+      <div class="ea-layout">
+        <div class="ea-side">
+          <div class="ea-brushrow">
+            <span class="ea-label">Brush</span>
+            <span class="ea-brush" id="ea-brush" aria-live="polite"></span>
+            <input type="text" id="ea-custom" class="combo-search" maxlength="16" placeholder="Type or paste an emoji" aria-label="Type or paste an emoji to use as the brush" autocomplete="off" />
+          </div>
+
+          <div class="combo-filter" id="ea-tabs" role="tablist" aria-label="Emoji groups"></div>
+          <div class="ea-palette" id="ea-palette"></div>
+
+          <div class="ea-group" role="group" aria-label="Tools">
+            <span class="ea-label">Tool</span>
+            <button type="button" class="combo-filter__btn active" data-ea-tool="draw" aria-pressed="true">✏️ Draw</button>
+            <button type="button" class="combo-filter__btn" data-ea-tool="erase" aria-pressed="false">🧽 Erase</button>
+            <button type="button" class="combo-filter__btn" data-ea-tool="fill" aria-pressed="false">🪣 Fill</button>
+          </div>
+
+          <div class="ea-group" role="group" aria-label="Edit">
+            <button type="button" class="btn btn--outline btn--sm" data-ea-action="undo">↶ Undo</button>
+            <button type="button" class="btn btn--outline btn--sm" data-ea-action="redo">↷ Redo</button>
+            <button type="button" class="btn btn--outline btn--sm" data-ea-action="clear">Clear / new</button>
+            <button type="button" class="btn btn--outline btn--sm" data-ea-action="crop">Crop to fit</button>
+            <button type="button" class="btn btn--outline btn--sm" data-ea-action="pad">Add padding</button>
+            <button type="button" class="btn btn--outline btn--sm" data-ea-action="zoom-out" aria-label="Zoom out">🔎−</button>
+            <button type="button" class="btn btn--outline btn--sm" data-ea-action="zoom-in" aria-label="Zoom in">🔎+</button>
+          </div>
+
+          <div class="ea-group">
+            <label class="ea-label" for="ea-cols">Columns</label>
+            <input type="number" id="ea-cols" class="ea-num" min="4" max="40" value="16" />
+            <label class="ea-label" for="ea-rows">Rows</label>
+            <input type="number" id="ea-rows" class="ea-num" min="4" max="40" value="12" />
+            <label class="ea-label" for="ea-empty">Empty cell</label>
+            <select id="ea-empty" class="ea-select">
+              <option value="⬜" selected>⬜ white square</option>
+              <option value="⬛">⬛ black square</option>
+              <option value="　">wide space</option>
+              <option value="▫️">▫️ small square</option>
+            </select>
+          </div>
+
+          <div class="ea-group" role="group" aria-label="Output">
+            <button type="button" class="btn btn--primary btn--sm" data-ea-action="copy">📋 Copy</button>
+            <button type="button" class="btn btn--outline btn--sm" data-ea-action="txt">💾 Download .txt</button>
+            <button type="button" class="btn btn--outline btn--sm" data-ea-action="png">🖼️ Download PNG</button>
+            <button type="button" class="btn btn--outline btn--sm" data-ea-action="import">📥 Import</button>
+          </div>
+
+          <div class="ea-import" id="ea-import-box" hidden>
+            <label class="ea-label" for="ea-import-text">Paste emoji art (one row per line)</label>
+            <textarea id="ea-import-text" class="ea-textarea" rows="5" placeholder="Paste emoji art here"></textarea>
+            <div class="ea-group">
+              <button type="button" class="btn btn--primary btn--sm" data-ea-action="import-apply">Load into grid</button>
+              <label class="btn btn--outline btn--sm ea-filebtn">Open a .txt file<input type="file" id="ea-import-file" accept=".txt,text/plain" hidden /></label>
+              <button type="button" class="btn btn--outline btn--sm" data-ea-action="import-close">Close</button>
+            </div>
+          </div>
+
+          <p class="ea-tip">Tip: hold <kbd>Ctrl</kbd> (or <kbd>Cmd</kbd>) and click a filled cell to pick up that emoji.</p>
+        </div>
+
+        <div class="ea-stage">
+          <div class="ea-grid" id="ea-grid" aria-label="Emoji drawing grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════════════════════════════════════ ARTICLE BODY ══ -->
+<section class="section" style="padding-top:40px">
+  <div class="container container--narrow">
+    <div class="blog-detail__content">
+
+      <h2>How to Make Emoji Art</h2>
+      <ol>
+        <li>Choose an emoji from the palette, or type or paste any emoji into the brush box.</li>
+        <li>Click or drag across the grid to draw. Use <strong>Fill</strong> to color a whole area and <strong>Erase</strong> to clear cells.</li>
+        <li>Use <strong>Undo</strong> if you slip, and <strong>Crop to fit</strong> to trim empty space around the drawing.</li>
+        <li>Press <strong>Copy</strong>, then paste into your app. Each grid row becomes one line of text.</li>
+      </ol>
+
+      <h2>Tips for Cleaner Emoji Art</h2>
+      <p>Use a background emoji such as ⬜ or ⬛ for empty cells so the lines stay aligned after pasting. Keep to a few colors and fill large areas first, then add details on top.</p>
+      <p>Smaller grids paste more reliably. If an app wraps long lines, reduce the number of columns or paste into a place that does not reflow text.</p>
+
+      <h2>What You Can Do With It</h2>
+      <p>Emoji art works as a bio banner, a caption divider, a pixel-style logo or a message that stands out in a group chat. You can also import art you copied earlier, edit it, and copy it again.</p>
+      <p>For short, ready-to-paste sets, see the <a href="{% url 'emoji_combos' %}">emoji combos</a> collection. To turn a picture into text art, try the <a href="{% url 'dot_art_generator' %}">dot art generator</a>. To blend two emojis into one sticker, open <a href="{% url 'home' %}#kitchen">Emoji Kitchen</a>.</p>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ FAQ ══ -->
+<section class="section faq-section">
+  <div class="container">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">❓ Help &amp; support</span>
+      <h2>Frequently Asked Questions</h2>
+      <p>Common questions about making emoji art.</p>
+    </div>
+    <div class="faq-list">
+      {% for item in faqs %}
+      <details class="faq-item animate-up" style="--delay:{{ forloop.counter0 }}0ms">
+        <summary class="faq-item__q">
+          <span>{{ item.question }}</span>
+          <span class="faq-item__chevron">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </summary>
+        <div class="faq-item__a"><p>{{ item.answer }}</p></div>
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{% static 'kitchen/js/emoji_art_editor.js' %}" defer></script>
+{% endblock %}

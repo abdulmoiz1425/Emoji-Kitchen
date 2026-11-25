@@ -31,7 +31,11 @@ def _host_list(raw):
 
 if DEBUG:
     SECRET_KEY = os.environ.get('DJANGO_SECRET_KEY') or _DEV_SECRET_KEY
-    ALLOWED_HOSTS = ['localhost', '127.0.0.1']
+    # Optional extra hosts for testing on a phone over the local network,
+    # e.g. DJANGO_ALLOWED_HOSTS=192.168.1.13. Production (DEBUG false) is unaffected.
+    ALLOWED_HOSTS = ['localhost', '127.0.0.1'] + [
+        host for host in _host_list(os.environ.get('DJANGO_ALLOWED_HOSTS')) if host != '*'
+    ]
 else:
     SECRET_KEY = (os.environ.get('DJANGO_SECRET_KEY') or '').strip()
     if not SECRET_KEY:

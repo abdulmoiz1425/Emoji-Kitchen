@@ -51,6 +51,34 @@ document.querySelectorAll('[data-close-drawer]').forEach(link => {
   });
 });
 
+// ── "Others" dropdown ─────────────────────────────────────────────────────
+// Opens on hover with the mouse (pure CSS), and on click / Enter / Space for touch screens and keyboards.
+const othersItem = document.querySelector('.nav__item--others');
+const othersBtn  = document.getElementById('nav-others-btn');
+
+function setOthersOpen(open) {
+  if (!othersItem || !othersBtn) return;
+  othersItem.classList.toggle('is-open', open);
+  othersBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+
+if (othersItem && othersBtn) {
+  othersBtn.addEventListener('click', () => setOthersOpen(!othersItem.classList.contains('is-open')));
+  othersItem.addEventListener('mouseenter', () => othersBtn.setAttribute('aria-expanded', 'true'));
+  othersItem.addEventListener('mouseleave', () => {
+    if (!othersItem.classList.contains('is-open')) othersBtn.setAttribute('aria-expanded', 'false');
+  });
+  document.addEventListener('click', e => {
+    if (!othersItem.contains(e.target)) setOthersOpen(false);
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && othersItem.classList.contains('is-open')) {
+      setOthersOpen(false);
+      othersBtn.focus();
+    }
+  });
+}
+
 // ── Sticky nav shadow ─────────────────────────────────────────────────────
 const siteHeader = document.getElementById('site-header');
 window.addEventListener('scroll', () => {

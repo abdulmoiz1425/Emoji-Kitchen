@@ -22,10 +22,13 @@ from emoji_kitchen.envfile import load_env
 
 from . import blog_content, blog_updates, explore
 
+from .combo_tags import RESERVED_SLUGS, TAG_PAGES
 from .models import BlogPost
 from .sitemaps import ComboPageSitemap, StaticViewSitemap
 
 PC = '/emoji-keyboard-for-pc/'
+READY_MADE = '/ready-made-emoji-combo/'   # holds the content that used to be on /emoji-combos/
+TAG_PATHS = [f'/emoji-combos/{slug}/' for slug in TAG_PAGES]   # keyword pages (kitchen/combo_tags.py)
 WHATSAPP_URL = 'https://whatsapp.com/channel/0029VbELF1pCXC3RhJFkUm25'
 POST_SLUGS = [
     'emoji-kitchen-iphone',
@@ -54,7 +57,7 @@ MORE_COMBOS = [
     '/emoji-combos/christmas/',
 ]
 LEGAL = ['/about-us/', '/contact/', '/privacy/', '/terms/', '/disclaimer/', '/cookie-policy/']
-ALL_PAGES = HUBS + [PC] + COMBOS + MORE_COMBOS + ['/blog/'] + POSTS + LEGAL
+ALL_PAGES = HUBS + [READY_MADE, PC] + COMBOS + MORE_COMBOS + ['/blog/'] + POSTS + LEGAL
 WEAK_ANCHORS = {'click here', 'read more', 'here', 'more', 'learn more'}
 # Some page copy links with the full address, so those count as internal too.
 SITE_HOSTS = {'testserver', 'emojikitchenhub.com', 'www.emojikitchenhub.com'}
@@ -268,9 +271,10 @@ class SitemapTests(PageTestCase):
 
     def test_counts_and_drafts(self):
         locs = self.locations()
-        self.assertEqual(len(StaticViewSitemap().items()), 12)
-        self.assertEqual(len(ComboPageSitemap().items()), 12)   # hub + 5 older + 6 category pages
-        self.assertEqual(len(locs), 12 + 12 + len(POST_SLUGS))
+        self.assertEqual(len(StaticViewSitemap().items()), 16)   # 12 pages + art editor + dot art generator + mood finder + guide
+        # hub + ready made + 5 older + 6 category pages + one page per keyword
+        self.assertEqual(len(ComboPageSitemap().items()), 13 + len(TAG_PAGES))
+        self.assertEqual(len(locs), 16 + 13 + len(TAG_PAGES) + len(POST_SLUGS))
         self.assertFalse(any('hidden-draft' in l for l in locs))
 
     def test_every_sitemap_url_is_clean(self):
@@ -338,7 +342,7 @@ class InternalLinkTests(PageTestCase):
             )
 
     def test_new_page_receives_body_links_from_five_pages(self):
-        for source in ['/', '/emoji-keyboard/', '/emoji-combos/', '/emoji-maker/', '/emoji-generator/']:
+        for source in ['/', '/emoji-keyboard/', READY_MADE, '/emoji-maker/', '/emoji-generator/']:
             self.assertIn(PC, self.body_links(source), f'{source} does not link to {PC}')
 
     def test_new_page_sends_body_links_to_the_blog_posts_and_the_keyboard_page(self):
@@ -355,7 +359,7 @@ class InternalLinkTests(PageTestCase):
         self.assertEqual(self.body_links('/emoji-keyboard/')[PC], ['windows emoji keyboard'])
         self.assertEqual(self.body_links('/emoji-generator/')[PC], ['emoji keyboard shortcut'])
         self.assertEqual(self.body_links('/emoji-maker/')[PC], ['emoji keyboard for pc'])
-        self.assertEqual(self.body_links('/emoji-combos/')[PC], ['emoji keyboard for pc guide'])
+        self.assertEqual(self.body_links(READY_MADE)[PC], ['emoji keyboard for pc guide'])
 
     def test_required_anchor_texts_for_outgoing_links(self):
         links = self.body_links(PC)
@@ -363,7 +367,7 @@ class InternalLinkTests(PageTestCase):
         self.assertEqual(links['/blog/emoji-kitchen-whatsapp/'], ['emoji kitchen whatsapp'])
 
     def test_each_page_links_to_the_new_page_only_once(self):
-        for source in ['/', '/emoji-keyboard/', '/emoji-combos/', '/emoji-maker/', '/emoji-generator/']:
+        for source in ['/', '/emoji-keyboard/', READY_MADE, '/emoji-maker/', '/emoji-generator/']:
             self.assertEqual(len(self.body_links(source)[PC]), 1, f'{source} links to {PC} more than once')
 
     def test_more_than_three_incoming_and_outgoing_internal_links(self):
@@ -374,7 +378,7 @@ class InternalLinkTests(PageTestCase):
 
     def test_closing_sentence_has_no_links(self):
         html = self.fetch(PC)
-        sentence = ('Merge two emojis into one unique image using Emoji Kitchen — free, no sign-up required. '
+        sentence = ('Merge two emojis into one unique image using Emoji Kitchen. It is free and needs no sign-up. '
                     'You can also use the emoji maker, the emoji generator, or browse emoji combos to copy and paste.')
         self.assertIn(f'<p>{sentence}</p>', html)  # plain text, no <a> inside the paragraph
         # the button below it is unchanged
@@ -387,7 +391,7 @@ class InternalLinkTests(PageTestCase):
             return 'color:var(--accent-dk)' in style and 'underline' not in style
 
         # 1. incoming links: the one link on each source page that points to the PC page
-        for source in ['/', '/emoji-keyboard/', '/emoji-combos/', '/emoji-maker/', '/emoji-generator/']:
+        for source in ['/', '/emoji-keyboard/', READY_MADE, '/emoji-maker/', '/emoji-generator/']:
             tags = [(h, t, a) for h, t, a in self.parse(source).body_links if urlparse(h).path == PC]
             self.assertEqual(len(tags), 1, source)
             self.assertTrue(styled(tags[0][2]), f'{source}: "{_clean(tags[0][1])}" is not coloured')
@@ -399,7 +403,7 @@ class InternalLinkTests(PageTestCase):
 
     def test_added_links_are_plain(self):
         """Internal links to the new page carry no nofollow and no target=_blank."""
-        for source in ['/', '/emoji-keyboard/', '/emoji-combos/', '/emoji-maker/', '/emoji-generator/']:
+        for source in ['/', '/emoji-keyboard/', READY_MADE, '/emoji-maker/', '/emoji-generator/']:
             for href, _text, attrs in self.parse(source).body_links:
                 if urlparse(href).path == PC:
                     self.assertNotIn('nofollow', attrs.get('rel') or '', source)
@@ -411,7 +415,8 @@ class InternalLinkTests(PageTestCase):
             '/emoji-maker/': set(HUBS) - {'/emoji-maker/'},
             '/emoji-generator/': set(HUBS) - {'/emoji-generator/'},
             '/emoji-keyboard/': set(HUBS) - {'/emoji-keyboard/'},
-            '/emoji-combos/': {'/'} | set(COMBOS),
+            '/emoji-combos/': {'/', READY_MADE} | set(COMBOS) | set(MORE_COMBOS),
+            READY_MADE: {'/'} | set(COMBOS),
             '/blog/': set(POSTS),
         }
         for combo in COMBOS:
@@ -482,8 +487,8 @@ class NavigationTests(PageTestCase):
         css = (Path(settings.BASE_DIR) / 'kitchen/static/kitchen/css/style.css').read_text(encoding='utf-8')
         link_rule = re.search(r'\.nav__links a\{(.*?)\}', css, re.S).group(1)
         self.assertIn('white-space:nowrap', link_rule)
-        # the six menu items fit on one line from ~1040px; below that the hamburger takes over
-        self.assertRegex(css, r'@media\(max-width:1040px\)\{\s*\.nav__links,\.nav__cta\{display:none\}')
+        # the seven menu items (with Others) fit on one line from ~1140px; below that the hamburger takes over
+        self.assertRegex(css, r'@media\(max-width:1140px\)\{\s*\.nav__links,\.nav__cta\{display:none\}')
 
 
 class StickyWhatsAppButtonTests(PageTestCase):
@@ -758,7 +763,7 @@ class ExploreCombinationsTests(PageTestCase):
             self.assertEqual(html.count('class="explore"'), 1, path)
             self.assertEqual(html.count('class="picker__tab explore-tab'), 5, path)
             self.assertEqual(html.count('class="explore-item"'), 30, path)
-        for path in [PC, '/emoji-keyboard/', '/emoji-combos/', '/blog/']:
+        for path in [PC, '/emoji-keyboard/', '/emoji-combos/', READY_MADE, '/blog/']:
             self.assertNotIn('class="explore"', self.fetch(path), path)
 
     def test_items_carry_what_the_mixer_needs_and_are_accessible(self):
@@ -839,7 +844,7 @@ class UnsupportedClaimsTests(PageTestCase):
 
     def test_unicode_support_paragraphs_use_the_new_wording(self):
         self.assertIn('Unicode releases and device support do not always arrive at the same time', self.fetch('/emoji-keyboard/'))
-        self.assertIn('Unicode emoji specifications are updated periodically', self.fetch('/emoji-combos/'))
+        self.assertIn('Unicode emoji specifications are updated periodically', self.fetch(READY_MADE))
 
 
 # ── Home page: content from the "Emoji Updates" document (Page 1) ─────────────
@@ -850,13 +855,13 @@ class HomePageContentTests(PageTestCase):
 
     def test_title_and_meta_description(self):
         page = self.parse('/')
-        self.assertEqual(_clean(page.title), 'Emoji Kitchen Mixer – Mix Two Emojis Free')
+        self.assertEqual(_clean(page.title), 'Emoji Kitchen Mixer: Mix Two Emojis Free')
         self.assertEqual(page.meta['description'],
                          'Mix two emojis into one sticker with this free Emoji Kitchen mixer. '
                          'Works in your browser on iPhone, Android or PC. Copy or download, no sign-up.')
-        self.assertEqual(page.meta['og:title'], 'Emoji Kitchen Mixer – Mix Two Emojis Free')
+        self.assertEqual(page.meta['og:title'], 'Emoji Kitchen Mixer: Mix Two Emojis Free')
         self.assertEqual(len(page.h1), 1)
-        self.assertEqual(_clean(page.h1[0]), 'Emoji Kitchen Mixer – Mix Two Emojis into Custom Stickers')
+        self.assertEqual(_clean(page.h1[0]), 'Emoji Kitchen Mixer: Mix Two Emojis into Custom Stickers')
 
     def test_introduction_under_the_h1(self):
         html = self.home()
@@ -1028,11 +1033,11 @@ class MakerAndGeneratorContentTests(PageTestCase):
 
     def test_titles_and_meta(self):
         maker, generator = self.parse('/emoji-maker/'), self.parse('/emoji-generator/')
-        self.assertEqual(_clean(maker.title), 'Free Emoji Maker – Create Your Own Custom Emoji')
+        self.assertEqual(_clean(maker.title), 'Free Emoji Maker: Create Your Own Custom Emoji')
         self.assertEqual(maker.meta['description'],
                          'Make your own custom emoji sticker in this free emoji maker. '
                          'Choose two emojis, preview the result, then copy or download it. No sign-up needed.')
-        self.assertEqual(_clean(generator.title), 'Free Emoji Generator – Instant Random Mashups')
+        self.assertEqual(_clean(generator.title), 'Free Emoji Generator: Instant Random Mashups')
         self.assertEqual(generator.meta['description'],
                          'Generate instant emoji mashups with this free emoji generator. '
                          'Press random for a surprise pair, or choose two emojis, then copy or download the sticker.')
@@ -1042,7 +1047,7 @@ class MakerAndGeneratorContentTests(PageTestCase):
             meta = page.meta['description']
             self.assertLessEqual(len(meta), 160)
             self.assertLessEqual(len(title), 60)
-            self.assertEqual(len(title), 47 if path == '/emoji-maker/' else 45, path)
+            self.assertEqual(len(title), 46 if path == '/emoji-maker/' else 44, path)
             self.assertEqual(len(meta), 144 if path == '/emoji-maker/' else 153, path)
             self.assertEqual(page.meta['og:title'], title)
             self.assertEqual(page.meta['og:description'], meta)
@@ -1054,8 +1059,8 @@ class MakerAndGeneratorContentTests(PageTestCase):
 
     def test_h1s_and_introductions(self):
         maker, generator = self.fetch('/emoji-maker/'), self.fetch('/emoji-generator/')
-        self.assertIn('<h1>Free Emoji Maker – Create Your Own Custom Emoji</h1>', maker)
-        self.assertIn('<h1>Free Emoji Generator – Instant Random Mashups</h1>', generator)
+        self.assertIn('<h1>Free Emoji Maker: Create Your Own Custom Emoji</h1>', maker)
+        self.assertIn('<h1>Free Emoji Generator: Instant Random Mashups</h1>', generator)
         self.assertIn('This free emoji maker builds a sticker-style image from two emojis you choose yourself.', maker)
         self.assertIn('Emoji Kitchen Hub is an unofficial, fan-made website and is not made by Google.', maker)
         self.assertIn('This free emoji generator creates sticker-style mashups in your browser and can also serve a random supported pair when you want a surprise.', generator)
@@ -1286,7 +1291,9 @@ class KeyboardPagesContentTests(PageTestCase):
 
 COMBO_PAGE_TEXT = {
     # path: (title, meta description, first sentence of the new introduction)
-    '/emoji-combos/': ('100+ Emoji Combos to Copy & Paste: Cute, Love, Funny',
+    '/emoji-combos/': (views.EMOJI_COMBOS_HUB_TITLE, views.EMOJI_COMBOS_HUB_META,
+                       'Pick a theme below, or open the'),
+    READY_MADE: ('Ready Made Emoji Combo: 100+ Sets to Copy & Paste',
                        'Tap to copy 100+ emoji combos for bios, captions and chats: cute, aesthetic, love, funny and pink sets. Want an image? Mix emojis with Emoji Kitchen.',
                        'Emoji combos are groups of two or more emoji characters used together to express a mood, topic or visual style.'),
     '/emoji-combos/love/': ('Love Emoji Combos to Copy & Paste for Texts & Captions',
@@ -1313,7 +1320,7 @@ GUIDES = {   # page -> the guide the document adds before the FAQs
 }
 # collections that must never shrink: minimum emoji-list items / collection entries per page
 COLLECTION_MINIMUMS = {
-    '/emoji-combos/': (155, 140), '/emoji-combos/love/': (352, 173), '/emoji-combos/cute/': (202, 185),
+    READY_MADE: (155, 140), '/emoji-combos/love/': (352, 173), '/emoji-combos/cute/': (202, 185),
     '/emoji-combos/aesthetic/': (90, 194), '/emoji-combos/funny/': (159, 149), '/emoji-combos/pink/': (5, 140),
 }
 
@@ -1333,11 +1340,11 @@ class ComboPagesContentTests(PageTestCase):
             self.assertNotIn('quick-answer', html, path)
 
     def test_hub_theme_block_replaces_the_repeated_category_paragraphs(self):
-        html = self.fetch('/emoji-combos/')
+        html = self.fetch(READY_MADE)
         self.assertEqual(html.count('<h2>Browse Emoji Combos by Theme</h2>'), 1)
         for theme in ['Cute', 'Aesthetic', 'Love', 'Funny', 'Pink']:
             self.assertIn(f'<h3>{theme} Emoji Combos</h3>', html)
-        links = self.body_links('/emoji-combos/')
+        links = self.body_links(READY_MADE)
         for target in COMBOS:
             self.assertIn(target, links)
         for old in ['Cute sets often use bows, hearts, flowers, animals, fruit', 'Aesthetic sets create a clear visual theme',
@@ -1469,7 +1476,7 @@ class LegalAndSupportPagesTests(PageTestCase):
         self.assertIn("localStorage.setItem(COMBOS_KEY", js)                     # local storage, on the device
         self.assertIn("sessionStorage.setItem(RECENT_KEY", js)                   # session storage
         self.assertNotRegex(js, r'method:\s*[\'"]POST')                           # the saved list is never uploaded
-        for path in MIXER_PAGES + [PC, '/emoji-combos/', '/blog/', '/about-us/', '/contact/', '/privacy/', '/cookie-policy/']:
+        for path in MIXER_PAGES + [PC, '/emoji-combos/', READY_MADE, '/blog/', '/about-us/', '/contact/', '/privacy/', '/cookie-policy/']:
             self.assertFalse(self.client.get(path).cookies, f'{path} sets a cookie')
         templates = Path(settings.BASE_DIR) / 'kitchen/templates'
         scripts = '\n'.join(p.read_text(encoding='utf-8') for p in templates.rglob('*.html'))
@@ -1542,10 +1549,11 @@ class RemainingUpdatesTests(PageTestCase):
         for overclaim in ['permanent', 'forever', 'every previous', 'synced', 'on all your devices']:
             self.assertNotIn(overclaim, html.split('id="my-combos"')[1].split('</div>')[0], overclaim)
 
-    def test_blog_index_introduction(self):
+    def test_blog_index_shows_only_the_heading_and_the_article_cards(self):
         html = self.fetch('/blog/')
-        self.assertIn('These guides explain practical ways to mix sticker-style mashups', html)
-        self.assertIn('unofficial, fan-made website', html)
+        for moved in ('These guides explain practical ways to mix sticker-style mashups', 'unofficial, fan-made website',
+                      'What you will find here', 'How to choose a guide', 'About this independent site', 'blog-intro'):
+            self.assertNotIn(moved, html, moved)
         self.assertNotIn('Explore practical guides to emoji tools, keyboards, sticker-style mashups and common sharing problems.', html)
         self.assertNotIn('Tips, tricks, and fun discoveries', html)
         self.assertNotIn('From the Blog', html)
@@ -1553,6 +1561,44 @@ class RemainingUpdatesTests(PageTestCase):
         self.assertIn('<h1>Emoji Kitchen Guides</h1>', html)
         for post in POSTS:
             self.assertIn(f'href="{post}"', html)                           # the article cards stay
+
+
+class EmojiKitchenGuidePageTests(PageTestCase):
+    GUIDE = '/emoji-kitchen-guide/'
+
+    def test_the_page_holds_the_text_that_used_to_sit_above_the_blog_cards(self):
+        html = self.fetch(self.GUIDE)
+        for text in ('These guides explain practical ways to mix sticker-style mashups', 'unofficial, fan-made website',
+                     'What you will find here', 'How to choose a guide', 'Tools and collections alongside the guides',
+                     'About this independent site'):
+            self.assertIn(text, html, text)
+        page = self.parse(self.GUIDE)
+        self.assertEqual(len(page.h1), 1)
+        self.assertIn('<h1>Emoji Kitchen Guide</h1>', html)
+        self.assertEqual(page.canonical, COMBO_SITE + self.GUIDE)
+        self.assertEqual(page.meta['og:url'], COMBO_SITE + self.GUIDE)
+
+    def test_it_links_to_the_blog_and_the_pages_the_old_text_linked_to(self):
+        html = self.fetch(self.GUIDE)
+        for href in ('/blog/', '/emoji-keyboard/', '/', '/emoji-combos/', '/emoji-keyboard-for-pc/', '/about-us/', '/disclaimer/', '/contact/'):
+            self.assertIn(f'href="{href}"', html, href)
+        self.assertNotIn('featured article below', html)
+
+    def test_title_and_description_are_unique_and_a_sensible_length(self):
+        page = self.parse(self.GUIDE)
+        self.assertEqual(_clean(page.title), 'Emoji Kitchen Guide: How to Use It on Any Device')
+        self.assertLessEqual(len(_clean(page.title)), 60)
+        self.assertLessEqual(len(page.meta['description']), 170)
+        blog = self.parse('/blog/')
+        self.assertNotEqual(_clean(page.title), _clean(blog.title))
+        self.assertNotEqual(page.meta['description'], blog.meta['description'])
+
+    def test_the_guide_is_in_the_sitemap(self):
+        self.assertIn('/emoji-kitchen-guide/', self.client.get('/sitemap.xml').content.decode())
+
+    def test_ids_stay_unique(self):
+        ids = re.findall(r'\sid="([^"]+)"', self.fetch(self.GUIDE))
+        self.assertEqual(len(ids), len(set(ids)))
 
 
 # ── Blog posts: the update command ("Remaining Content Updates" document) ──────
@@ -1894,7 +1940,7 @@ def _ld_blocks(html):
 
 
 class SiteWideSeoTests(PageTestCase):
-    FAQ_PAGES = HUBS[:1] + ['/emoji-maker/', '/emoji-generator/', '/emoji-keyboard/', '/emoji-combos/', PC] + COMBOS + MORE_COMBOS
+    FAQ_PAGES = HUBS[:1] + ['/emoji-maker/', '/emoji-generator/', '/emoji-keyboard/', READY_MADE, PC] + COMBOS + MORE_COMBOS
 
     def test_every_json_ld_block_on_every_page_is_valid_json(self):
         for path in [p for p in ALL_PAGES if p not in POSTS]:
@@ -3236,8 +3282,8 @@ class ThanksgivingBlogSeedTests(TestCase):
         christmas = self.client.get('/emoji-combos/christmas/').content.decode()
         self.assertIn('/blog/thanksgiving-emoji-combos/', christmas)
         self.assertIn('Thanksgiving emoji combos', christmas)
-        hub = self.client.get('/emoji-combos/').content.decode()
-        self.assertIn('/blog/thanksgiving-emoji-combos/', hub)
+        ready_made = self.client.get(READY_MADE).content.decode()
+        self.assertIn('/blog/thanksgiving-emoji-combos/', ready_made)
         home = self.client.get('/').content.decode()
         self.assertNotIn('/blog/thanksgiving-emoji-combos/', home)
 
@@ -4113,9 +4159,9 @@ from .combo_pages import COMBO_PAGES
 from .seo import CANONICAL_HOST
 
 COMBO_SITE = f'https://{CANONICAL_HOST}'
-EXISTING_COMBO_PAGES = ['/emoji-combos/'] + COMBOS
+EXISTING_COMBO_PAGES = ['/emoji-combos/', READY_MADE] + COMBOS
 EXISTING_COMBO_TEMPLATES = {
-    '/emoji-combos/': 'emoji_combos.html',
+    READY_MADE: 'ready_made_emoji_combo.html',
     '/emoji-combos/love/': 'emoji_combos_love.html',
     '/emoji-combos/cute/': 'emoji_combos_cute.html',
     '/emoji-combos/aesthetic/': 'emoji_combos_aesthetic.html',
@@ -4264,16 +4310,16 @@ class ComboCountsTests(SimpleTestCase):
         self.assertEqual([combo_counts.floor_hundreds(n) for n in (0, 99, 100, 138, 199, 200, 345)],
                          [0, 0, 100, 100, 100, 200, 300])
 
-    def test_hub_title_and_meta_use_a_number_only_when_the_count_supports_it(self):
-        title, meta = views.emoji_combos_hub_copy(138)
-        self.assertTrue(title.startswith('100+ Emoji Combos'))
+    def test_ready_made_title_and_meta_use_a_number_only_when_the_count_supports_it(self):
+        title, meta = views.ready_made_emoji_combo_copy(138)
+        self.assertTrue(title.startswith('Ready Made Emoji Combo: 100+ Sets'))
         self.assertIn('Tap to copy 100+ emoji combos', meta)
-        title, meta = views.emoji_combos_hub_copy(99)
+        title, meta = views.ready_made_emoji_combo_copy(99)
         self.assertIsNone(re.search(r'\d', title + meta))
-        self.assertTrue(title.startswith('Emoji Combos to Copy & Paste'))
-        self.assertTrue(views.emoji_combos_hub_copy(250)[0].startswith('200+ '))
+        self.assertTrue(title.startswith('Ready Made Emoji Combo: Sets to Copy & Paste'))
+        self.assertTrue(views.ready_made_emoji_combo_copy(250)[0].startswith('Ready Made Emoji Combo: 200+ '))
         for count in (0, 99, 100, 250):
-            title, meta = views.emoji_combos_hub_copy(count)
+            title, meta = views.ready_made_emoji_combo_copy(count)
             self.assertLessEqual(len(title), 60, count)
             self.assertTrue(140 <= len(meta) <= 155, (count, len(meta)))
 
@@ -4284,7 +4330,7 @@ class ComboCountsTests(SimpleTestCase):
         self.assertEqual(listed['emoji_combos_cute.html'], 185)
         self.assertEqual(listed['emoji_combos_aesthetic.html'], 194)
         self.assertEqual(listed['emoji_combos_funny.html'], 149)
-        self.assertGreaterEqual(combo_counts.distinct_set_count('emoji_combos.html'), 100)
+        self.assertGreaterEqual(combo_counts.distinct_set_count('ready_made_emoji_combo.html'), 100)
 
 
 class ComboCategoryPageTests(PageTestCase):
@@ -4359,9 +4405,9 @@ class ComboCategoryPageTests(PageTestCase):
                 self.assertEqual(self.client.get(href.split('#')[0]).status_code, 200)
             self.assertNotIn('gstatic.com/android/keyboard/emojikitchen', html, 'no Google sticker images are embedded')
 
-    def test_hub_links_to_every_new_page_and_has_the_new_copy(self):
-        html = self.fetch('/emoji-combos/')
-        links = self.body_links('/emoji-combos/')
+    def test_ready_made_page_links_to_every_new_page_and_has_the_new_copy(self):
+        html = self.fetch(READY_MADE)
+        links = self.body_links(READY_MADE)
         for path in MORE_COMBOS:
             self.assertIn(path, links)
         for theme in ['Birthday', 'Friendship', 'Sad', 'Dark', 'Christmas']:
@@ -4369,8 +4415,45 @@ class ComboCategoryPageTests(PageTestCase):
         self.assertIn('<h3>Emoji Combos for Bio</h3>', html)
         self.assertIn('<h2>Want One Image Instead of a Row of Emojis?</h2>', html)
         self.assertLess(html.index('Want One Image Instead'), html.index('Plain Combinations vs. Emoji Kitchen Mashups'))
-        self.assertIn('Emoji Combos to Copy and Paste: Cute, Love, Funny and Aesthetic', html)
         self.assertEqual(self.client.get('/emoji-combos/unknown/').status_code, 404)
+
+    def test_ready_made_page_is_titled_ready_made_emoji_combo(self):
+        page = self.parse(READY_MADE)
+        self.assertEqual(page.h1, ['Ready Made Emoji Combo'])
+        self.assertIn('Ready Made Emoji Combo', _clean(page.title))
+        self.assertEqual(page.canonical, COMBO_SITE + READY_MADE)
+
+    def test_hub_is_a_short_page_that_links_to_ready_made_and_every_category(self):
+        html = self.fetch('/emoji-combos/')
+        page = self.parse('/emoji-combos/')
+        self.assertEqual(len(page.h1), 1)
+        self.assertEqual(_clean(page.h1[0]), 'Emoji Combos')
+        links = self.body_links('/emoji-combos/')
+        for path in [READY_MADE] + COMBOS + MORE_COMBOS:
+            self.assertIn(path, links, f'hub does not link to {path}')
+        self.assertEqual(len(re.findall(r'<a href="/emoji-combos/[a-z]+/" class="feature-card', html)),
+                         len(COMBOS) + len(MORE_COMBOS))
+        self.assertEqual(page.canonical, COMBO_SITE + '/emoji-combos/')
+        self.assertIsNone(re.search(r'\d', _clean(page.title) + page.meta['description'] + page.h1[0]))
+
+    def test_hub_no_longer_carries_the_content_that_moved_to_ready_made(self):
+        html = self.fetch('/emoji-combos/')
+        for gone in ('id="combo-tool"', 'id="combo-grid"', 'id="combo-search"', 'const COMBOS', 'faq-item',
+                     'Popular Emoji Combos to Copy and Paste', 'How to Copy and Use a Combination',
+                     'Why Emoji May Look Different After Pasting', 'Plain Combinations vs. Emoji Kitchen Mashups',
+                     'Frequently Asked Questions', 'Pick a Combo That Fits Your Message'):
+            self.assertNotIn(gone, html)
+        self.assertFalse([b for b in _ld_blocks(html) if b.get('@type') == 'FAQPage'])
+
+    def test_ready_made_page_keeps_all_the_content_the_hub_used_to_have(self):
+        html = self.fetch(READY_MADE)
+        for kept in ('id="combo-tool"', 'id="combo-grid"', 'id="combo-search"', 'const COMBOS',
+                     'Popular Emoji Combos to Copy and Paste', 'How to Copy and Use a Combination',
+                     'Why Emoji May Look Different After Pasting', 'Plain Combinations vs. Emoji Kitchen Mashups',
+                     'When and How to Use Emoji Combos', 'Frequently Asked Questions',
+                     'Pick a Combo That Fits Your Message'):
+            self.assertIn(kept, html)
+        self.assertEqual(len(re.findall(r'<details class="faq-item[ "]', html)), len(views.EMOJI_COMBOS_PAGE_FAQS))
 
     def test_home_links_to_birthday_and_bio_and_still_links_to_the_five_combo_pages(self):
         links = self.body_links('/')
@@ -4392,14 +4475,14 @@ class ComboCategoryPageTests(PageTestCase):
             page = self.parse(path)
             claims = re.findall(r'(\d[\d,]*)\+?', _clean(page.title) + ' ' + page.meta['description'] + ' ' + page.h1[0])
             for claim in claims:
-                self.assertEqual(path, '/emoji-combos/', f'{path} writes the number {claim} into its title/meta/H1')
+                self.assertEqual(path, READY_MADE, f'{path} writes the number {claim} into its title/meta/H1')
 
-    def test_hub_hundred_plus_claim_is_true(self):
-        page = self.parse('/emoji-combos/')
-        distinct = combo_counts.distinct_set_count('emoji_combos.html')
+    def test_ready_made_hundred_plus_claim_is_true(self):
+        page = self.parse(READY_MADE)
+        distinct = combo_counts.distinct_set_count('ready_made_emoji_combo.html')
         floor = combo_counts.floor_hundreds(distinct)
         self.assertGreaterEqual(floor, 100)
-        self.assertTrue(_clean(page.title).startswith(f'{floor}+ '), page.title)
+        self.assertTrue(_clean(page.title).startswith(f'Ready Made Emoji Combo: {floor}+ '), page.title)
         self.assertIn(f'copy {floor}+ emoji combos', page.meta['description'])
         self.assertEqual(re.findall(r'\d+', _clean(page.title)), [str(floor)])
         self.assertEqual(re.findall(r'\d+', page.meta['description']), [str(floor)])
@@ -4441,8 +4524,8 @@ class ComboCategoryPageTests(PageTestCase):
         response = self.client.get('/sitemap.xml', HTTP_HOST='www.emojikitchenhub.com')
         ns = {'s': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
         locs = [u.text for u in ET.fromstring(response.content).findall('s:url/s:loc', ns)]
-        combo_locs = [loc for loc in locs if '/emoji-combos/' in loc]
-        expected = [COMBO_SITE + p for p in EXISTING_COMBO_PAGES + MORE_COMBOS]
+        combo_locs = [loc for loc in locs if '/emoji-combos/' in loc or loc.endswith(READY_MADE)]
+        expected = [COMBO_SITE + p for p in EXISTING_COMBO_PAGES + MORE_COMBOS + TAG_PATHS + ['/emoji-combos/mood/']]
         self.assertEqual(sorted(combo_locs), sorted(expected))
         for loc in combo_locs:
             path = urlparse(loc).path
@@ -5187,3 +5270,1295 @@ class CompressedBlogCoverTests(TestCase):
             fixture_og_filename(slug), fixture_og_bytes(slug)
         )
         self.assertEqual(Path(post.og_image.name).name, desired_jpg)
+
+
+# ── Keyword pages, site search and the two browser tools ─────────────────────
+
+import json as _json
+
+from . import combo_search
+
+STATIC_JS = Path(settings.BASE_DIR) / 'kitchen/static/kitchen/js'
+TOOL_PAGES = ['/emoji-art-editor/', '/dot-art-generator/']
+
+
+class TagPageDataTests(SimpleTestCase):
+    """kitchen/combo_tags.py: original, distinct, valid keyword pages."""
+
+    def test_the_keyword_list_is_not_empty_and_never_shadows_a_fixed_page(self):
+        self.assertGreaterEqual(len(TAG_PAGES), 12)
+        for slug in TAG_PAGES:
+            self.assertRegex(slug, r'^[a-z0-9-]+$')
+            self.assertNotIn(slug, RESERVED_SLUGS, slug)
+            self.assertNotIn(slug, COMBO_PAGES, f'{slug} is already a category page')
+
+    def test_every_page_has_enough_unique_sets_in_every_filter(self):
+        for slug, page in TAG_PAGES.items():
+            sets = [c[2] for c in page['combos']]
+            labels = [c[1] for c in page['combos']]
+            self.assertGreaterEqual(len(sets), MIN_SETS_PER_NEW_PAGE // 2, slug)
+            self.assertEqual(len(sets), len(set(sets)), f'{slug} repeats a set')
+            self.assertEqual(len(labels), len(set(labels)), f'{slug} repeats a label')
+            keys = {key for key, _label in page['filters']}
+            self.assertTrue({c[0] for c in page['combos']} <= keys, slug)
+            for key in keys:
+                self.assertGreaterEqual(len([c for c in page['combos'] if c[0] == key]), 3, f'{slug}/{key} is thin')
+
+    def test_sets_are_emoji_only(self):
+        for slug, page in TAG_PAGES.items():
+            for _cat, _label, emoji_set in page['combos']:
+                self.assertFalse(emoji_set.isascii(), (slug, emoji_set))
+                self.assertFalse(any(ch.isascii() and ch.isalnum() for ch in emoji_set), (slug, emoji_set))
+
+    def test_no_set_is_copied_from_another_page_or_repeated_across_keywords(self):
+        owned = set()
+        for name in EXISTING_COMBO_TEMPLATES.values():
+            owned |= set(combo_counts.template_sets(name))
+        for page in COMBO_PAGES.values():
+            owned |= {c[2] for c in page['combos']}
+        seen = {}
+        for slug, page in TAG_PAGES.items():
+            for _cat, label, emoji_set in page['combos']:
+                self.assertNotIn(emoji_set, owned, f'{slug} "{label}" {emoji_set} is already on an older page')
+                self.assertNotIn(emoji_set, seen, f'{slug} "{label}" {emoji_set} is also on {seen.get(emoji_set)}')
+                seen[emoji_set] = slug
+
+    def test_every_mashup_pair_exists_in_the_dataset(self):
+        for slug, page in TAG_PAGES.items():
+            self.assertEqual(len(page['mashups']), 6, slug)
+            for first, second in page['mashups']:
+                self.assertTrue(views.combo_image_url(first, second), f'{slug}: {first} + {second} has no Emoji Kitchen pair')
+            self.assertEqual(len(views.mashup_links(page['mashups'])), 6, slug)
+
+    def test_no_number_is_written_into_title_meta_h1_or_intro(self):
+        for slug, page in TAG_PAGES.items():
+            for field in ('title', 'meta', 'h1', 'badge'):
+                self.assertIsNone(re.search(r'\d', page[field]), f'{slug} {field}: {page[field]}')
+            for paragraph in page['intro']:
+                self.assertIsNone(re.search(r'\d', paragraph), f'{slug}: {paragraph}')
+
+    def test_title_and_meta_lengths_and_uniqueness(self):
+        for field in ('title', 'meta', 'h1'):
+            values = [page[field] for page in TAG_PAGES.values()]
+            self.assertEqual(len(values), len(set(values)), field)
+        for slug, page in TAG_PAGES.items():
+            self.assertTrue(30 <= len(page['title']) <= 60, f'{slug} title is {len(page["title"])}')
+            self.assertTrue(140 <= len(page['meta']) <= 155, f'{slug} meta is {len(page["meta"])}')
+
+    def test_each_page_has_real_copy_and_faqs(self):
+        for slug, page in TAG_PAGES.items():
+            self.assertEqual(len(page['intro']), 2, slug)
+            self.assertGreaterEqual(len(page['faqs']), 3, slug)
+            parts = [*page['intro']]
+            for heading, paragraphs in page['sections']:
+                parts += [heading, *paragraphs]
+            for question, answer in page['faqs']:
+                parts += [question, answer]
+            self.assertEqual(len(page['sections']), 2, slug)
+            self.assertGreaterEqual(len(_words('\n'.join(parts))), 240, f'{slug} copy is thin')
+
+    def test_sibling_links_point_at_real_pages(self):
+        known = {'love', 'cute', 'aesthetic', 'funny', 'pink'} | set(COMBO_PAGES) | set(TAG_PAGES)
+        for slug, page in TAG_PAGES.items():
+            self.assertEqual(len(page['siblings']), 3, slug)
+            for target, _name in page['siblings']:
+                self.assertIn(target, known, f'{slug} links to {target}')
+                self.assertNotEqual(target, slug, slug)
+
+
+class TagPageTests(PageTestCase):
+    def test_every_keyword_page_is_a_complete_page(self):
+        for path in TAG_PATHS:
+            slug = path.rsplit('/', 2)[-2]
+            data = TAG_PAGES[slug]
+            html = self.fetch(path)
+            page = self.parse(path)
+            self.assertEqual(len(page.h1), 1, path)
+            self.assertEqual(_clean(page.h1[0]), data['h1'], path)
+            self.assertEqual(_clean(page.title), data['title'], path)
+            self.assertEqual(page.meta['description'], data['meta'], path)
+            self.assertEqual(page.canonical, COMBO_SITE + path, path)
+            self.assertEqual(page.meta['og:url'], COMBO_SITE + path, path)
+            self.assertNotIn('noindex', page.meta.get('robots') or '', path)
+            faq_blocks = [b for b in _ld_blocks(html) if b.get('@type') == 'FAQPage']
+            self.assertEqual(len(faq_blocks), 1, path)
+            shown = len(re.findall(r'<details class="faq-item[ "]', html))
+            self.assertEqual(shown, len(data['faqs']), path)
+            self.assertEqual(len(faq_blocks[0]['mainEntity']), shown, path)
+
+    def test_count_and_server_rendered_sets_come_from_the_data(self):
+        for path in TAG_PATHS:
+            data = TAG_PAGES[path.rsplit('/', 2)[-2]]
+            html = self.fetch(path)
+            distinct = len({c[2] for c in data['combos']})
+            self.assertIn(f'<span id="combo-count">{distinct}</span> sets', html, path)
+            self.assertEqual(len(re.findall(r'<div class="combo-card">', _visible_text(html))), 12, path)
+            for _cat, _label, emoji_set in data['combos'][:12]:
+                self.assertIn(f'data-combo="{emoji_set}"', html, path)
+            payload = re.search(r'<script id="combos-data" type="application/json">(.*?)</script>', html, re.DOTALL)
+            self.assertEqual(len(_json.loads(payload.group(1))), len(data['combos']), path)
+            self.assertIn('id="combo-search"', html, path)
+            self.assertIn('combo-random-btn', html, path)
+
+    def test_links_in_and_out(self):
+        for path in TAG_PATHS:
+            links = self.body_links(path)
+            for needed in ('/emoji-combos/', '/', '/emoji-maker/', '/blog/'):
+                self.assertIn(needed, links, f'{path} does not link to {needed}')
+            self.assertNotIn(path, links, f'{path} links to itself')
+            siblings = [t for t in links if t.startswith('/emoji-combos/') and t not in ('/emoji-combos/', path)]
+            self.assertGreaterEqual(len(siblings), 3, path)
+            mixer = [h for h, _t, _a in self.parse(path).body_links if h.startswith('/?emoji1=')]
+            self.assertEqual(len(mixer), 6, path)
+            for target, anchors in links.items():
+                for anchor in anchors:
+                    self.assertNotIn(anchor, WEAK_ANCHORS, f'{path} -> {target}')
+
+    def test_unknown_keywords_and_look_alikes_are_404(self):
+        for path in ['/emoji-combos/unknown/', '/emoji-combos/tag/', '/emoji-combos/kawaii/extra/', '/emoji-combos/Kawaii/',
+                     '/emoji-combos/%3Cscript%3E/']:
+            self.assertEqual(self.client.get(path).status_code, 404, path)
+
+    def test_fixed_pages_still_win_over_keywords(self):
+        for path in COMBOS + MORE_COMBOS:
+            page = self.parse(path)
+            self.assertEqual(page.canonical, COMBO_SITE + path, path)
+        self.assertEqual(self.client.get('/emoji-combos/search/').status_code, 200)
+
+    def test_hub_lists_every_keyword_and_the_search_box(self):
+        html = self.fetch('/emoji-combos/')
+        links = self.body_links('/emoji-combos/')
+        for path in TAG_PATHS:
+            self.assertIn(path, links, path)
+        self.assertIn('action="/emoji-combos/search/"', html)
+        self.assertIn('name="q"', html)
+
+    def test_keyword_pages_are_in_the_sitemap_with_matching_canonicals(self):
+        response = self.client.get('/sitemap.xml')
+        ns = {'s': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+        locs = [u.text for u in ET.fromstring(response.content).findall('s:url/s:loc', ns)]
+        for path in TAG_PATHS:
+            self.assertIn(COMBO_SITE + path, locs, path)
+        self.assertNotIn(COMBO_SITE + '/emoji-combos/search/', locs)
+
+    def test_keyword_pages_keep_ga4_once_and_adsense_off_the_home_slot(self):
+        for path in TAG_PATHS:
+            html = self.fetch(path)
+            self.assertEqual(html.count('googletagmanager.com/gtag/js?id=G-3DKYS4C5DL'), 1, path)
+            self.assertEqual(html.count('name="google-adsense-account"'), 1, path)
+            self.assertNotIn(ADSENSE_HOME_SLOT, html, path)
+
+
+class ComboSearchTests(PageTestCase):
+    def test_every_inline_array_entry_is_parsed(self):
+        for name in EXISTING_COMBO_TEMPLATES.values():
+            entries = combo_search._template_entries(name)
+            self.assertEqual(len(entries), len(combo_counts.template_sets(name)), name)
+
+    def test_the_index_lists_every_set_once_and_covers_every_source(self):
+        rows = combo_search.all_sets()
+        emojis = [r['emoji'] for r in rows]
+        self.assertEqual(len(emojis), len(set(emojis)))
+        owned = set()
+        for name in EXISTING_COMBO_TEMPLATES.values():
+            owned |= set(combo_counts.template_sets(name))
+        for page in COMBO_PAGES.values():
+            owned |= {c[2] for c in page['combos']}
+        for page in TAG_PAGES.values():
+            owned |= {c[2] for c in page['combos']}
+        self.assertEqual(set(emojis), owned)
+        for row in rows:
+            self.assertTrue(row['url'].startswith('/'), row)
+
+    def test_search_page_is_noindex_and_canonical_to_itself(self):
+        for url in ['/emoji-combos/search/', '/emoji-combos/search/?q=ocean', '/emoji-combos/search/?q=zzzzzz']:
+            html = self.fetch(url)
+            page = self.parse(url)
+            self.assertEqual(page.canonical, COMBO_SITE + '/emoji-combos/search/', url)
+            self.assertIn('noindex', page.meta.get('robots') or '', url)
+            self.assertEqual(len(page.h1), 1, url)
+            self.assertIn('role="search"', html, url)
+
+    def test_finds_sets_by_word_and_links_to_their_page(self):
+        html = self.fetch('/emoji-combos/search/?q=ocean')
+        self.assertIn('data-combo="🏖️🌊☀️"', html)
+        self.assertIn('href="/emoji-combos/ocean/"', html)
+        self.assertIn('combo-card__copy', html)
+
+    def test_every_word_must_match(self):
+        both = combo_search.search_sets('cat cozy')[0]
+        self.assertTrue(both)
+        self.assertIn('🐱☀️😴', [r['emoji'] for r in both])
+        self.assertEqual(combo_search.search_sets('cat zzzzzz'), ([], 0))
+
+    def test_finds_by_pasted_emoji(self):
+        results, total = combo_search.search_sets('🐰')
+        self.assertGreater(total, 5)
+        for row in results:
+            self.assertIn('🐰', row['emoji'] + row['label'])
+
+    def test_finds_sets_that_only_live_in_the_older_inline_pages(self):
+        results, _total = combo_search.search_sets('ribbon blossom')
+        self.assertIn('🎀🌸✨', [r['emoji'] for r in results])
+
+    def test_keyword_page_quick_links_appear_for_a_matching_name(self):
+        html = self.fetch('/emoji-combos/search/?q=kawai')
+        self.assertIn('href="/emoji-combos/kawaii/"', html)
+
+    def test_empty_and_no_match_queries_are_friendly(self):
+        for url in ['/emoji-combos/search/', '/emoji-combos/search/?q=', '/emoji-combos/search/?q=%20%20']:
+            self.assertEqual(self.client.get(url).status_code, 200, url)
+        html = self.fetch('/emoji-combos/search/?q=qqqqqqqq')
+        self.assertIn('No sets match', html)
+        self.assertNotIn('<div class="combo-card">', html)
+
+    def test_results_are_capped_and_say_so(self):
+        results, total = combo_search.search_sets('e')
+        self.assertLessEqual(len(results), combo_search.DEFAULT_LIMIT)
+        self.assertGreater(total, combo_search.DEFAULT_LIMIT)
+        html = self.fetch('/emoji-combos/search/?q=e')
+        self.assertIn(f'Showing the first {combo_search.DEFAULT_LIMIT} of {total} sets', html)
+        self.assertEqual(html.count('<div class="combo-card">'), combo_search.DEFAULT_LIMIT)
+
+    def test_long_queries_are_trimmed_and_input_is_escaped(self):
+        html = self.fetch('/emoji-combos/search/?q=' + 'a' * 500)
+        self.assertEqual(len(re.search(r'name="q"[^>]*value="([^"]*)"', html).group(1)), combo_search.MAX_QUERY_LENGTH)
+        evil = '<script>alert(1)</script>'
+        html = self.client.get('/emoji-combos/search/', {'q': evil}).content.decode()
+        self.assertNotIn(evil, html)
+        self.assertIn('&lt;script&gt;', html)
+
+    def test_search_never_touches_the_database_or_sets_cookies(self):
+        with self.assertNumQueries(0):
+            response = self.client.get('/emoji-combos/search/?q=cat')
+        self.assertFalse(response.cookies)
+
+
+class ArtToolPageTests(PageTestCase):
+    def test_both_pages_are_complete_pages(self):
+        for path in TOOL_PAGES:
+            html = self.fetch(path)
+            page = self.parse(path)
+            self.assertEqual(len(page.h1), 1, path)
+            self.assertEqual(page.canonical, COMBO_SITE + path, path)
+            self.assertEqual(page.meta['og:url'], COMBO_SITE + path, path)
+            title = _clean(page.title)
+            meta = page.meta['description']
+            self.assertTrue(30 <= len(title) <= 60, f'{path} title is {len(title)}: {title}')
+            self.assertTrue(140 <= len(meta) <= 155, f'{path} meta is {len(meta)}: {meta}')
+            self.assertEqual(page.meta['og:title'], title, path)
+            self.assertEqual(page.meta['og:description'], meta, path)
+            self.assertNotIn('noindex', page.meta.get('robots') or '', path)
+            faq_blocks = [b for b in _ld_blocks(html) if b.get('@type') == 'FAQPage']
+            self.assertEqual(len(faq_blocks), 1, path)
+            shown = len(re.findall(r'<details class="faq-item[ "]', html))
+            self.assertGreater(shown, 0, path)
+            self.assertEqual(len(faq_blocks[0]['mainEntity']), shown, path)
+
+    def test_pages_link_to_each_other_and_to_the_combo_hub(self):
+        editor, generator = self.body_links('/emoji-art-editor/'), self.body_links('/dot-art-generator/')
+        self.assertIn('/dot-art-generator/', editor)
+        self.assertIn('/emoji-combos/', editor)
+        self.assertIn('/emoji-art-editor/', generator)
+        self.assertIn('/emoji-combos/', generator)
+
+    def test_nav_and_sitemap_list_both_tools(self):
+        html = self.fetch('/')
+        header = html[html.index('<header'):html.index('</header>')]
+        for path in TOOL_PAGES:
+            self.assertEqual(header.count(f'href="{path}"'), 2, f'{path}: expected nav + drawer link')
+        response = self.client.get('/sitemap.xml')
+        ns = {'s': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+        locs = [u.text for u in ET.fromstring(response.content).findall('s:url/s:loc', ns)]
+        for path in TOOL_PAGES:
+            self.assertIn(COMBO_SITE + path, locs, path)
+
+    def test_each_page_loads_its_script_and_the_file_exists(self):
+        for path, script in [('/emoji-art-editor/', 'emoji_art_editor.js'), ('/dot-art-generator/', 'dot_art_generator.js')]:
+            self.assertIn(f'kitchen/js/{script}', self.fetch(path), path)
+            self.assertTrue((STATIC_JS / script).is_file(), script)
+
+    def test_every_element_the_scripts_look_up_exists_in_the_page(self):
+        for path, script in [('/emoji-art-editor/', 'emoji_art_editor.js'), ('/dot-art-generator/', 'dot_art_generator.js')]:
+            html = self.fetch(path)
+            source = (STATIC_JS / script).read_text(encoding='utf-8')
+            ids = set(re.findall(r"getElementById\('([^']+)'\)", source))
+            self.assertGreater(len(ids), 8, script)
+            for element_id in ids:
+                self.assertIn(f'id="{element_id}"', html, f'{script} needs #{element_id} on {path}')
+
+    def test_editor_buttons_all_have_a_handler(self):
+        html = self.fetch('/emoji-art-editor/')
+        source = (STATIC_JS / 'emoji_art_editor.js').read_text(encoding='utf-8')
+        actions = set(re.findall(r'data-ea-action="([^"]+)"', html))
+        self.assertGreaterEqual(len(actions), 10)
+        for action in actions:
+            self.assertRegex(source, rf"[\s,{{](?:{re.escape(action)}|'{re.escape(action)}')\s*:", f'no handler for {action}')
+        for tool in set(re.findall(r'data-ea-tool="([^"]+)"', html)):
+            self.assertIn(f"'{tool}'", source, tool)
+        for feature in ('undo', 'redo', 'cropToFit', 'addPadding', 'importText', 'copyArt', 'downloadPng', 'flood', 'ctrlKey'):
+            self.assertIn(feature, source, feature)
+
+    def test_generator_modes_and_controls_exist_in_both_page_and_script(self):
+        html = self.fetch('/dot-art-generator/')
+        source = (STATIC_JS / 'dot_art_generator.js').read_text(encoding='utf-8')
+        for mode in ('dither', 'threshold', 'lines'):
+            self.assertIn(f'<option value="{mode}"', html, mode)
+            self.assertIn(f"'{mode}'", source, mode)
+        for slider in ('da-width', 'da-threshold', 'da-contrast', 'da-edge'):
+            self.assertIn(f'id="{slider}"', html, slider)
+        self.assertIn('0x2800', source)
+
+    def test_images_and_drawings_never_leave_the_browser(self):
+        for script in ('emoji_art_editor.js', 'dot_art_generator.js'):
+            source = (STATIC_JS / script).read_text(encoding='utf-8')
+            for network in ('fetch(', 'XMLHttpRequest', 'sendBeacon', 'WebSocket', 'FormData', 'localStorage', 'document.cookie'):
+                self.assertNotIn(network, source, f'{script} uses {network}')
+        for path in TOOL_PAGES:
+            self.assertFalse(self.client.get(path).cookies, path)
+            self.assertNotIn('<form method="post"', self.fetch(path), path)
+
+
+# ── Mood finder, the "Others" menu and mobile ────────────────────────────────
+
+from . import mood as mood_engine
+
+MOOD_PAGE = '/emoji-combos/mood/'
+STYLE_CSS = Path(settings.BASE_DIR) / 'kitchen/static/kitchen/css/style.css'
+
+
+def _css():
+    return STYLE_CSS.read_text(encoding='utf-8')
+
+
+def _rule(css, selector):
+    """The declarations of every plain rule for a selector (base and phone rules together), e.g. '.mood-chip'."""
+    found = re.findall(r'(?m)^\s*' + re.escape(selector) + r'\s*\{([^}]*)\}', css)
+    assert found, f'no rule for {selector}'
+    return ';'.join(found)
+
+
+class MoodEngineTests(SimpleTestCase):
+    def test_every_mood_is_fully_described(self):
+        self.assertGreaterEqual(len(mood_engine.MOODS), 25)
+        for key, m in mood_engine.MOODS.items():
+            self.assertEqual(m['key'], key)
+            self.assertTrue(m['label'] and m['icon'] and m['tagline'], key)
+            self.assertGreaterEqual(len(m['words']), 6, key)
+            self.assertGreaterEqual(len(m['lead']), 4, key)
+            self.assertGreaterEqual(len(m['support']), 5, key)
+            self.assertGreaterEqual(len(m['accent']), 5, key)
+            self.assertEqual(len(m['sets']), 3, key)
+            self.assertEqual(len(m['mashups']), 2, key)
+            self.assertGreaterEqual(len(m['terms']), 3, key)
+            if m['opposite']:
+                self.assertIn(m['opposite'], mood_engine.MOODS, key)
+                self.assertNotEqual(m['opposite'], key, key)
+
+    def test_pools_sets_and_pairs_are_clean(self):
+        for key, m in mood_engine.MOODS.items():
+            for pool in ('lead', 'support', 'accent'):
+                self.assertEqual(len(m[pool]), len(set(m[pool])), f'{key} {pool} repeats an emoji')
+                for emoji in m[pool]:
+                    self.assertFalse(emoji.isascii(), (key, pool, emoji))
+                    self.assertFalse(emoji.isspace(), (key, pool, emoji))
+            labels = [label for label, _ in m['sets']]
+            self.assertEqual(len(labels), len(set(labels)), key)
+            for _label, emoji_set in m['sets']:
+                self.assertFalse(emoji_set.isascii(), (key, emoji_set))
+                self.assertFalse(any(ch.isascii() and ch.isalnum() for ch in emoji_set), (key, emoji_set))
+            for first, second in m['mashups']:
+                self.assertTrue(views.combo_image_url(first, second), f'{key}: {first} + {second} has no Emoji Kitchen pair')
+
+    def test_each_mood_is_reachable_from_every_one_of_its_words(self):
+        for key, m in mood_engine.MOODS.items():
+            for word in m['words']:
+                self.assertIn(key, mood_engine.detect_moods(word), f'"{word}" does not reach {key}')
+
+    def test_the_one_tap_chips_all_work(self):
+        self.assertEqual(len(mood_engine.CHIP_MOODS), len(set(mood_engine.CHIP_MOODS)))
+        for key in mood_engine.CHIP_MOODS:
+            self.assertEqual(mood_engine.detect_moods(key)[0], key, key)
+
+    def test_negation_flips_a_mood_or_drops_it(self):
+        self.assertEqual(mood_engine.detect_moods('not happy at all'), ['sad'])
+        self.assertEqual(mood_engine.detect_moods("I'm not tired"), ['motivated'])
+        self.assertEqual(mood_engine.detect_moods("i don't feel sad"), ['happy'])
+        self.assertEqual(mood_engine.detect_moods('no worries'), ['chill'])
+        self.assertEqual(mood_engine.detect_moods('not hungry'), [])
+
+    def test_phrases_and_contractions(self):
+        self.assertEqual(mood_engine.detect_moods("I can't wait!"), ['excited'])
+        self.assertEqual(mood_engine.detect_moods("I can't stop laughing"), ['silly'])
+        self.assertEqual(mood_engine.detect_moods('feeling heartbroken after the breakup'), ['heartbroken'])
+        self.assertEqual(mood_engine.detect_moods("I’m so done"), ['angry'])     # curly apostrophe and a phrase
+
+    def test_two_moods_and_intensity(self):
+        both = mood_engine.detect_moods('tired but happy')
+        self.assertEqual(set(both), {'tired', 'happy'})
+        self.assertEqual(mood_engine.detect_moods('so tired and happy')[0], 'tired')
+        self.assertLessEqual(len(mood_engine.detect_moods('happy sad angry tired hungry silly')), mood_engine.MAX_MOODS)
+
+    def test_inflections_match_but_look_alike_words_do_not(self):
+        for text in ('I am worrying', "I'm worried", 'loving this', 'this is lovely', 'so excited', 'feeling cosy'):
+            self.assertTrue(mood_engine.detect_moods(text), text)
+        for text in ('windy weather', 'madam', 'I made a cake', 'the wind blew', 'saddle up', 'a bluebird'):
+            self.assertEqual(mood_engine.detect_moods(text), [], text)
+
+    def test_an_emoji_in_the_text_is_a_hint(self):
+        self.assertEqual(mood_engine.detect_moods('😭'), ['sad'])
+        self.assertEqual(mood_engine.detect_moods('🥳'), ['party'])
+        self.assertEqual(mood_engine.detect_moods('so tired 😭')[0], 'tired')
+
+    def test_nothing_recognised_or_empty_gives_no_mood(self):
+        for text in ('', '   ', 'asdfgh qwerty', '12345', '???'):
+            self.assertEqual(mood_engine.detect_moods(text), [], text)
+
+    def test_clean_text(self):
+        self.assertEqual(mood_engine.clean_text('  happy \n\t  me  '), 'happy me')
+        self.assertEqual(mood_engine.clean_text('a\x00b\x07c'), 'abc')
+        self.assertEqual(len(mood_engine.clean_text('x' * 1000)), mood_engine.MAX_TEXT_LENGTH)
+        self.assertEqual(mood_engine.clean_text(None), '')
+
+    def test_results_are_deterministic_and_shuffle_changes_them(self):
+        first = mood_engine.find_combos('tired but happy', 0)
+        again = mood_engine.find_combos('tired but happy', 0)
+        other = mood_engine.find_combos('tired but happy', 1)
+        self.assertEqual(first['generated'], again['generated'])
+        self.assertEqual(first['library'], again['library'])
+        self.assertNotEqual(first['generated'], other['generated'])
+        self.assertEqual(first['picks'], other['picks'])          # the hand-written picks never change
+
+    def test_generated_combos_are_valid_and_from_the_moods(self):
+        result = mood_engine.find_combos('tired but happy', 0)
+        keys = [m['key'] for m in result['moods']]
+        pool = {e for k in keys for p in ('lead', 'support', 'accent') for e in mood_engine.MOODS[k][p]}
+        generated = [g['emoji'] for g in result['generated']]
+        self.assertEqual(len(generated), mood_engine.GENERATED_COUNT)
+        self.assertEqual(len(generated), len(set(generated)))
+        picks = {p['emoji'] for p in result['picks']}
+        library = {r['emoji'] for r in result['library']}
+        self.assertFalse(set(generated) & picks)
+        self.assertFalse(set(generated) & library)
+        self.assertFalse(picks & library)
+        for combo in generated:
+            self.assertFalse(combo.isascii(), combo)
+            remaining = combo
+            for emoji in sorted(pool, key=len, reverse=True):
+                remaining = remaining.replace(emoji, '')
+            self.assertEqual(remaining, '', f'{combo} uses an emoji outside the chosen moods')
+
+    def test_library_sets_exist_on_the_site(self):
+        known = {r['emoji'] for r in combo_search.all_sets()}
+        for text in ('tired but happy', 'in love', 'hungry', 'stressed about exams', 'cozy rainy day'):
+            result = mood_engine.find_combos(text)
+            self.assertTrue(result['library'], text)
+            self.assertLessEqual(len(result['library']), mood_engine.LIBRARY_COUNT)
+            for row in result['library']:
+                self.assertIn(row['emoji'], known, text)
+
+    def test_nothing_recognised_falls_back_to_friendly_picks(self):
+        result = mood_engine.find_combos('asdfgh qwerty')
+        self.assertFalse(result['matched'])
+        self.assertTrue(result['picks'] and result['generated'])
+        self.assertTrue(mood_engine.find_combos('so tired')['matched'])
+
+    def test_mashups_are_valid_and_limited(self):
+        for text in ('tired but happy', 'in love', 'angry', 'asdfgh'):
+            pairs = mood_engine.find_combos(text)['mashups']
+            self.assertTrue(1 <= len(pairs) <= 3, text)
+            self.assertEqual(len(pairs), len(set(pairs)), text)
+            for first, second in pairs:
+                self.assertTrue(views.combo_image_url(first, second), (text, first, second))
+
+    def test_hostile_input_is_cheap_and_safe(self):
+        import time
+        started = time.perf_counter()
+        for text in ('happy ' * 200, 'not ' * 200 + 'happy', "'" * 500, '🥳' * 300, '‮' + 'sad' * 100):
+            result = mood_engine.find_combos(text)
+            self.assertLessEqual(len(result['text']), mood_engine.MAX_TEXT_LENGTH)
+            self.assertLessEqual(len(result['moods']), mood_engine.MAX_MOODS)
+        self.assertLess(time.perf_counter() - started, 2.0)
+
+
+class MoodPageTests(PageTestCase):
+    def test_landing_page_is_a_complete_indexable_page(self):
+        html = self.fetch(MOOD_PAGE)
+        page = self.parse(MOOD_PAGE)
+        self.assertEqual([_clean(h) for h in page.h1], ['Find an Emoji Combo for Your Mood'])
+        title, meta = _clean(page.title), page.meta['description']
+        self.assertTrue(30 <= len(title) <= 60, f'title is {len(title)}: {title}')
+        self.assertTrue(140 <= len(meta) <= 155, f'meta is {len(meta)}: {meta}')
+        self.assertEqual(page.canonical, COMBO_SITE + MOOD_PAGE)
+        self.assertEqual(page.meta['og:url'], COMBO_SITE + MOOD_PAGE)
+        self.assertNotIn('noindex', page.meta.get('robots') or '')
+        faq_blocks = [b for b in _ld_blocks(html) if b.get('@type') == 'FAQPage']
+        self.assertEqual(len(faq_blocks), 1)
+        self.assertEqual(len(faq_blocks[0]['mainEntity']), len(re.findall(r'<details class="faq-item[ "]', html)))
+        self.assertNotIn('class="mood-results"', html)
+        self.assertEqual(html.count('class="mood-chip"'), len(mood_engine.CHIP_MOODS))
+
+    def test_results_page_shows_the_moods_and_every_group(self):
+        url = MOOD_PAGE + '?mood=tired+but+happy'
+        html = self.fetch(url)
+        page = self.parse(url)
+        self.assertIn('noindex', page.meta.get('robots') or '')
+        self.assertEqual(page.canonical, COMBO_SITE + MOOD_PAGE)
+        self.assertIn('We picked up:', html)
+        self.assertEqual(html.count('class="mood-pill"'), 2)
+        for heading in ('Top picks for you', 'Made for your mood', 'More ready-made sets that fit', 'Emoji mashup images for your mood'):
+            self.assertIn(heading, html)
+        self.assertGreaterEqual(html.count('class="combo-card__copy"'), 20)
+        self.assertIn('data-copy-grid', html)
+        self.assertEqual(len(re.findall(r'class="mood-mashup" href="/\?emoji1=', html)), 3)
+        self.assertIn('value="tired but happy"', html)
+
+    def test_every_set_can_be_copied_as_text_or_as_an_image(self):
+        html = self.fetch(MOOD_PAGE + '?mood=tired+but+happy')
+        text_buttons = html.count('class="combo-card__copy"')
+        image_buttons = len(re.findall(r'<button type="button" class="mood-imgbtn" data-combo-image="', html))
+        self.assertGreaterEqual(image_buttons, 20)
+        self.assertEqual(text_buttons, image_buttons, 'each set has both a text and an image button')
+        self.assertIn('kitchen/js/combo_image.js', html)
+
+    def test_mashups_show_their_picture_with_copy_download_and_mixer_buttons(self):
+        html = self.fetch(MOOD_PAGE + '?mood=tired+but+happy')
+        cards = re.findall(r'<div class="mood-mashup-card".*?</div>\s*</div>', html, re.S)
+        self.assertEqual(len(cards), 3)
+        for card in cards:
+            self.assertRegex(card, r'<img class="mood-mashup-card__img" src="https://www\.gstatic\.com/android/keyboard/emojikitchen/')
+            self.assertIn('data-mashup-action="copy"', card)
+            self.assertIn('data-mashup-action="download"', card)
+            self.assertRegex(card, r'class="mood-mashup" href="/\?emoji1=')
+            self.assertRegex(card, r'data-emoji1="[^"]+" data-emoji2="[^"]+" data-image="https://www\.gstatic\.com/')
+        self.assertIn(f'data-sticker-version="{stickers.STICKER_VERSION}"', html)
+
+    def test_the_image_script_never_copies_emojis_as_text_and_sends_nothing_typed(self):
+        script = (STATIC_JS / 'combo_image.js').read_text(encoding='utf-8')
+        for banned in ('writeText', 'execCommand', 'location.search', 'mood='):
+            self.assertNotIn(banned, script, banned)
+        for needle in ("'image/png'", 'new ClipboardItem', '/api/sticker/?', "window.isSecureContext === false",
+                       'Use Download image instead'):
+            self.assertIn(needle, script, needle)
+
+    def test_the_home_mood_box_cannot_grow_wider_than_the_phone(self):
+        css = _css()
+        self.assertIn('.hero .mood-form{width:100%;max-width:640px;min-width:0', css)
+        self.assertIn('.mood-grid .combo-card{width:auto;min-width:0', css)
+
+    def test_results_match_the_engine(self):
+        result = mood_engine.find_combos('tired but happy', 0)
+        html = self.fetch(MOOD_PAGE + '?mood=tired+but+happy')
+        for row in result['picks'] + result['generated'] + result['library']:
+            self.assertIn(f'data-combo="{row["emoji"]}"', html)
+
+    def test_shuffle_gives_new_combos_and_a_next_link(self):
+        first = self.fetch(MOOD_PAGE + '?mood=happy')
+        self.assertRegex(first, r'href="/emoji-combos/mood/\?mood=happy&amp;shuffle=1#results" rel="nofollow"')
+        second = self.fetch(MOOD_PAGE + '?mood=happy&shuffle=1')
+        for row in mood_engine.find_combos('happy', 1)['generated']:
+            self.assertIn(f'data-combo="{row["emoji"]}"', second)
+        self.assertNotEqual(first, second)
+        self.assertIn('shuffle=2#results', second)
+
+    def test_bad_shuffle_values_are_safe(self):
+        for value in ('abc', '-5', '', '1.5', '99999999999999999999'):
+            self.assertEqual(self.client.get(MOOD_PAGE, {'mood': 'happy', 'shuffle': value}).status_code, 200, value)
+        self.assertIn('shuffle=0#results', self.fetch(MOOD_PAGE + f'?mood=happy&shuffle={mood_engine.MAX_SHUFFLE}'))
+
+    def test_empty_or_blank_query_shows_the_landing_page(self):
+        for url in (MOOD_PAGE + '?mood=', MOOD_PAGE + '?mood=%20%20%20', MOOD_PAGE + '?other=1'):
+            html = self.fetch(url)
+            self.assertNotIn('class="mood-results"', html, url)
+            self.assertNotIn('noindex', self.parse(url).meta.get('robots') or '', url)
+
+    def test_unrecognised_text_gets_a_friendly_message_and_still_has_results(self):
+        html = self.fetch(MOOD_PAGE + '?mood=asdfgh+qwerty')
+        self.assertIn('We could not read a clear mood', html)
+        self.assertNotIn('We picked up:', html)
+        self.assertGreaterEqual(html.count('class="combo-card__copy"'), 10)
+
+    def test_what_the_visitor_types_is_escaped(self):
+        evil = '"><script>alert(1)</script>'
+        html = self.client.get(MOOD_PAGE, {'mood': evil}).content.decode()
+        self.assertNotIn('<script>alert(1)</script>', html)
+        self.assertIn('&lt;script&gt;', html)
+
+    def test_long_text_is_trimmed_in_the_box(self):
+        html = self.fetch(MOOD_PAGE + '?mood=' + 'happy+' * 100)
+        value = re.search(r'name="mood"[^>]*value="([^"]*)"', html).group(1)
+        self.assertLessEqual(len(value), mood_engine.MAX_TEXT_LENGTH)
+
+    def test_no_database_no_cookies_and_nothing_stored(self):
+        with self.assertNumQueries(0):
+            response = self.client.get(MOOD_PAGE + '?mood=tired+but+happy')
+        self.assertFalse(response.cookies)
+
+    def test_the_box_is_on_the_hero_hub_ready_made_and_mood_pages(self):
+        for path, field_id in [('/', 'hero-mood-input'), ('/emoji-combos/', 'hub-mood-input'),
+                               (READY_MADE, 'ready-mood-input'), (MOOD_PAGE, 'mood-input')]:
+            html = self.fetch(path)
+            self.assertEqual(html.count('class="mood-form"'), 1, path)
+            self.assertIn(f'id="{field_id}"', html, path)
+            self.assertIn(f'for="{field_id}"', html, path)
+            self.assertIn('action="/emoji-combos/mood/"', html, path)
+            self.assertIn('Find an emoji combo according to your mood', html, path)
+            self.assertIn(f'maxlength="{mood_engine.MAX_TEXT_LENGTH}"', html, path)
+            self.assertIn('Explain your mood', html, path)
+
+    def test_the_homepage_box_sits_inside_the_hero(self):
+        html = self.fetch('/')
+        hero = html[html.index('<section class="hero">'):html.index('</section>', html.index('<section class="hero">'))]
+        self.assertIn('class="mood-form"', hero)
+        self.assertLess(hero.index('Start Mixing'), hero.index('class="mood-form"'))
+
+    def test_ids_are_unique_on_every_page_with_the_box(self):
+        for path in ['/', '/emoji-combos/', READY_MADE, MOOD_PAGE]:
+            ids = re.findall(r'\sid="([^"]+)"', self.fetch(path))
+            self.assertEqual(len(ids), len(set(ids)), f'{path} repeats an id: {[i for i in set(ids) if ids.count(i) > 1]}')
+
+    def test_mood_page_is_in_the_sitemap_but_result_urls_are_not(self):
+        response = self.client.get('/sitemap.xml')
+        ns = {'s': 'http://www.sitemaps.org/schemas/sitemap/0.9'}
+        locs = [u.text for u in ET.fromstring(response.content).findall('s:url/s:loc', ns)]
+        self.assertIn(COMBO_SITE + MOOD_PAGE, locs)
+        self.assertFalse([loc for loc in locs if 'mood=' in loc])
+
+    def test_mood_is_never_a_keyword_page(self):
+        self.assertIn('mood', RESERVED_SLUGS)
+        self.assertNotIn('mood', TAG_PAGES)
+
+    def test_links_in_and_out(self):
+        links = self.body_links(MOOD_PAGE)
+        for needed in ('/emoji-combos/', READY_MADE, '/emoji-art-editor/', '/'):
+            self.assertIn(needed, links, needed)
+        for anchors in links.values():
+            for anchor in anchors:
+                self.assertNotIn(anchor, WEAK_ANCHORS)
+
+
+class OthersMenuTests(PageTestCase):
+    def header(self, path):
+        html = self.fetch(path)
+        return html[html.index('<header'):html.index('</header>')]
+
+    def test_every_page_has_the_others_menu_with_the_ready_made_link(self):
+        for path in ALL_PAGES + TAG_PATHS + TOOL_PAGES + [MOOD_PAGE]:
+            header = self.header(path)
+            self.assertEqual(header.count('id="nav-others-btn"'), 1, path)
+            button = re.search(r'<button[^>]*id="nav-others-btn"[^>]*>(.*?)</button>', header, re.S)
+            self.assertEqual(button.group(1).strip(), 'Others', path)
+            self.assertIn('aria-haspopup="true"', button.group(0), path)
+            self.assertIn('aria-expanded="false"', button.group(0), path)
+            menu = re.search(r'<ul class="nav__dropdown-menu" id="nav-others-menu"[^>]*>(.*?)</ul>', header, re.S)
+            self.assertIsNotNone(menu, path)
+            links = re.findall(r'<a href="([^"]+)">([^<]+)</a>', menu.group(1))
+            self.assertEqual(links, [(READY_MADE, '🎭 Ready Made Emoji Combos'), ('/emoji-kitchen-guide/', '📖 Emoji Kitchen Guide')], path)
+
+    def test_others_is_the_last_menu_item_after_blog(self):
+        header = self.header('/')
+        nav = header[header.index('<ul class="nav__links">'):header.index('class="nav__cta')]
+        self.assertLess(nav.index('>Blog</a>'), nav.index('id="nav-others-btn"'))
+        self.assertEqual(nav.count('nav__item--dropdown'), 3)      # keyboard, combos, others
+
+    def test_mobile_menu_has_an_others_section(self):
+        for path in ('/', '/emoji-combos/', READY_MADE, MOOD_PAGE):
+            header = self.header(path)
+            drawer = header[header.index('id="nav-drawer"'):]
+            self.assertIn('<span class="nav__drawer-heading">Others</span>', drawer, path)
+            self.assertLess(drawer.index('>📝 Blog</a>'), drawer.index('nav__drawer-heading'), path)
+            self.assertRegex(drawer, rf'<a href="{READY_MADE}" class="nav__drawer-link nav__drawer-sublink" data-close-drawer>🎭 Ready Made Emoji Combos</a>')
+            self.assertRegex(drawer, r'<a href="/emoji-kitchen-guide/" class="nav__drawer-link nav__drawer-sublink" data-close-drawer>📖 Emoji Kitchen Guide</a>')
+            self.assertLess(drawer.index('Ready Made Emoji Combos'), drawer.index('Emoji Kitchen Guide'), path)
+
+    def test_hover_and_click_both_open_it_and_focus_alone_cannot_trap_it_open(self):
+        css = _css()
+        self.assertIn('.nav__item--others:hover .nav__dropdown-menu', css)
+        self.assertIn('.nav__item--others.is-open .nav__dropdown-menu', css)
+        self.assertIn('.nav__item--others:focus-within:not(.is-open):not(:hover) .nav__dropdown-menu', css)
+        js = (Path(settings.BASE_DIR) / 'kitchen/static/kitchen/js/site.js').read_text(encoding='utf-8')
+        for needle in ("'nav-others-btn'", "'is-open'", 'aria-expanded', "'Escape'", 'othersItem.contains(e.target)'):
+            self.assertIn(needle, js, needle)
+
+    def test_the_desktop_menu_switches_to_the_hamburger_before_seven_items_overflow(self):
+        css = _css()
+        self.assertRegex(css, r'@media\(max-width:1140px\)\{\s*\.nav__links,\.nav__cta\{display:none\}')
+        self.assertNotRegex(css, r'@media\(max-width:1040px\)\{\s*\.nav__links')
+        self.assertIn('white-space:nowrap', _rule(css, '.nav__others'))
+
+
+class MobileUiTests(PageTestCase):
+    def test_every_page_declares_a_mobile_viewport(self):
+        for path in ['/', '/emoji-combos/', READY_MADE, MOOD_PAGE, '/emoji-combos/kawaii/', '/emoji-art-editor/']:
+            self.assertIn('<meta name="viewport" content="width=device-width, initial-scale=1.0" />', self.fetch(path), path)
+
+    def test_text_inputs_are_16px_so_iphones_do_not_zoom(self):
+        css = _css()
+        self.assertRegex(_rule(css, '.mood-form__input'), r'font-size:1rem')
+        phones = css[css.rindex('.hero{padding:56px 0 48px}'):]
+        for selector in ('.combo-search{font-size:16px', '.ea-num,.ea-select,.ea-textarea,.ea-brushrow .combo-search{font-size:16px'):
+            self.assertIn(selector, phones, selector)
+
+    def test_tap_targets_are_at_least_44px_on_the_new_controls(self):
+        css = _css()
+        for selector, minimum in [('.mood-chip', 44), ('.mood-form__input', 52), ('.mood-form__btn', 52),
+                                  ('.mood-mashup', 44), ('.nav__drawer-link', 48), ('.nav__hamburger', 44)]:
+            match = re.search(r'min-height:(\d+)px', _rule(css, selector))
+            self.assertIsNotNone(match, selector)
+            self.assertGreaterEqual(int(match.group(1)), minimum, selector)
+        phones = css[css.rindex('.hero{padding:56px 0 48px}'):]
+        for needle in ('.combo-card__copy{min-height:44px', '.combo-filter__btn{flex:0 0 auto;min-height:40px',
+                       '.combo-random-btn{width:100%;min-height:46px', '.mood-shuffle{width:100%;min-height:44px'):
+            self.assertIn(needle, phones, needle)
+
+    def test_chips_and_filters_scroll_sideways_on_phones_instead_of_stacking(self):
+        css = _css()
+        self.assertIn('overflow-x:auto', _rule(css, '.mood-chips'))
+        phones = css[css.rindex('.hero{padding:56px 0 48px}'):]
+        self.assertRegex(phones, r'\.combo-filter\{\s*flex-wrap:nowrap;overflow-x:auto')
+
+    def test_the_mood_form_stacks_and_the_grids_use_two_columns_on_phones(self):
+        phones = _css()[_css().rindex('.hero{padding:56px 0 48px}'):]
+        self.assertIn('.mood-form__row{flex-direction:column}', phones)
+        self.assertIn('.mood-form__btn{width:100%}', phones)
+        self.assertIn('.mood-grid{grid-template-columns:repeat(2,1fr)', phones)
+        self.assertIn('.combo-grid{grid-template-columns:repeat(2,1fr)', phones)
+
+    def test_the_mobile_menu_scrolls_when_it_is_taller_than_the_screen(self):
+        rule = _rule(_css(), '.nav__drawer')
+        self.assertIn('overflow-y:auto', rule)
+        self.assertIn('100dvh', rule)
+
+    def test_the_mood_box_is_usable_without_javascript(self):
+        html = self.fetch(MOOD_PAGE)
+        form = re.search(r'<form class="mood-form".*?</form>', html, re.S).group(0)
+        self.assertIn('method="get"', form)
+        self.assertEqual(len(re.findall(r'<a class="mood-chip" href="/emoji-combos/mood/\?mood=[a-z]+">', form)), len(mood_engine.CHIP_MOODS))
+        self.assertIn('enterkeyhint="search"', form)
+        self.assertIn('autocomplete="off"', form)
+
+    def test_copy_works_on_the_search_and_mood_pages_through_one_shared_script(self):
+        script = (STATIC_JS / 'combo_copy.js').read_text(encoding='utf-8')
+        for needle in ('navigator.clipboard', 'execCommand', '[data-copy-grid] .combo-card__copy', 'Copied'):
+            self.assertIn(needle, script, needle)
+        for network in ('fetch(', 'XMLHttpRequest', 'sendBeacon', 'localStorage'):
+            self.assertNotIn(network, script, network)
+        for url in ('/emoji-combos/search/?q=cat', MOOD_PAGE + '?mood=happy'):
+            html = self.fetch(url)
+            self.assertIn('kitchen/js/combo_copy.js', html, url)
+            self.assertIn('data-copy-grid', html, url)
+            self.assertNotIn('navigator.clipboard', html, f'{url} should use the shared script, not an inline copy')
+
+
+# ── Download as a sticker ────────────────────────────────────────────────────
+
+import io as _io
+import os as _os
+import random as _random
+from unittest import mock
+
+from PIL import Image as _Image, ImageDraw as _ImageDraw
+
+from . import stickers
+
+MAIN_JS = Path(settings.BASE_DIR) / 'kitchen/static/kitchen/js/main.js'
+STICKER_URL = 'https://www.gstatic.com/android/keyboard/emojikitchen/20201001/u1f602/u1f602_u1f480.png'
+
+
+def _mashup_png(size=(534, 534), box=(60, 80, 470, 440), color=(230, 60, 60, 255), noisy=False, mode='RGBA'):
+    """A stand-in for a Google mashup: a coloured blob on a transparent background."""
+    image = _Image.new('RGBA', size, (0, 0, 0, 0))
+    if noisy:
+        grain = _Image.frombytes('RGB', size, _os.urandom(size[0] * size[1] * 3)).convert('RGBA')
+        mask = _Image.new('L', size, 0)
+        _ImageDraw.Draw(mask).ellipse(box, fill=255)
+        image.paste(grain, (0, 0), mask)
+    else:
+        _ImageDraw.Draw(image).ellipse(box, fill=color)
+    if mode == 'P':
+        image = image.quantize(colors=16, method=_Image.Quantize.FASTOCTREE)
+    out = _io.BytesIO()
+    image.save(out, 'PNG')
+    return out.getvalue()
+
+
+def _alpha_box(image, threshold=8):
+    return image.getchannel('A').point(lambda v: 255 if v > threshold else 0).getbbox()
+
+
+class _FakeResponse:
+    def __init__(self, body=b'', status=200, content_type='image/png', chunk=65536):
+        self.status_code = status
+        self.headers = {'Content-Type': content_type}
+        self._body, self._chunk = body, chunk
+        self.closed = False
+        self.chunks_read = 0
+
+    def iter_content(self, size):
+        for start in range(0, len(self._body), self._chunk):
+            self.chunks_read += 1
+            yield self._body[start:start + self._chunk]
+
+    def close(self):
+        self.closed = True
+
+
+class StickerImageTests(SimpleTestCase):
+    def test_output_is_a_512_square_with_transparent_corners_and_an_opaque_middle(self):
+        art = stickers.build_sticker_image(_mashup_png())
+        self.assertEqual(art.size, (512, 512))
+        self.assertEqual(art.mode, 'RGBA')
+        for corner in [(0, 0), (511, 0), (0, 511), (511, 511)]:
+            self.assertEqual(art.getpixel(corner)[3], 0, corner)
+        middle = art.getpixel((256, 256))
+        self.assertEqual(middle[3], 255)
+        self.assertGreater(middle[0], 200)
+        self.assertLess(middle[1], 100)
+
+    def test_artwork_is_centred_and_keeps_a_clear_margin(self):
+        art = stickers.build_sticker_image(_mashup_png())
+        # the opaque sticker (artwork, white outline and grey edge) is centred; the soft shadow is faint and is left out
+        left, top, right, bottom = _alpha_box(art, threshold=200)
+        self.assertLessEqual(abs((left + right) - 512), 3)
+        self.assertLessEqual(abs((top + bottom) - 512), 3)
+        self.assertGreaterEqual(min(left, top, 512 - right, 512 - bottom), 12)
+        alpha = art.getchannel('A')
+        edge = 4    # nothing at all, not even shadow, touches the very edge of the file
+        for strip in [(0, 0, 512, edge), (0, 512 - edge, 512, 512), (0, 0, edge, 512), (512 - edge, 0, 512, 512)]:
+            self.assertEqual(alpha.crop(strip).getextrema()[1], 0, f'something is drawn in the outer {edge}px strip {strip}')
+
+    def test_there_is_a_white_outline_of_about_the_right_width(self):
+        art = stickers.build_sticker_image(_mashup_png())
+        row = 256
+        pixels = [art.getpixel((x, row)) for x in range(512)]
+        first_art = next(x for x, p in enumerate(pixels) if p[3] == 255 and p[0] > 200 and p[1] < 100)
+        outside = pixels[first_art - 4]
+        self.assertGreater(outside[3], 200)
+        self.assertTrue(all(channel > 240 for channel in outside[:3]), outside)
+        width = 0
+        for p in reversed(pixels[:first_art]):
+            if p[3] > 200 and all(channel > 240 for channel in p[:3]):
+                width += 1
+            else:
+                break
+        self.assertTrue(stickers.OUTLINE - 3 <= width <= stickers.OUTLINE + 4, f'white outline is {width}px wide')
+
+    def test_the_sticker_is_visibly_a_sticker_on_a_plain_white_page(self):
+        # Regression: a white outline on a white page is invisible, which made stickers look like plain images.
+        art = stickers.build_sticker_image(_mashup_png())
+        page = _Image.new('RGBA', art.size, (255, 255, 255, 255))
+        page.alpha_composite(art)
+        row = [page.convert('RGB').getpixel((x, 256)) for x in range(512)]
+        first_art = next(x for x, p in enumerate(row) if p[0] > 200 and p[1] < 100)
+        outline = row[first_art - 12:first_art]
+        luminance = [sum(p) / 3 for p in outline]
+        self.assertLess(min(luminance), 225, 'no grey edge shows against a white page')
+        self.assertGreater(max(luminance), 250, 'the white border itself has gone')
+        below = page.convert('RGB')
+        bottom = max(y for y in range(512) if art.getpixel((256, y))[3] > 200)
+        shadow = [sum(below.getpixel((256, y))) / 3 for y in range(bottom + 1, bottom + 9)]
+        self.assertLess(min(shadow), 245, 'no soft shadow shows below the sticker on a white page')
+        self.assertGreater(min(shadow), 120, 'the shadow is too heavy')
+
+    def test_the_shadow_is_soft_and_faint(self):
+        art = stickers.build_sticker_image(_mashup_png())
+        alpha = art.getchannel('A')
+        bottom = max(y for y in range(512) if alpha.getpixel((256, y)) > 200)
+        # start a few pixels past the sticker's own anti-aliased edge, so only the shadow is measured
+        faint = [alpha.getpixel((256, y)) for y in range(bottom + 4, 512) if alpha.getpixel((256, y)) > 0]
+        self.assertTrue(faint, 'there is no shadow')
+        self.assertLessEqual(max(faint), int(255 * stickers.SHADOW_OPACITY) + 8)
+        self.assertEqual(faint, sorted(faint, reverse=True), 'the shadow should fade out smoothly, not stripe')
+
+    def test_wide_tall_and_small_sources_all_fill_the_frame(self):
+        for size, box in [((600, 200), (0, 0, 599, 199)), ((200, 600), (0, 0, 199, 599)), ((100, 100), (5, 5, 95, 95))]:
+            art = stickers.build_sticker_image(_mashup_png(size=size, box=box))
+            left, top, right, bottom = _alpha_box(art)
+            longest = max(right - left, bottom - top)
+            self.assertTrue(470 <= longest <= 500, f'{size}: longest side is {longest}')
+
+    def test_palette_png_like_googles_works(self):
+        art = stickers.build_sticker_image(_mashup_png(mode='P'))
+        self.assertEqual(art.getpixel((0, 0))[3], 0)
+        self.assertEqual(art.getpixel((256, 256))[3], 255)
+
+    def test_bad_sources_are_rejected(self):
+        blank = _io.BytesIO()
+        _Image.new('RGBA', (50, 50), (0, 0, 0, 0)).save(blank, 'PNG')
+        huge = _io.BytesIO()
+        _Image.new('1', (5000, 5000)).save(huge, 'PNG')
+        for name, data in [('not an image', b'definitely not an image'), ('empty', b''), ('fully transparent', blank.getvalue()),
+                           ('too many pixels', huge.getvalue()), ('truncated', _mashup_png()[:40])]:
+            with self.assertRaises(stickers.StickerError, msg=name):
+                stickers.build_sticker_image(data)
+
+
+class StickerEncodeTests(SimpleTestCase):
+    def setUp(self):
+        self.art = stickers.build_sticker_image(_mashup_png())
+
+    def test_webp_is_a_real_webp_512_square_with_transparency_under_100kb(self):
+        data = stickers.encode(self.art, 'webp')
+        self.assertEqual(data[:4], b'RIFF')
+        self.assertEqual(data[8:12], b'WEBP')
+        self.assertLessEqual(len(data), 100 * 1024)
+        decoded = _Image.open(_io.BytesIO(data))
+        self.assertEqual((decoded.format, decoded.size), ('WEBP', (512, 512)))
+        rgba = decoded.convert('RGBA')
+        self.assertEqual(rgba.getpixel((0, 0))[3], 0)
+        self.assertEqual(rgba.getpixel((256, 256))[3], 255)
+
+    def test_webp_is_squeezed_under_the_limit_even_for_very_detailed_art(self):
+        noisy = stickers.build_sticker_image(_mashup_png(noisy=True))
+        data = stickers.encode(noisy, 'webp')
+        lowest = _io.BytesIO()
+        noisy.save(lowest, 'WEBP', quality=stickers.WEBP_QUALITIES[-1], method=4)
+        self.assertTrue(len(data) <= stickers.MAX_WEBP_BYTES or len(data) == len(lowest.getvalue()),
+                        f'{len(data)} bytes is neither under the limit nor the smallest the encoder can do')
+
+    def test_png_is_a_real_png_with_transparency(self):
+        data = stickers.encode(self.art, 'png')
+        self.assertEqual(data[:8], b'\x89PNG\r\n\x1a\n')
+        decoded = _Image.open(_io.BytesIO(data))
+        self.assertEqual((decoded.format, decoded.size, decoded.mode), ('PNG', (512, 512), 'RGBA'))
+        self.assertEqual(decoded.getpixel((0, 0))[3], 0)
+
+    def test_unknown_format_is_rejected(self):
+        for fmt in ('gif', 'jpg', '', 'WEBP'):
+            with self.assertRaises(stickers.StickerError, msg=fmt):
+                stickers.encode(self.art, fmt)
+
+    def test_the_spec_numbers_are_what_whatsapp_asks_for(self):
+        self.assertEqual(stickers.STICKER_SIZE, 512)
+        self.assertEqual(stickers.MAX_WEBP_BYTES, 100 * 1024)
+        self.assertEqual(stickers.FORMATS, ('webp', 'png'))
+
+
+class StickerFetchTests(SimpleTestCase):
+    def test_only_googles_emoji_kitchen_addresses_are_ever_requested(self):
+        bad = [
+            'https://evil.example/android/keyboard/emojikitchen/x.png',
+            'http://www.gstatic.com/android/keyboard/emojikitchen/20201001/a/a_b.png',
+            'https://www.gstatic.com.evil.example/android/keyboard/emojikitchen/a.png',
+            'https://www.gstatic.com/android/keyboard/emojikitchen/../../secret.png',
+            'https://www.gstatic.com/android/keyboard/emojikitchen/20201001/a/a_b.jpg',
+            'https://www.gstatic.com/other/path.png',
+            'file:///etc/passwd', '', 'javascript:alert(1)',
+        ]
+        with mock.patch.object(stickers.requests, 'get') as get:
+            for url in bad:
+                with self.assertRaises(stickers.StickerError, msg=url):
+                    stickers.fetch_source(url)
+            get.assert_not_called()
+
+    def test_a_good_address_is_fetched_with_a_timeout_and_the_connection_is_closed(self):
+        response = _FakeResponse(b'png-bytes')
+        with mock.patch.object(stickers.requests, 'get', return_value=response) as get:
+            self.assertEqual(stickers.fetch_source(STICKER_URL), b'png-bytes')
+        self.assertEqual(get.call_args.args[0], STICKER_URL)
+        self.assertEqual(get.call_args.kwargs['timeout'], stickers.FETCH_TIMEOUT)
+        self.assertTrue(response.closed)
+
+    def test_failures_become_sticker_errors_and_still_close_the_connection(self):
+        cases = {
+            'host error': _FakeResponse(b'', status=404),
+            'server error': _FakeResponse(b'', status=500),
+            'not an image': _FakeResponse(b'<html>', content_type='text/html'),
+        }
+        for name, response in cases.items():
+            with mock.patch.object(stickers.requests, 'get', return_value=response):
+                with self.assertRaises(stickers.StickerError, msg=name):
+                    stickers.fetch_source(STICKER_URL)
+            self.assertTrue(response.closed, name)
+        with mock.patch.object(stickers.requests, 'get', side_effect=stickers.requests.ConnectionError('down')):
+            with self.assertRaises(stickers.StickerError):
+                stickers.fetch_source(STICKER_URL)
+        with mock.patch.object(stickers.requests, 'get', side_effect=stickers.requests.Timeout('slow')):
+            with self.assertRaises(stickers.StickerError):
+                stickers.fetch_source(STICKER_URL)
+
+    def test_an_oversized_download_is_cut_off_early(self):
+        one_mb = 1024 * 1024
+        response = _FakeResponse(b'x' * (10 * one_mb), chunk=one_mb)
+        with mock.patch.object(stickers.requests, 'get', return_value=response):
+            with self.assertRaises(stickers.StickerError):
+                stickers.fetch_source(STICKER_URL)
+        self.assertLessEqual(response.chunks_read, 4)
+        self.assertTrue(response.closed)
+
+
+class StickerCacheTests(SimpleTestCase):
+    def setUp(self):
+        stickers.make_sticker.cache_clear()
+        self.addCleanup(stickers.make_sticker.cache_clear)
+
+    def test_a_popular_pair_is_built_once(self):
+        with mock.patch.object(stickers, 'fetch_source', return_value=_mashup_png()) as fetch:
+            first = stickers.make_sticker(STICKER_URL, 'webp')
+            second = stickers.make_sticker(STICKER_URL, 'webp')
+            self.assertEqual(first, second)
+            self.assertEqual(fetch.call_count, 1)
+            stickers.make_sticker(STICKER_URL, 'png')
+            self.assertEqual(fetch.call_count, 2)       # a different format is a different file
+
+
+class StickerEndpointTests(PageTestCase):
+    def setUp(self):
+        super().setUp()
+        stickers.make_sticker.cache_clear()
+        self.addCleanup(stickers.make_sticker.cache_clear)
+        self.fetched = []
+
+        def fake_fetch(url):
+            self.fetched.append(url)
+            return _mashup_png()
+
+        patcher = mock.patch.object(stickers, 'fetch_source', side_effect=fake_fetch)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def get(self, **params):
+        return self.client.get('/api/sticker/', params)
+
+    def test_a_supported_pair_downloads_as_a_webp_sticker(self):
+        response = self.get(emoji1='😂', emoji2='💀')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Content-Type'], 'image/webp')
+        self.assertEqual(response['Content-Disposition'], 'attachment; filename="emoji-kitchen-sticker-1f480-1f602.webp"')
+        self.assertEqual(response['Cache-Control'], 'public, max-age=86400')
+        body = response.content
+        self.assertEqual((body[:4], body[8:12]), (b'RIFF', b'WEBP'))
+        self.assertLessEqual(len(body), 100 * 1024)
+        self.assertEqual(_Image.open(_io.BytesIO(body)).size, (512, 512))
+        self.assertFalse(response.cookies)
+
+    def test_the_source_comes_from_the_validated_pair_and_nothing_else(self):
+        self.get(emoji1='😂', emoji2='💀')
+        self.assertEqual(self.fetched, [views.combo_image_url('😂', '💀')])
+        self.assertTrue(self.fetched[0].startswith(stickers.ALLOWED_PREFIX))
+
+    def test_the_order_of_the_two_emojis_does_not_matter(self):
+        one, two = self.get(emoji1='😂', emoji2='💀'), self.get(emoji1='💀', emoji2='😂')
+        self.assertEqual(one.content, two.content)
+        self.assertEqual(one['Content-Disposition'], two['Content-Disposition'])
+
+    def test_png_is_available_and_webp_is_the_default(self):
+        png = self.get(emoji1='😂', emoji2='💀', format='png')
+        self.assertEqual(png['Content-Type'], 'image/png')
+        self.assertTrue(png['Content-Disposition'].endswith('.png"'))
+        self.assertEqual(png.content[:8], b'\x89PNG\r\n\x1a\n')
+        self.assertEqual(self.get(emoji1='😂', emoji2='💀', format='PNG')['Content-Type'], 'image/png')
+        self.assertEqual(self.get(emoji1='😂', emoji2='💀', format='webp')['Content-Type'], 'image/webp')
+        self.assertEqual(self.get(emoji1='😂', emoji2='💀')['Content-Type'], 'image/webp')
+
+    def test_a_pair_without_a_mashup_is_a_404_and_nothing_is_fetched(self):
+        for first, second in [('abc', 'def'), ('😂', 'x'), ('https://evil.example/a.png', '💀')]:
+            response = self.get(emoji1=first, emoji2=second)
+            self.assertEqual(response.status_code, 404, (first, second))
+            self.assertIn('error', response.json())
+        self.assertEqual(self.fetched, [])
+
+    def test_bad_requests_get_a_400(self):
+        cases = [{}, {'emoji1': '😂'}, {'emoji2': '💀'}, {'emoji1': '', 'emoji2': ''}, {'emoji1': '  ', 'emoji2': '💀'},
+                 {'emoji1': '😂', 'emoji2': '💀', 'format': 'gif'}, {'emoji1': '😂', 'emoji2': '💀', 'format': 'jpg'},
+                 {'emoji1': '😂' * 40, 'emoji2': '💀'}]
+        for params in cases:
+            response = self.get(**params)
+            self.assertEqual(response.status_code, 400, params)
+            self.assertIn('error', response.json())
+        self.assertEqual(self.fetched, [])
+
+    def test_only_get_is_allowed(self):
+        for method in (self.client.post, self.client.put, self.client.delete):
+            self.assertEqual(method('/api/sticker/', {'emoji1': '😂', 'emoji2': '💀'}).status_code, 405)
+
+    def test_an_upstream_failure_is_a_clean_502_that_leaks_nothing(self):
+        with mock.patch.object(stickers, 'fetch_source', side_effect=stickers.StickerError('host answered 500 at 10.0.0.5')):
+            with self.assertLogs('kitchen.views', level='WARNING') as logs:
+                response = self.get(emoji1='😂', emoji2='💀')
+        self.assertEqual(response.status_code, 502)
+        self.assertEqual(response.json(), {'error': 'Could not make the sticker. Please try again.'})
+        self.assertNotIn('10.0.0.5', response.content.decode())
+        self.assertIn('10.0.0.5', logs.output[0])           # the detail is logged for the owner
+
+    def test_a_failure_is_not_cached(self):
+        with mock.patch.object(stickers, 'fetch_source', side_effect=stickers.StickerError('boom')):
+            self.assertEqual(self.get(emoji1='😂', emoji2='💀').status_code, 502)
+        self.assertEqual(self.get(emoji1='😂', emoji2='💀').status_code, 200)
+
+    def test_no_database_is_used(self):
+        with self.assertNumQueries(0):
+            self.get(emoji1='😂', emoji2='💀')
+
+    def test_the_endpoint_never_takes_a_url_from_the_visitor(self):
+        for key in ('url', 'src', 'image', 'u'):
+            self.client.get('/api/sticker/', {'emoji1': '😂', 'emoji2': '💀', key: 'https://evil.example/x.png'})
+        self.assertTrue(all(url.startswith(stickers.ALLOWED_PREFIX) for url in self.fetched))
+
+
+class StickerDownloadButtonTests(PageTestCase):
+    MIXER_PAGES_WITH_BUTTON = ['/', '/emoji-maker/', '/emoji-generator/']
+
+    def test_the_mixer_offers_a_sticker_download_with_a_png_alternative(self):
+        for path in self.MIXER_PAGES_WITH_BUTTON:
+            html = self.fetch(path)
+            self.assertEqual(html.count('id="btn-download"'), 1, path)
+            self.assertEqual(html.count('id="btn-download-png"'), 1, path)
+            self.assertEqual(html.count('id="btn-download-label"'), 1, path)
+            self.assertRegex(html, r'id="btn-download-label">Download image</span>', path)
+            self.assertIn('512 × 512', html, path)
+            self.assertIn('Need a PNG instead?', html, path)
+            self.assertRegex(html, r'id="btn-download"[^>]*\bdisabled\b', path)
+            self.assertRegex(html, r'id="btn-download-png"[^>]*\bdisabled\b', path)
+            self.assertNotIn('Download mashup as PNG', html, path)
+
+    def test_the_script_uses_the_sticker_endpoint_and_falls_back_to_the_plain_image(self):
+        source = MAIN_JS.read_text(encoding='utf-8')
+        for needle in ("/api/sticker/?", "downloadSticker('webp')", "downloadSticker('png')", 'URLSearchParams',
+                       'savePlainImage', 'MutationObserver', 'btnDownload.disabled = !comboUrl', 'Content-Disposition',
+                       'Sticker service unavailable'):
+            self.assertIn(needle, source, needle)
+        self.assertEqual(source.count("'emoji_mashup.png'"), 1, 'the plain image is only the fallback now')
+        self.assertLess(source.index('async function savePlainImage'), source.index('async function downloadSticker'))
+
+    def test_the_download_address_carries_the_sticker_version_so_old_cached_files_are_skipped(self):
+        for path in self.MIXER_PAGES_WITH_BUTTON:
+            self.assertIn(f'data-sticker-version="{stickers.STICKER_VERSION}"', self.fetch(path), path)
+        source = MAIN_JS.read_text(encoding='utf-8')
+        self.assertIn("params.set('v', btnDownload.dataset.stickerVersion)", source)
+        # the server ignores v, and the same file comes back for any version
+        with mock.patch.object(stickers, 'fetch_source', return_value=_mashup_png()):
+            stickers.make_sticker.cache_clear()
+            one = self.client.get('/api/sticker/', {'emoji1': '😂', 'emoji2': '💀', 'v': '1'})
+            two = self.client.get('/api/sticker/', {'emoji1': '😂', 'emoji2': '💀', 'v': '2'})
+            stickers.make_sticker.cache_clear()
+        self.assertEqual((one.status_code, two.status_code), (200, 200))
+        self.assertEqual(one.content, two.content)
+
+    def test_the_faq_says_the_download_is_a_sticker(self):
+        answer = next(f['answer'] for f in views.FAQS if f['question'] == 'Can I download my emoji mashup?')
+        for word in ('sticker', '512', 'WebP', 'PNG'):
+            self.assertIn(word, answer, word)
+        self.assertNotIn('as an image (PNG) file', answer)
+
+    def test_ids_stay_unique_on_the_pages_with_the_button(self):
+        for path in self.MIXER_PAGES_WITH_BUTTON:
+            ids = re.findall(r'\sid="([^"]+)"', self.fetch(path))
+            self.assertEqual(len(ids), len(set(ids)), f'{path}: {[i for i in set(ids) if ids.count(i) > 1]}')
+
+    def test_the_note_is_readable_on_a_phone(self):
+        css = _css()
+        self.assertIn('.cook__dlnote{', css)
+        rule = _rule(css, '.linklike')
+        self.assertRegex(rule, r'min-height:(4\d|[5-9]\d)px')
+        self.assertIn('cursor:not-allowed', css)
+
+
+# ── Copy sticker and Send sticker ────────────────────────────────────────────
+
+class StickerCopySendTests(PageTestCase):
+    PAGES = ['/', '/emoji-maker/', '/emoji-generator/']
+
+    def source(self):
+        return MAIN_JS.read_text(encoding='utf-8')
+
+    def test_the_mixer_has_copy_sticker_and_a_send_sticker_button_that_starts_hidden(self):
+        for path in self.PAGES:
+            html = self.fetch(path)
+            self.assertRegex(html, r'id="btn-copy-label">Copy image</span>', path)
+            self.assertRegex(html, r'id="btn-send-label">Send image</span>', path)
+            self.assertRegex(html, r'<button[^>]*id="btn-send"[^>]*\bhidden\b[^>]*\bdisabled\b', path)
+            self.assertEqual(html.count('id="btn-send"'), 1, path)
+            self.assertIn('Copy image</strong> pastes it into a chat', html, path)
+            self.assertNotIn('Copy emojis as text', html, path)
+            for old in ('Copy sticker', 'Download sticker', 'Send sticker'):
+                self.assertNotIn(old, html, f'{path}: {old}')
+
+    def test_send_sticker_stays_out_of_sight_until_the_browser_can_share_files(self):
+        self.assertIn('.cook__actions [hidden]{display:none !important}', _css())
+        source = self.source()
+        for needle in ('function canShareType(type, name)', "const canShareFiles = () => canShareType('image/png', 'sticker.png')",
+                       "typeof navigator.share !== 'function'", "typeof navigator.canShare !== 'function'",
+                       'if (btnSend && canShareFiles())', 'btnSend.hidden = false'):
+            self.assertIn(needle, source, needle)
+
+    def test_copy_copies_the_sticker_png_and_falls_back_in_order(self):
+        source = self.source()
+        copy = source[source.index('btnCopy.addEventListener'):]
+        copy = copy[:copy.index('\n});') + 4]
+        self.assertIn("fetchSticker('png')", copy)
+        self.assertIn("new ClipboardItem({ 'image/png': pngBlob })", copy)
+        self.assertLess(copy.index("fetchSticker('png')"), copy.index('fetch(comboUrl'), 'sticker first, plain image second')
+        # the two emojis are never copied as text: the button only ever copies a picture
+        for banned in ('writeText', 'fallbackCopy', 'execCommand', 'slot1Emoji + slot2Emoji'):
+            self.assertNotIn(banned, copy, banned)
+        self.assertIn("window.isSecureContext === false", copy)
+        self.assertIn('Use Download image instead', copy)
+        # Safari only allows the clipboard write inside the tap, so the promise is created before any await
+        self.assertLess(copy.index("fetchSticker('png')"), copy.index('await navigator.clipboard.write'))
+        self.assertIn('btnCopy.disabled = !comboUrl', copy)
+
+    def test_send_prepares_the_file_ahead_so_the_share_menu_opens_inside_the_tap(self):
+        source = self.source()
+        send = source[source.index('async function sendSticker()'):]
+        send = send[:send.index('\n}\n') + 3]
+        self.assertIn('readyStickerFiles.get(stickerPairKey())', send)
+        # with a ready file there is nothing to await between the tap and share()
+        self.assertLess(send.index('if (!file) {'), send.index('await navigator.share'))
+        self.assertIn('PREFETCH_DELAY_MS = 700', source)
+        # loading a saved combo swaps the image without toggling the buttons, so the image itself must be watched
+        self.assertIn("if (resultImg) new MutationObserver(scheduleStickerPrefetch).observe(resultImg, { attributes: true, attributeFilter: ['src'] });", source)
+        for needle in ("err.name === 'AbortError'", "err.name === 'NotAllowedError'", 'downloadSticker(stickerShareFormat)',
+                       'navigator.canShare({ files: [file] })'):
+            self.assertIn(needle, send, needle)
+        self.assertIn("{ files: [file] }", send)
+        self.assertNotIn('text:', send)
+        self.assertNotIn('url:', send)
+
+    def test_the_sticker_is_shared_as_webp_where_the_browser_allows_it_and_png_elsewhere(self):
+        # WebP is the sticker format (Telegram treats a WebP file as a sticker); a PNG arrives as a photo.
+        source = self.source()
+        self.assertIn("const stickerShareFormat = canShareType('image/webp', 'sticker.webp') ? 'webp' : 'png';", source)
+        self.assertIn("fetchSticker(stickerShareFormat)", source)
+        self.assertIn("new File([blob], `emoji-kitchen-sticker.${stickerShareFormat}`, { type: `image/${stickerShareFormat}` })", source)
+        self.assertLess(source.index('const stickerShareFormat'), source.index('function prepareStickerFile'))
+
+    def test_copy_still_uses_png_because_the_browser_clipboard_only_takes_png(self):
+        source = self.source()
+        copy = source[source.index('btnCopy.addEventListener'):]
+        copy = copy[:copy.index('\n});') + 4]
+        self.assertIn("fetchSticker('png')", copy)
+        self.assertIn("'image/png': pngBlob", copy)
+        self.assertNotIn('webp', copy)
+
+    def test_usage_events_carry_only_an_outcome(self):
+        source = self.source()
+        track = source[source.index('function trackSticker'):]
+        track = track[:track.index('\n}\n') + 3]
+        self.assertIn("window.gtag('event', `sticker_${action}`, { outcome })", track)
+        self.assertEqual(source.count("window.gtag("), 1, 'gtag is only called from trackSticker')
+        for call in re.findall(r"trackSticker\(([^)]*)\)", source):
+            if call.startswith('action'):
+                continue
+            action, outcome = [part.strip() for part in call.split(',')]
+            self.assertRegex(action, r"^'(download|copy|send)'$", call)
+            self.assertRegex(outcome, r"^('[a-z_]+'|format|copied)$", f'{call}: an outcome must be a fixed word, never emoji or text')
+        self.assertNotIn('emoji1', track)
+        self.assertNotIn('slot1Emoji', track)
+
+    def test_analytics_failing_or_missing_cannot_break_the_buttons(self):
+        track = self.source()[self.source().index('function trackSticker'):]
+        track = track[:track.index('\n}\n') + 3]
+        self.assertIn("typeof window.gtag === 'function'", track)
+        self.assertIn('try {', track)
+        self.assertIn('catch (err)', track)
+
+    def test_the_faq_mentions_copy_and_send(self):
+        answer = next(f['answer'] for f in views.FAQS if f['question'] == 'Can I download my emoji mashup?')
+        self.assertIn('Copy image', answer)
+        self.assertIn('Send image', answer)
+
+    def test_ids_stay_unique_with_the_new_button(self):
+        for path in self.PAGES:
+            ids = re.findall(r'\sid="([^"]+)"', self.fetch(path))
+            self.assertEqual(len(ids), len(set(ids)), path)

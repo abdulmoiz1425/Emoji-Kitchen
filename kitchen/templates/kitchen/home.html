@@ -1,11 +1,11 @@
 {% extends 'kitchen/base.html' %}
-{% load static %}
+{% load static mood_tags %}
 
-{% block title %}Emoji Kitchen Mixer – Mix Two Emojis Free{% endblock %}
+{% block title %}Emoji Kitchen Mixer: Mix Two Emojis Free{% endblock %}
 {% block meta_description %}Mix two emojis into one sticker with this free Emoji Kitchen mixer. Works in your browser on iPhone, Android or PC. Copy or download, no sign-up.{% endblock %}
 
 {% block extra_head %}
-{% include "kitchen/_social_meta.html" with page_title="Emoji Kitchen Mixer – Mix Two Emojis Free" page_description="Mix two emojis into one sticker with this free Emoji Kitchen mixer. Works in your browser on iPhone, Android or PC. Copy or download, no sign-up." %}
+{% include "kitchen/_social_meta.html" with page_title="Emoji Kitchen Mixer: Mix Two Emojis Free" page_description="Mix two emojis into one sticker with this free Emoji Kitchen mixer. Works in your browser on iPhone, Android or PC. Copy or download, no sign-up." %}
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-3200425003686406" crossorigin="anonymous"></script>
 {% endblock %}
 
@@ -28,7 +28,7 @@
 
   <div class="container hero__inner">
     <h1 class="hero__title animate-up" style="--delay:.08s">
-      Emoji Kitchen Mixer – Mix Two Emojis into <em class="text-gradient">Custom Stickers</em>
+      Emoji Kitchen Mixer: Mix Two Emojis into <em class="text-gradient">Custom Stickers</em>
     </h1>
 
     <div class="hero__intro animate-up" style="--delay:.16s">
@@ -55,6 +55,8 @@
     <a href="#kitchen" class="btn btn--primary btn--hero animate-up" style="--delay:.32s">
       Start Mixing 🍳
     </a>
+
+    {% mood_form input_id="hero-mood-input" %}
 
     <div class="hero__ad" style="margin-top:24px;width:100%;max-width:728px">
       <!-- Display Ads 1 -->
@@ -195,7 +197,7 @@
     <div class="section-head section-head--center animate-up">
       <span class="section-badge">🔥 Trending</span>
       <h2>Explore Popular <a href="/emoji-combos/" style="text-decoration:underline;text-underline-offset:4px;color:inherit">Emoji Combinations</a></h2>
-      <p>Popular mixes often join clear feelings with familiar animals, foods, hearts, stars, or objects — easy to understand and great for quick replies. Want text sets to copy instead? Try <a href="/emoji-combos/love/" style="text-decoration:underline;text-underline-offset:3px">love emoji combos</a>, <a href="/emoji-combos/funny/" style="text-decoration:underline;text-underline-offset:3px">funny emoji combos</a>, <a href="/emoji-combos/pink/" style="text-decoration:underline;text-underline-offset:3px">pink emoji combos</a>, <a href="/emoji-combos/birthday/" style="text-decoration:underline;text-underline-offset:3px">birthday emoji combos</a> or <a href="/emoji-combos/bio/" style="text-decoration:underline;text-underline-offset:3px">emoji combos for bio</a>, and read the <a href="/blog/" style="text-decoration:underline;text-underline-offset:3px">emoji kitchen blog</a> for tips.</p>
+      <p>Popular mixes often join clear feelings with familiar animals, foods, hearts, stars, or objects, which are easy to understand and great for quick replies. Want text sets to copy instead? Try <a href="/emoji-combos/love/" style="text-decoration:underline;text-underline-offset:3px">love emoji combos</a>, <a href="/emoji-combos/funny/" style="text-decoration:underline;text-underline-offset:3px">funny emoji combos</a>, <a href="/emoji-combos/pink/" style="text-decoration:underline;text-underline-offset:3px">pink emoji combos</a>, <a href="/emoji-combos/birthday/" style="text-decoration:underline;text-underline-offset:3px">birthday emoji combos</a> or <a href="/emoji-combos/bio/" style="text-decoration:underline;text-underline-offset:3px">emoji combos for bio</a>, and read the <a href="/blog/" style="text-decoration:underline;text-underline-offset:3px">emoji kitchen blog</a> for tips.</p>
     </div>
 
     <div class="popular-grid">
