@@ -882,11 +882,62 @@ def thanksgiving_blog_is_published():
 
 READY_MADE_TEMPLATE = 'ready_made_emoji_combo.html'
 
-EMOJI_COMBOS_HUB_TITLE = 'Emoji Combos: Browse Categories and Ready Made Sets'
+EMOJI_COMBOS_HUB_TITLE = 'Emoji Combos: Copy & Paste Ideas for Every Mood'
 EMOJI_COMBOS_HUB_META = (
-    'Browse emoji combos by theme: cute, aesthetic, love, funny, pink, birthday and more. '
-    'Open the Ready Made Emoji Combo page to copy sets in one tap.'
+    'Find emoji combos to copy and paste for bios, captions and chats. Browse cute, aesthetic, '
+    'love, funny and Christmas sets, or match a combo to your mood.'
 )
+
+# A few quick picks shown with a Copy button on the hub. The full library lives on /ready-made-emoji-combo/.
+EMOJI_COMBOS_HUB_PICKS = [
+    ('Cute', '🐰🎀✨'),
+    ('Aesthetic', '🪞🕊✨'),
+    ('Love', '💗🔐♾️'),
+    ('Funny', '👀🍿😂'),
+    ('Shy', '🥺👉👈'),
+    ('Study mode', '📚☕🧠'),
+    ('Beach post', '🌊🐚☀️'),
+    ('Christmas', '🎄🎁❄️'),
+]
+
+# Hub-only questions. They must not repeat the FAQ on /ready-made-emoji-combo/ (EMOJI_COMBOS_PAGE_FAQS).
+EMOJI_COMBOS_HUB_FAQS = [
+    {
+        'question': 'What does emoji combo mean?',
+        'answer': 'An emoji combo is a short row of standard emojis placed next to each other so they read as one idea, '
+                  'such as a mood, an inside joke or a profile style. Because every emoji in the row is an ordinary '
+                  'Unicode character, the whole combo copies and pastes like text.',
+    },
+    {
+        'question': 'Where do I find the full list of emoji combos to copy?',
+        'answer': 'Open the Ready Made Emoji Combo page for the complete library with search, filters and a Copy button '
+                  'on every set. For a narrower list, open a theme page such as cute, aesthetic, love or Christmas, or '
+                  'type a word into the emoji combo search.',
+    },
+    {
+        'question': 'How do I paste an emoji combo on iPhone or Android?',
+        'answer': 'Tap Copy on a set, then go to the app where you want it. Press and hold inside the text box and choose '
+                  'Paste. On Android with Gboard you can also open the clipboard from the keyboard toolbar and tap the '
+                  'combo you copied, if the Gboard clipboard is turned on.',
+    },
+    {
+        'question': 'Can I find an emoji combo that matches how I feel?',
+        'answer': 'Yes. Type a feeling or a few words into the mood finder on this page, for example cozy, tired or '
+                  'excited, and it suggests ready-made sets and emoji mashups that fit that mood.',
+    },
+    {
+        'question': 'Are emoji combos the same as Emoji Kitchen stickers?',
+        'answer': 'No. A combo is a row of separate emoji characters that pastes as text. An Emoji Kitchen mashup is a '
+                  'single image that blends two emoji designs. You can make mashups with the free mixer on this site, '
+                  'which is an unofficial fan site and is not made or endorsed by Google.',
+    },
+    {
+        'question': 'Will an emoji combo look the same for the person I send it to?',
+        'answer': 'Usually it shows the same emojis, but each platform draws them in its own style, so colours and '
+                  'shapes can differ between iPhone, Android and Windows. Very new emojis may show as an empty box on '
+                  'an older device, so pick widely supported emojis for important messages.',
+    },
+]
 
 # (url name, label, one-line blurb) for the theme links on the /emoji-combos/ hub.
 EMOJI_COMBOS_HUB_CATEGORIES = [
@@ -917,11 +968,13 @@ def ready_made_emoji_combo_copy(count):
 
 
 def emoji_combos(request):
-    """Short hub: links to the Ready Made Emoji Combo page and to every theme page."""
+    """Hub: guide content, quick picks, FAQ, and links to the Ready Made Emoji Combo page and every theme page."""
     context = {
         'canonical_url': absolute_site_url(reverse('emoji_combos')),
         'page_title': EMOJI_COMBOS_HUB_TITLE,
         'page_meta': EMOJI_COMBOS_HUB_META,
+        'faqs': EMOJI_COMBOS_HUB_FAQS,
+        'picks': [{'label': label, 'emoji': emoji} for label, emoji in EMOJI_COMBOS_HUB_PICKS],
         'categories': [
             {'href': reverse(url_name), 'label': label, 'blurb': blurb}
             for url_name, label, blurb in EMOJI_COMBOS_HUB_CATEGORIES

@@ -16,8 +16,8 @@
   <div class="container container--narrow">
     <div class="section-head section-head--center animate-up">
       <span class="section-badge">🎭 Emoji Combos</span>
-      <h1>Emoji Combos</h1>
-      <p>Pick a theme below, or open the <a href="{% url 'ready_made_emoji_combo' %}">Ready Made Emoji Combo</a> page to browse, search and copy sets in one tap.</p>
+      <h1>Emoji Combos to Copy &amp; Paste for Every Mood</h1>
+      <p>Emoji combos are short rows of emojis that work together to say one thing: a mood, a joke, a season or a profile style. Pick a theme below, or open the <a href="{% url 'ready_made_emoji_combo' %}">Ready Made Emoji Combo</a> page to browse, search and copy sets in one tap.</p>
       <a href="{% url 'ready_made_emoji_combo' %}" class="btn btn--primary" style="margin-top:8px">Open Ready Made Emoji Combo 🎭</a>
       <form method="get" action="{% url 'emoji_combos_search' %}" role="search" style="display:flex;gap:10px;flex-wrap:wrap;justify-content:center;margin-top:18px">
         <input type="search" name="q" class="combo-search" maxlength="60" placeholder="Search every combo by word or emoji…" aria-label="Search emoji combos" autocomplete="off" required style="flex:1 1 260px;max-width:420px" />
@@ -34,9 +34,62 @@
   </div>
 </section>
 
+<!-- ═══════════════════════════════════════════════════ QUICK PICKS ══ -->
+<section class="section" style="padding-top:8px">
+  <div class="container container--narrow">
+    <div class="section-head section-head--center animate-up">
+      <h2>Quick Picks: Emoji Combos to Copy Now</h2>
+      <p>A small taste of the library. Tap <strong>Copy</strong>, then paste the set into a bio, caption, comment or chat.</p>
+    </div>
+    <div class="combo-tool animate-up">
+      <div class="combo-grid" id="hub-picks" data-copy-grid>
+        {% for c in picks %}<div class="combo-card">
+          <span class="combo-card__emoji">{{ c.emoji }}</span>
+          <span class="combo-card__label">{{ c.label }}</span>
+          <button class="combo-card__copy" data-combo="{{ c.emoji }}">📋 Copy</button>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+    <div class="blog-detail__content" style="margin-top:24px">
+      <p>Want more than eight? Here is where to go next on Emoji Kitchen Hub:</p>
+      <ul>
+        <li><a href="{% url 'ready_made_emoji_combo' %}"><strong>Ready Made Emoji Combo</strong></a>: the full copy-and-paste library, with search, filters and a random pick button.</li>
+        <li><a href="{% url 'emoji_combos_mood' %}"><strong>Emoji combo mood finder</strong></a>: describe how you feel in a few words and get sets that match.</li>
+        <li><a href="{% url 'emoji_combos_search' %}"><strong>Emoji combo search</strong></a>: look up every set on the site by a word or by an emoji you already like.</li>
+        <li><strong>Keyword pages</strong>: focused lists such as <a href="/emoji-combos/kawaii/">kawaii</a>, <a href="/emoji-combos/coquette/">coquette</a>, <a href="/emoji-combos/sparkles/">sparkles</a> and <a href="/emoji-combos/heart/">heart</a> emoji combos (all keywords are listed further down).</li>
+        <li><a href="{% url 'emoji_maker' %}"><strong>Emoji maker</strong></a> and the <a href="{% url 'home' %}#kitchen">Emoji Kitchen mixer</a>: turn two emojis into one sticker-style image when a row of characters is not enough.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ WHAT ARE EMOJI COMBOS ══ -->
+<section class="section" style="padding-top:0">
+  <div class="container container--narrow">
+    <div class="blog-detail__content">
+      <h2>What Are Emoji Combos?</h2>
+      <p>An emoji combo (people also write emoji combination or emojicombo) is two, three or four emojis placed side by side so they read as a single message. 🐰🎀✨ says soft and cute without a word. 👀🍿😂 says "I am watching this drama unfold". 📚☕🧠 says you are deep in study mode. Each emoji adds one idea, and the row together adds tone that a single emoji cannot carry on its own.</p>
+      <p>Because every emoji in a combo is a standard Unicode character, a combo behaves like ordinary text. You can copy it, paste it, edit it, put it in a username or a bio, and send it in almost any app. That is the main difference from stickers and GIFs, which are images and only work where the app supports them.</p>
+      <p>People use emoji combos to:</p>
+      <ul>
+        <li><strong>Style a profile.</strong> A short set at the end of an Instagram, TikTok or Discord bio hints at your interests or aesthetic.</li>
+        <li><strong>Finish a caption.</strong> A matching row after a photo caption sets the mood of the post, from beach day to cozy night in.</li>
+        <li><strong>React in a chat.</strong> A quick combo replaces a sentence in group chats and keeps the reply light.</li>
+        <li><strong>Mark an occasion.</strong> Birthdays, anniversaries, Christmas and New Year all have sets that people reuse every year.</li>
+      </ul>
+      <p>The best emoji combos are short and focused. Pick one theme, choose emojis that share a colour or a feeling, and stop before the row turns into noise. The theme and keyword pages below are organised that way, so every set already follows one idea.</p>
+    </div>
+  </div>
+</section>
+
 <!-- ═════════════════════════════════════════════════════ THEME LINKS ══ -->
 <section class="section">
   <div class="container">
+    <div class="section-head section-head--center animate-up">
+      <h2>Emoji Combos for Every Occasion</h2>
+      <p>Each theme page has its own sets, tips and FAQ. Pick the one that fits what you are writing.</p>
+    </div>
     <div class="features-grid">
       {% for c in categories %}
       <a href="{{ c.href }}" class="feature-card animate-up" style="display:block;text-decoration:none;--delay:{{ forloop.counter0 }}0ms">
@@ -44,6 +97,28 @@
         <p>{{ c.blurb }}</p>
       </a>
       {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- ═════════════════════════════════════════════════ OCCASION GUIDE ══ -->
+<section class="section" style="padding-top:0">
+  <div class="container container--narrow">
+    <div class="blog-detail__content">
+      <h2>Which Emoji Combos Fit Which Moment?</h2>
+      <p>Not sure where to start? Match the moment to a page:</p>
+      <ul>
+        <li><strong>Birthdays and celebrations:</strong> <a href="/emoji-combos/birthday/">birthday emoji combos</a> cover wishes, party sets and late greetings, and <a href="/emoji-combos/friendship/">friendship emoji combos</a> suit a best friend's big day.</li>
+        <li><strong>Romance and crushes:</strong> <a href="/emoji-combos/love/">love emoji combos</a> pair hearts with flowers and soft faces, while <a href="/emoji-combos/heart/">heart emoji combos</a> focus on hearts in every colour.</li>
+        <li><strong>Holidays:</strong> <a href="/emoji-combos/christmas/">Christmas emoji combos</a> range from cozy to funny, and the winter and New Year sets live in the <a href="{% url 'ready_made_emoji_combo' %}">ready-made library</a>.</li>
+        <li><strong>Profiles and bios:</strong> <a href="/emoji-combos/bio/">emoji combos for bio</a> are sorted by interest, and <a href="/emoji-combos/aesthetic/">aesthetic emoji combos</a> help a profile keep one look.</li>
+        <li><strong>Jokes and reactions:</strong> <a href="/emoji-combos/funny/">funny emoji combos</a> are made for memes and group chat replies.</li>
+        <li><strong>Low days:</strong> <a href="/emoji-combos/sad/">sad emoji combos</a> cover rainy moods and heartbreak, and <a href="/emoji-combos/dark/">dark emoji combos</a> lean gothic and witchy.</li>
+        <li><strong>Soft and girly styles:</strong> <a href="/emoji-combos/cute/">cute</a>, <a href="/emoji-combos/pink/">pink</a>, <a href="/emoji-combos/coquette/">coquette</a>, <a href="/emoji-combos/ribbon/">ribbon</a> and <a href="/emoji-combos/adorable/">adorable</a> emoji combos all use bows, pastels and gentle faces.</li>
+        <li><strong>Internet aesthetics:</strong> <a href="/emoji-combos/kawaii/">kawaii</a>, <a href="/emoji-combos/cutecore/">cutecore</a>, <a href="/emoji-combos/preppy/">preppy</a> and <a href="/emoji-combos/anime/">anime</a> emoji combos follow the looks people use on TikTok and Pinterest.</li>
+        <li><strong>Animals and places:</strong> <a href="/emoji-combos/bunny/">bunny</a>, <a href="/emoji-combos/cat/">cat</a>, <a href="/emoji-combos/ocean/">ocean</a> and <a href="/emoji-combos/japan/">Japan</a> emoji combos build a set around one subject.</li>
+        <li><strong>A little extra shine:</strong> <a href="/emoji-combos/sparkles/">sparkles</a> and <a href="/emoji-combos/star/">star</a> emoji combos add glow to almost any caption.</li>
+      </ul>
     </div>
   </div>
 </section>
@@ -62,13 +137,84 @@
   </div>
 </section>
 
+<!-- ═════════════════════════════════════════════════════════ HOW TO ══ -->
+<section class="section" style="padding-top:0">
+  <div class="container container--narrow">
+    <div class="blog-detail__content">
+      <h2>How to Copy and Paste Emoji Combos on iPhone, Android and PC</h2>
+      <p>Every set on Emoji Kitchen Hub has a <strong>Copy</strong> button, so you never need to select emojis by hand. After that, pasting depends on your device.</p>
+      <h3>On iPhone and iPad</h3>
+      <ol>
+        <li>Tap <strong>Copy</strong> on the combo you want. The button changes to show it worked.</li>
+        <li>Open Messages, Instagram, TikTok, WhatsApp or any other app.</li>
+        <li>Press and hold inside the text box, then tap <strong>Paste</strong>. If the app asks for permission to paste, allow it.</li>
+      </ol>
+      <h3>On Android</h3>
+      <ol>
+        <li>Tap <strong>Copy</strong> on a set.</li>
+        <li>Switch to the app, press and hold in the text field and choose <strong>Paste</strong>.</li>
+        <li>On some phones the keyboard also shows the copied combo as a suggestion you can tap.</li>
+      </ol>
+      <h3>With Gboard</h3>
+      <p>If you use Gboard, open the clipboard from the keyboard toolbar to see what you copied recently and tap the combo to insert it. You can pin a favourite set there so it stays available. Gboard can also suggest Emoji Kitchen stickers when you pick emojis in supported apps; our guide to <a href="/blog/emoji-kitchen-gboard/">using Emoji Kitchen on Gboard</a> explains how that works.</p>
+      <h3>On Windows and Mac</h3>
+      <p>Click <strong>Copy</strong>, then press Ctrl and V on Windows or Command and V on a Mac to paste. To add single emojis while you type, open the built-in emoji panel: the Windows key and the period key on Windows, or Control, Command and Space on a Mac. The <a href="{% url 'emoji_keyboard_for_pc' %}">emoji keyboard for PC guide</a> covers this step by step.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════════════════════════════════════════════ BUILD YOUR OWN ══ -->
+<section class="section" style="padding-top:0">
+  <div class="container container--narrow">
+    <div class="blog-detail__content">
+      <h2>Tips for Making Your Own Emoji Combo</h2>
+      <p>Ready-made sets are a quick start, but your own combo can say exactly what you mean. A few simple rules help:</p>
+      <ul>
+        <li><strong>Start with the main idea.</strong> Put the emoji that carries the message first, such as 🎂 for a birthday or 🌊 for a beach post, and let the others support it.</li>
+        <li><strong>Keep a colour story.</strong> Emojis that share a colour, like 🍓🎀💗 or 🌿🍵🐢, look planned rather than random.</li>
+        <li><strong>Stay short.</strong> Three emojis is a good default. Longer rows suit decorative dividers, not replies.</li>
+        <li><strong>Check the meaning.</strong> Some emojis carry slang meanings in certain communities, so read your combo the way a stranger might before you post it.</li>
+        <li><strong>Test it where it will live.</strong> Paste it into the real app and look at it once, because emoji artwork differs between iPhone, Android and Windows.</li>
+      </ul>
+      <p>Need single emojis to build with? Copy them from the <a href="{% url 'emoji_keyboard' %}">online emoji keyboard</a>. If you would rather turn two emojis into one picture, use the <a href="{% url 'home' %}#kitchen">Emoji Kitchen mixer</a> or the <a href="{% url 'emoji_maker' %}">emoji maker</a>.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════════════════════ FAQ ══ -->
+<section class="section faq-section">
+  <div class="container">
+    <div class="section-head section-head--center animate-up">
+      <span class="section-badge">❓ Emoji Combos FAQ</span>
+      <h2>Emoji Combos: Questions and Answers</h2>
+      <p>Quick answers about finding, copying and using emoji combos.</p>
+    </div>
+    <div class="faq-list">
+      {% for item in faqs %}
+      <details class="faq-item animate-up" style="--delay:{{ forloop.counter0 }}0ms">
+        <summary class="faq-item__q">
+          <span>{{ item.question }}</span>
+          <span class="faq-item__chevron">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </span>
+        </summary>
+        <div class="faq-item__a"><p>{{ item.answer }}</p></div>
+      </details>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
 <!-- ══════════════════════════════════════════════════════ CLOSING CTA ══ -->
 <section class="section" style="padding-top:0">
   <div class="container container--narrow">
     <div class="section-head section-head--center animate-up">
       <p>Want one image instead of a row of emojis? <a href="{% url 'home' %}#kitchen">Open Emoji Kitchen</a> to mix two emojis into a sticker.</p>
+      <p style="font-size:.9em;opacity:.8">Emoji Kitchen Hub is an unofficial fan site. It is not made, run or endorsed by Google.</p>
     </div>
   </div>
 </section>
+
+<script src="{% static 'kitchen/js/combo_copy.js' %}" defer></script>
 
 {% endblock %}

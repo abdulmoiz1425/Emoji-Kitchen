@@ -1292,7 +1292,7 @@ class KeyboardPagesContentTests(PageTestCase):
 COMBO_PAGE_TEXT = {
     # path: (title, meta description, first sentence of the new introduction)
     '/emoji-combos/': (views.EMOJI_COMBOS_HUB_TITLE, views.EMOJI_COMBOS_HUB_META,
-                       'Pick a theme below, or open the'),
+                       'Emoji combos are short rows of emojis that work together to say one thing'),
     READY_MADE: ('Ready Made Emoji Combo: 100+ Sets to Copy & Paste',
                        'Tap to copy 100+ emoji combos for bios, captions and chats: cute, aesthetic, love, funny and pink sets. Want an image? Mix emojis with Emoji Kitchen.',
                        'Emoji combos are groups of two or more emoji characters used together to express a mood, topic or visual style.'),
@@ -4423,11 +4423,12 @@ class ComboCategoryPageTests(PageTestCase):
         self.assertIn('Ready Made Emoji Combo', _clean(page.title))
         self.assertEqual(page.canonical, COMBO_SITE + READY_MADE)
 
-    def test_hub_is_a_short_page_that_links_to_ready_made_and_every_category(self):
+    def test_hub_links_to_ready_made_and_every_category(self):
         html = self.fetch('/emoji-combos/')
         page = self.parse('/emoji-combos/')
         self.assertEqual(len(page.h1), 1)
-        self.assertEqual(_clean(page.h1[0]), 'Emoji Combos')
+        self.assertEqual(_clean(page.h1[0]), 'Emoji Combos to Copy & Paste for Every Mood')
+        self.assertEqual(_clean(page.title), 'Emoji Combos: Copy & Paste Ideas for Every Mood')
         links = self.body_links('/emoji-combos/')
         for path in [READY_MADE] + COMBOS + MORE_COMBOS:
             self.assertIn(path, links, f'hub does not link to {path}')
@@ -4438,12 +4439,36 @@ class ComboCategoryPageTests(PageTestCase):
 
     def test_hub_no_longer_carries_the_content_that_moved_to_ready_made(self):
         html = self.fetch('/emoji-combos/')
-        for gone in ('id="combo-tool"', 'id="combo-grid"', 'id="combo-search"', 'const COMBOS', 'faq-item',
+        for gone in ('id="combo-tool"', 'id="combo-grid"', 'id="combo-search"', 'const COMBOS',
                      'Popular Emoji Combos to Copy and Paste', 'How to Copy and Use a Combination',
                      'Why Emoji May Look Different After Pasting', 'Plain Combinations vs. Emoji Kitchen Mashups',
                      'Frequently Asked Questions', 'Pick a Combo That Fits Your Message'):
             self.assertNotIn(gone, html)
-        self.assertFalse([b for b in _ld_blocks(html) if b.get('@type') == 'FAQPage'])
+
+    def test_hub_has_its_own_guide_quick_picks_and_faq(self):
+        html = self.fetch('/emoji-combos/')
+        for heading in ('Quick Picks: Emoji Combos to Copy Now', 'What Are Emoji Combos?',
+                        'Emoji Combos for Every Occasion', 'Which Emoji Combos Fit Which Moment?',
+                        'How to Copy and Paste Emoji Combos on iPhone, Android and PC',
+                        'Tips for Making Your Own Emoji Combo', 'Emoji Combos: Questions and Answers'):
+            self.assertIn(heading, html)
+        self.assertEqual(html.count('class="combo-card__copy"'), len(views.EMOJI_COMBOS_HUB_PICKS))
+        self.assertIn('data-copy-grid', html)
+        self.assertIn('kitchen/js/combo_copy.js', html)
+        self.assertEqual(len(re.findall(r'<details class="faq-item[ "]', html)), len(views.EMOJI_COMBOS_HUB_FAQS))
+        faq_blocks = [b for b in _ld_blocks(html) if b.get('@type') == 'FAQPage']
+        self.assertEqual(len(faq_blocks), 1)
+        self.assertEqual([q['name'] for q in faq_blocks[0]['mainEntity']],
+                         [f['question'] for f in views.EMOJI_COMBOS_HUB_FAQS])
+        ready_made_questions = {f['question'] for f in views.EMOJI_COMBOS_PAGE_FAQS}
+        ready_made_answers = {f['answer'] for f in views.EMOJI_COMBOS_PAGE_FAQS}
+        for item in views.EMOJI_COMBOS_HUB_FAQS:
+            self.assertNotIn(item['question'], ready_made_questions)
+            self.assertNotIn(item['answer'], ready_made_answers)
+        for path in ('/emoji-combos/mood/', '/emoji-combos/search/', '/emoji-maker/'):
+            self.assertIn(path, self.body_links('/emoji-combos/'), path)
+        self.assertIn('unofficial fan site', html)
+        self.assertGreater(len(_visible_text(html).split()), 1200)
 
     def test_ready_made_page_keeps_all_the_content_the_hub_used_to_have(self):
         html = self.fetch(READY_MADE)
